@@ -2,7 +2,7 @@
 
 stupid c2 im making
 
-## le todo's
+## todo's
 - [X] handle clients
 - [ ] a protocol with which clients connect with the server
 - [ ] basic commands
