@@ -1,35 +1,22 @@
 import asyncdispatch, asyncnet, threadpool
+import strutils, terminal
 
-import strutils
-
-type
-  Client = ref object
-    socket: AsyncSocket
-    netAddr: string
-    id: int
-    connected: bool
-
-  Server = ref object
-    socket: AsyncSocket
-    clients: seq[Client]
+import types, logging
 
 proc newServer(): Server =
   Server(socket: newAsyncSocket(), clients: @[])
-
-proc `$`(client: Client): string =
-  $client.id & "(" & client.netAddr & ")"
 
 proc processMessages(server: Server, client: Client) {.async.} =
   while true:
     let line = await client.socket.recvLine()
 
     if line.len == 0:
-      echo "[-]" ,client, " disconnected!"
+      
+      cDisconnected(client)
+      
       client.connected = false
       client.socket.close()
       return
-
-    # echo(client, " sent: ", line)
 
     if line == "connect":
       await client.socket.send("hi\r\n")
@@ -41,18 +28,21 @@ proc processMessages(server: Server, client: Client) {.async.} =
 proc loop(server: Server, port = 12345) {.async.} =
   server.socket.bindAddr(port.Port)
   server.socket.listen()
-  echo("Listening on localhost:", port)
+  
+  infoLog "listening on localhost:" & intToStr(port)
   
   while true:
     let (netAddr, clientSocket) = await server.socket.acceptAddr()
-    echo("[+] new connection from ", netAddr)
-
+    
     let client = Client(
       socket: clientSocket,
       netAddr: netAddr,
       id: server.clients.len,
       connected: true
     )
+
+    cConnected(client)
+
     server.clients.add(client)
     asyncCheck processMessages(server, client)
 
@@ -75,7 +65,10 @@ proc procStdin(server: Server) {.async.} =
 
       if cmd == "clients":
         for client in server.clients:
-          echo client
+          if client.connected:
+            stdout.styledWriteLine fgGreen, "[+] ", $client, " (alive)", fgWhite
+          else:
+            stdout.styledWriteLine fgRed, "[-] ", $client, " (dead)", fgWhite
       if cmd.startsWith("switch"):
         handlingClient = parseInt(cmd.split(" ")[1])
       if cmd == "back":
@@ -88,7 +81,7 @@ proc procStdin(server: Server) {.async.} =
 
 when isMainModule:
   var server = newServer()
-  echo("[!] server initialized")
+  infoLog "server initialized"
   
   asyncCheck loop(server)
   asyncCheck procStdin(server)
