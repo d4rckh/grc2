@@ -6,10 +6,17 @@ type
     netAddr*: string
     id*: int
     connected*: bool
+    # shit
+    loaded*: bool
+    hostname*: string
 
-  Server* = ref object
+  C2Server* = ref object
     socket*: AsyncSocket
     clients*: seq[Client]
 
 proc `$`*(client: Client): string =
-  $client.id & "(" & client.netAddr & ")"
+  if not client.loaded:
+    $client.id & "(" & client.netAddr & ")"
+  else:
+    $client.id & "(" & client.netAddr & "):\n\tHostname: " & client.hostname
+    

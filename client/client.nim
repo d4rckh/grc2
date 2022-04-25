@@ -1,4 +1,6 @@
 import net
+import modules
+import strformat
 
 let client: Socket = newSocket()
 client.connect("127.0.0.1", Port(12345))
@@ -11,6 +13,9 @@ proc receiveCommands(client: Socket) =
         if line.len == 0:
             echo "server down"
             quit(0)
+        echo line
+        if line == "hi":
+            client.send(&"INFO:{hostname()}\r\n")
 
 receiveCommands(client)
   
