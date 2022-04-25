@@ -10,7 +10,17 @@ nim c2
     - [X] `switch [client id]` - switch to a client
     - [X] `info` - show information about a client
     - [X] `shell` - run commands 
+- [ ] more advanced commands
+    - [ ] screenshot
+    - [ ] file upload and download
+    - [ ] get current running desktop apps
+    - [ ] getsystem
+    - [ ] dumpsam
+    - [ ] key logging
+    - [ ] webcam shot
+    - [ ] msg boxes
 - [ ] get more info about clients (e.g. are we running as admin?)
+- [ ] persistence methods
 
 ## screenshots
 
