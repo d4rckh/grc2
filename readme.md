@@ -32,3 +32,7 @@ nim c2
 ## screenshots
 
 ![no](https://media.discordapp.net/attachments/841333778487312425/968225619999613048/unknown.png)
+
+### discuss 
+
+[Discord](https://discord.gg/kCjkfQEB)
