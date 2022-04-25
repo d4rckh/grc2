@@ -5,8 +5,9 @@ stupid c2 im making
 ## todo's
 - [X] handle clients
 - [ ] a protocol with which clients connect with the server
-- [ ] basic commands
+- [X] basic commands
     - [X] `clients` - list clients
     - [X] `switch [client id]` - switch to a client
-    - [ ] `info` - show information about a client
-    - [ ] `shell` - run commands 
+    - [X] `info` - show information about a client
+    - [X] `shell` - run commands 
+- [ ] get more info about clients (e.g. are we running as admin?)
