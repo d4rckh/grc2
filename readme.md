@@ -21,6 +21,13 @@ nim c2
     - [ ] msg boxes
 - [ ] get more info about clients (e.g. are we running as admin?)
 - [ ] persistence methods
+- [ ] http communication
+- [ ] dns communication
+- [ ] GUI (desktop app / web app)
+- [ ] implant generation
+- [ ] implement a way to add multiple listeners
+- [ ] find fancy names for clients, listeners, etc
+- please suggest cool stuff in issues or make a PR editing this list
 
 ## screenshots
 
