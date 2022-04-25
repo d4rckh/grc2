@@ -1,6 +1,14 @@
 import terminal
+import base64
+import strutils
 
 import types
+
+proc prompt*(handlingClient: int, server: C2Server) = 
+  var menu: string = "main"
+  if handlingClient > -1:
+    menu = "client:"&intToStr(handlingClient)
+  stdout.styledWrite fgBlue, "(", menu ,")", fgRed, " nimc2 > " , fgWhite
 
 proc infoLog*(msg: string) =
     stdout.styledWriteLine fgBlue, "[!] ", msg, fgWhite
@@ -10,3 +18,8 @@ proc cConnected*(client: Client) =
 
 proc cDisconnected*(client: Client) =
     stdout.styledWriteLine fgRed, "[-] ", $client, " disconnected", fgWhite
+
+proc logClientOutput*(client: Client, category: string, b64: string) =
+    for line in decode(b64).split("\n"):
+        if not ( line == "" ): 
+            stdout.styledWriteLine fgGreen, "[=] [Client: ", $client.id, "] ", "[", category, "] ", fgWhite, line

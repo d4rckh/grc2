@@ -18,5 +18,10 @@ proc `$`*(client: Client): string =
   if not client.loaded:
     $client.id & "(" & client.netAddr & ")"
   else:
-    $client.id & "(" & client.netAddr & "):\n\tHostname: " & client.hostname
-    
+    $client.id & "(" & client.netAddr & ")(" & client.hostname & ")"
+
+proc `@`*(client: Client): string =
+  if not client.loaded:
+    $client & "(" & (if client.connected: "alive" else: "dead") & ")"
+  else:
+    $client & " (" & (if client.connected: "alive" else: "dead") & ") INITIALIZED"
