@@ -1,7 +1,6 @@
-import asyncdispatch, asyncnet, threadpool
-import strutils, terminal
-
-import asyncdispatch, asynchttpserver, ws, asyncfutures
+import asyncdispatch, asyncnet, asyncdispatch, asynchttpserver, asyncfutures
+import threadpool
+import strutils, terminal, ws
 
 import types, logging, cli
 

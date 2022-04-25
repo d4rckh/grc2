@@ -1,6 +1,6 @@
 # nimc2
 
-stupid c2 im making
+nim c2
 
 ## todo's
 - [X] handle clients
@@ -14,4 +14,4 @@ stupid c2 im making
 
 ## screenshots
 
-![no](https://media.discordapp.net/attachments/841333778487312425/968214790310875197/unknown.png)
+![no](https://media.discordapp.net/attachments/841333778487312425/968225619999613048/unknown.png)

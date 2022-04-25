@@ -1,6 +1,4 @@
-import terminal
-import base64
-import strutils
+import terminal, base64, strutils
 
 import types
 

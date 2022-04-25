@@ -1,10 +1,6 @@
-import net
+import net, strformat, strutils, osproc, os, base64
+
 import modules
-import strformat
-import strutils
-import osproc
-import os
-import base64
 
 let client: Socket = newSocket()
 client.connect("127.0.0.1", Port(12345))
