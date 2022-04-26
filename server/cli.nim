@@ -6,7 +6,7 @@ import listeners/[tcp]
 import types, logging
 
 proc procStdin*(server: C2Server) {.async.} =
-  var handlingClient: Client
+  var handlingClient: C2Client
 
   prompt(handlingClient, server)
   var messageFlowVar = spawn stdin.readLine()

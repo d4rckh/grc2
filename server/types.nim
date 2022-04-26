@@ -1,4 +1,4 @@
-import asyncnet, asyncfutures
+import asyncfutures, asyncnet
 
 type
   TCPSocket* = ref object
@@ -12,8 +12,10 @@ type
     listeningIP*: string
     id*: int
     sockets*: seq[TCPSocket]
+    running*: bool
 
-  Client* = ref object
+type
+  C2Client* = ref object
     # socket*: AsyncSocket
     listenerType*: string
     listenerId*: int
@@ -27,14 +29,14 @@ type
     server*: C2Server
 
   C2Server* = ref object
-    clients*: seq[Client]
+    clients*: seq[C2Client]
     # listeners
     tcpListeners*: seq[TCPListener]
     # futures
     clRespFuture*: ref Future[void]
     svStartFuture*: ref Future[void]
 
-proc getTcpSocket*(client: Client): TCPSocket =
+proc getTcpSocket*(client: C2Client): TCPSocket =
   if client.listenerType == "tcp":
     let tcpSockets = client.server.tcpListeners[client.listenerId].sockets
     var clientSocket: TCPSocket
@@ -47,22 +49,20 @@ proc getTcpSocket*(client: Client): TCPSocket =
       return clientSocket
   return nil
 
-proc `$`*(client: Client): string =
+proc `$`*(tcpListener: TCPListener): string =
+  "TCP" & $tcpListener.id & "(" & $tcpListener.listeningIP & ":" & $tcpListener.port & ")"
+
+proc `@`*(tcpListener: TCPListener): string =
+  "TCP" & $tcpListener.id & "(" & $tcpListener.listeningIP & ":" & $tcpListener.port & ") <- " & $len(tcpListener.sockets) & " connected sockets"
+
+proc `$`*(client: C2Client): string =
   let tcpSocket: TCPSocket = getTcpSocket(client)
   if not client.loaded:
     $client.id & "(" & tcpSocket.netAddr & ")"
   else:
     $client.id & "(" & tcpSocket.netAddr & ")(" & client.hostname & ")"
 
-proc `$`*(tcpListener: TCPListener): string =
-  "TCP(" & $tcpListener.listeningIP & ":" & $tcpListener.port & ")"
-
-# detailed info about something
-
-proc `@`*(tcpListener: TCPListener): string =
-  "TCP(" & $tcpListener.listeningIP & ":" & $tcpListener.port & ") <- " & $len(tcpListener.sockets) & " connected sockets"
-
-proc `@`*(client: Client): string =
+proc `@`*(client: C2Client): string =
   if not client.loaded:
     $client & "(" & (if client.connected: "alive" else: "dead") & ")"
   else:
