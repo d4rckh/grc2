@@ -1,28 +1,65 @@
-import asyncnet
+import asyncnet, asyncfutures
 
 type
-  Client* = ref object
+  TCPSocket* = ref object
     socket*: AsyncSocket
     netAddr*: string
+    id*: int
+
+  TCPListener* = ref object
+    socket*: AsyncSocket
+    port*: int
+    listeningIP*: string
+    id*: int
+    sockets*: seq[TCPSocket]
+
+  Client* = ref object
+    # socket*: AsyncSocket
+    listenerType*: string
+    listenerId*: int
     id*: int
     connected*: bool
     # shit
     loaded*: bool
+    isAdmin*: bool
     hostname*: string
     username*: string
+    server*: C2Server
 
   C2Server* = ref object
-    socket*: AsyncSocket
     clients*: seq[Client]
+    # listeners
+    tcpListeners*: seq[TCPListener]
+    # futures
+    clRespFuture*: ref Future[void]
+    svStartFuture*: ref Future[void]
+
+proc getTcpSocket*(client: Client): TCPSocket =
+  if client.listenerType == "tcp":
+    let tcpSockets = client.server.tcpListeners[client.listenerId].sockets
+    var clientSocket: TCPSocket
+    for tcpSocket in tcpSockets:
+      if tcpSocket.id == client.id:
+        clientSocket = tcpSocket
+    if clientSocket.isNil():
+      echo "Could not find TCP socket for client " & $client.id
+    else:
+      return clientSocket
 
 proc `$`*(client: Client): string =
+  let tcpSocket: TCPSocket = getTcpSocket(client)
   if not client.loaded:
-    $client.id & "(" & client.netAddr & ")"
+    $client.id & "(" & tcpSocket.netAddr & ")"
   else:
-    $client.id & "(" & client.netAddr & ")(" & client.hostname & ")"
+    $client.id & "(" & tcpSocket.netAddr & ")(" & client.hostname & ")"
+
+proc `$`*(tcpListener: TCPListener): string =
+  "TCP " & $tcpListener.listeningIP & ":" & $tcpListener.port & " <- " & $len(tcpListener.sockets) & " connected sockets"
 
 proc `@`*(client: Client): string =
   if not client.loaded:
     $client & "(" & (if client.connected: "alive" else: "dead") & ")"
   else:
-    $client & " (" & (if client.connected: "alive" else: "dead") & ") INITIALIZED\n\tUsername: " & client.username
+    $client & " (" & (if client.connected: "alive" else: "dead") & ") INITIALIZED\n\t" & 
+      "Username: " & client.username & "\n\t" &
+      "Is Admin: " & $client.isAdmin

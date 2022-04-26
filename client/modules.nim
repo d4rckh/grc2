@@ -1,9 +1,14 @@
 import winim/[inc/lm, lean]
+import os
 import nativesockets
 
+proc hostname*(): string =
+    getHostname()
+
+proc areWeAdmin*(): bool =
+    isAdmin()
+
 when defined(windows):
-    proc hostname*(): string =
-        getHostname()
     proc username*(): string =
         var
             buffer = newString(UNLEN + 1)

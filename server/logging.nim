@@ -2,14 +2,17 @@ import terminal, base64, strutils
 
 import types
 
-proc prompt*(handlingClient: int, server: C2Server) = 
+proc prompt*(client: Client, server: C2Server) = 
   var menu: string = "main"
-  if handlingClient > -1:
-    menu = "client:"&intToStr(handlingClient)
-  stdout.styledWrite fgBlue, "(", menu ,")", fgRed, " nimc2 > " , fgWhite
+  if not client.isNil():
+    if not client.loaded:
+        menu = "client:" & $client.id
+    else:
+        menu = client.username & (if client.isAdmin: "*" else: "") & "@" & client.hostname
+  stdout.styledWrite "(", menu ,")", fgRed, " nimc2 > " , fgWhite
 
 proc infoLog*(msg: string) =
-    stdout.styledWriteLine fgBlue, "[!] ", msg, fgWhite
+    stdout.styledWriteLine fgCyan, "[!] ", msg, fgWhite
 
 proc cConnected*(client: Client) =
     stdout.styledWriteLine fgGreen, "[+] ", $client, " connected", fgWhite

