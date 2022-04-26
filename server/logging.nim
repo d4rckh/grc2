@@ -12,7 +12,7 @@ proc prompt*(client: Client, server: C2Server) =
   stdout.styledWrite "(", menu ,")", fgRed, " nimc2 > " , fgWhite
 
 proc infoLog*(msg: string) =
-    stdout.styledWriteLine fgCyan, "[!] ", msg, fgWhite
+    stdout.styledWriteLine fgBlue, "[!] ", msg, fgWhite
 
 proc cConnected*(client: Client) =
     stdout.styledWriteLine fgGreen, "[+] ", $client, " connected", fgWhite
