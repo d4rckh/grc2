@@ -42,9 +42,10 @@ proc getTcpSocket*(client: Client): TCPSocket =
       if tcpSocket.id == client.id:
         clientSocket = tcpSocket
     if clientSocket.isNil():
-      echo "Could not find TCP socket for client " & $client.id
+      return nil
     else:
       return clientSocket
+  return nil
 
 proc `$`*(client: Client): string =
   let tcpSocket: TCPSocket = getTcpSocket(client)
@@ -54,7 +55,12 @@ proc `$`*(client: Client): string =
     $client.id & "(" & tcpSocket.netAddr & ")(" & client.hostname & ")"
 
 proc `$`*(tcpListener: TCPListener): string =
-  "TCP " & $tcpListener.listeningIP & ":" & $tcpListener.port & " <- " & $len(tcpListener.sockets) & " connected sockets"
+  "TCP(" & $tcpListener.listeningIP & ":" & $tcpListener.port & ")"
+
+# detailed info about something
+
+proc `@`*(tcpListener: TCPListener): string =
+  "TCP(" & $tcpListener.listeningIP & ":" & $tcpListener.port & ") <- " & $len(tcpListener.sockets) & " connected sockets"
 
 proc `@`*(client: Client): string =
   if not client.loaded:

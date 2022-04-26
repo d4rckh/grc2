@@ -8,8 +8,8 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: Client) {.a
     let line = await tcpSocket.socket.recvLine()
     
     let args = line.split(":")
-    let cmd = args[0]
     let argsn = len(args)
+    let cmd = args[0]
 
     if line.len == 0:
       cDisconnected(client)  
@@ -52,6 +52,7 @@ proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.a
 
     let client = Client(
       listenerType: "tcp",
+      listenerId: id,
       id: server.clients.len,
       connected: true,
       loaded: false,
@@ -71,3 +72,4 @@ proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.a
 
     cConnected(client)
     asyncCheck processMessages(server, tcpSocket, client)
+

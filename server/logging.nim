@@ -14,6 +14,9 @@ proc prompt*(client: Client, server: C2Server) =
 proc infoLog*(msg: string) =
     stdout.styledWriteLine fgBlue, "[!] ", msg, fgWhite
 
+proc errorLog*(msg: string) =
+    stdout.styledWriteLine fgRed, "[!] ", msg, fgWhite
+
 proc cConnected*(client: Client) =
     stdout.styledWriteLine fgGreen, "[+] ", $client, " connected", fgWhite
 
