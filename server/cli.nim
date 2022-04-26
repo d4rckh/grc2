@@ -64,7 +64,7 @@ proc procStdin*(server: C2Server) {.async.} =
             for client in server.clients:
                 if client.id == parseInt(args[1]):
                     handlingClient = client
-            if handlingClient.id != parseInt(args[1]):
+            if handlingClient.isNil() or handlingClient.id != parseInt(args[1]):
                 infoLog "client not found"
         of "info":
             echo @handlingClient
