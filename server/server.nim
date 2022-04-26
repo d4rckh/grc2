@@ -1,7 +1,4 @@
-import asyncdispatch, asyncnet, asyncdispatch, asynchttpserver, asyncfutures
-import threadpool
-import strutils, terminal, ws
-
+import asyncdispatch, asyncfutures
 import types, logging, cli
 
 infoLog "initializing c2 server"
