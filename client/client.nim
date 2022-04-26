@@ -29,6 +29,7 @@ proc receiveCommands(client: Socket) =
                 client.send(&"OUTPUT:CMD:{encode(output)}\r\n")
             except OSError:
                 client.send(&"OUTPUT:CMD:{encode(getCurrentExceptionMsg())}\r\n")
+
 receiveCommands(client)
   
 client.close()
