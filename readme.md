@@ -24,13 +24,13 @@ t obe used only for educational purposes
     - [X] `shell` - run commands 
 - [ ] more advanced commands
     - [ ] screenshot
-    - [ ] file upload and download
+    - [x] file download/read
     - [ ] get current running desktop apps
     - [ ] getsystem
     - [ ] dumpsam
     - [ ] key logging
     - [ ] webcam shot
-    - [ ] msg boxes
+    - [x] msg boxes
 - [ ] get more info about clients (e.g. are we running as admin?)
 - [ ] persistence methods
 - [ ] http communication

