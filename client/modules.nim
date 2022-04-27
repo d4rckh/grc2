@@ -1,4 +1,6 @@
-import winim/[inc/lm, lean]
+when defined(windows):
+    import winim/[inc/lm, lean]
+
 import os
 import nativesockets
 
@@ -17,6 +19,11 @@ when defined(windows):
         buffer.setLen(cb - 1)
         buffer
     proc msgbox*(title: string, caption: string): bool =
-        echo "hi"
         MessageBox(0, title, caption, 0)
         return true
+
+when defined(linux):
+    proc msgbox*(title: string, caption: string): bool =
+        return false
+    proc username*(): string =
+        return "placeholder"

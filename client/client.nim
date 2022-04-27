@@ -28,7 +28,7 @@ proc receiveCommands(client: Socket) =
             of "shell":
                 let toExec = jsonNode["shellCmd"].getStr()
                 try:
-                    var (output, _) = execCmdEx(toExec, workingDir = getCurrentDir())
+                    let (output, _) = execCmdEx(toExec, workingDir = getCurrentDir())
                     client.sendOutput("CMD", output)
                 except OSError:
                     client.sendOutput("CMD", getCurrentExceptionMsg())
