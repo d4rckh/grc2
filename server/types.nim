@@ -36,6 +36,7 @@ type
     clRespFuture*: ref Future[void]
     svStartFuture*: ref Future[void]
 
+
 proc getTcpSocket*(client: C2Client): TCPSocket =
   if client.listenerType == "tcp":
     let tcpSockets = client.server.tcpListeners[client.listenerId].sockets

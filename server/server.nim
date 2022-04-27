@@ -12,4 +12,6 @@ var server = C2Server(
 
 asyncCheck procStdin(server)
 
-runForever()
+try:
+  runForever()
+except OSError: discard

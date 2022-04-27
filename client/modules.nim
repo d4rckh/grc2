@@ -16,3 +16,7 @@ when defined(windows):
         GetUserNameA(&buffer, &cb)
         buffer.setLen(cb - 1)
         buffer
+    proc msgbox*(title: string, caption: string): bool =
+        echo "hi"
+        MessageBox(0, title, caption, 0)
+        return true
