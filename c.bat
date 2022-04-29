@@ -1,2 +1,2 @@
 @echo off
-nim c -r --threads:on .\client\client.nim
+nim c -r -d:client .\client\client.nim
