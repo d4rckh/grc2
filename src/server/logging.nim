@@ -15,7 +15,8 @@ proc infoLog*(msg: string) =
     stdout.styledWriteLine fgBlue, "[!] ", msg, fgWhite
 
 proc errorLog*(msg: string) =
-    stdout.styledWriteLine fgRed, "[!] ", msg, fgWhite
+    for line in msg.split("\n"):
+        stdout.styledWriteLine fgRed, "[!] ", line, fgWhite
 
 proc cConnected*(client: C2Client) =
     stdout.styledWriteLine fgGreen, "[+] ", $client, " connected", fgWhite

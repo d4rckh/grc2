@@ -6,9 +6,7 @@ infoLog "initializing c2 server"
 
 let server = C2Server(
   tcpListeners: @[], 
-  clients: @[],
-  clRespFuture: new (ref Future[void]),
-  svStartFuture: new (ref Future[void])
+  clients: @[]
 )
 
 asyncCheck server.createNewTcpListener(1234, "127.0.0.1")

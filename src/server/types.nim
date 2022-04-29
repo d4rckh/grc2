@@ -1,4 +1,8 @@
-import asyncfutures, asyncnet
+import asyncfutures, asyncnet, json
+
+type
+  TaskStatus* = enum
+    TaskCompleted, TaskNotCompleted, TaskCompletedWithError
 
 
 type
@@ -33,16 +37,15 @@ type
     client*: C2Client
     id*: int
     action*: string
-    arguments*: seq[string]
+    status*: TaskStatus
+    arguments*: JsonNode
+    future*: ref Future[void]
 
   C2Server* = ref object
     clients*: seq[C2Client]
     # listeners
     tcpListeners*: seq[TCPListener]
     tasks*: seq[Task]
-    # futures
-    clRespFuture*: ref Future[void]
-    svStartFuture*: ref Future[void]
 
 proc getTcpSocket*(client: C2Client): TCPSocket =
   if client.listenerType == "tcp":
@@ -56,6 +59,7 @@ proc getTcpSocket*(client: C2Client): TCPSocket =
     else:
       return clientSocket
   return nil
+
 
 proc `$`*(tcpListener: TCPListener): string =
   "TCP" & $tcpListener.id & "(" & $tcpListener.listeningIP & ":" & $tcpListener.port & ")"
@@ -77,3 +81,25 @@ proc `@`*(client: C2Client): string =
     $client & " (" & (if client.connected: "alive" else: "dead") & ") INITIALIZED\n\t" & 
       "Username: " & client.username & "\n\t" &
       "Is Admin: " & $client.isAdmin
+
+proc `$`*(task: Task): string =
+  var x = "(" & $task.id & ")" & task.action & " ["
+
+  case task.status:
+    of TaskCompleted:
+      x &= "Completed]"
+    of TaskNotCompleted:
+      x &= "Pending]"
+    of TaskCompletedWithError:
+      x &= "Completed w/ Error]"
+
+  x
+
+proc markAsCompleted*(task: Task, response: JsonNode) = 
+  if response["error"].getStr() == "":
+    task.status = TaskCompleted
+  else:
+    task.status = TaskCompletedWithError
+  if not task.future[].isNil():
+    task.future[].complete()
+    task.future[] = nil

