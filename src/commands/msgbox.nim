@@ -6,7 +6,7 @@ when defined(client):
     import ../client/communication
     import net
     when defined(windows):
-        import winim/[inc/lm, lean]
+        import winim/[lean]
 
 when defined(server):
     proc sendTask*(client: C2Client, title: string, caption: string): Future[Task] {.async.} =

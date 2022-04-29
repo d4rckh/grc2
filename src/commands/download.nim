@@ -3,7 +3,7 @@ when defined(server):
     import ../server/[types, communication]
 
 when defined(client):
-    import osproc, os, net, base64
+    import net, base64
     import ../client/communication
 
 when defined(server):

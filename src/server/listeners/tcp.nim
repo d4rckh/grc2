@@ -13,7 +13,7 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {
       return
       
     let response = parseJson(decode(line))
-    echo response
+
     let error = response["error"].getStr() 
     let taskId = response["taskId"].getInt() 
 
