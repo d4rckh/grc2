@@ -1,5 +1,6 @@
 import asyncfutures, asyncnet
 
+
 type
   TCPSocket* = ref object
     socket*: AsyncSocket
@@ -28,14 +29,20 @@ type
     username*: string
     server*: C2Server
 
+  Task* = ref object
+    client*: C2Client
+    id*: int
+    action*: string
+    arguments*: seq[string]
+
   C2Server* = ref object
     clients*: seq[C2Client]
     # listeners
     tcpListeners*: seq[TCPListener]
+    tasks*: seq[Task]
     # futures
     clRespFuture*: ref Future[void]
     svStartFuture*: ref Future[void]
-
 
 proc getTcpSocket*(client: C2Client): TCPSocket =
   if client.listenerType == "tcp":

@@ -1,2 +1,6 @@
 @echo off
-nim c -r --threads:on -d:server .\server\server.nim
+cd src
+cd server
+nim c -r server.nim
+cd ..
+cd ..

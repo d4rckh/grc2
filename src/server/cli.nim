@@ -3,8 +3,9 @@ import strutils, terminal
 
 import listeners/[tcp]
 import communication
-import ../commands/[shell, msgbox, download]
+import ../utils
 
+importCommands() # import ../commands/[shell, msgbox, download]
 import types, logging
 
 proc procStdin*(server: C2Server) {.async.} =

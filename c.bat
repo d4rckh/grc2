@@ -1,2 +1,6 @@
 @echo off
-nim c -r -d:client .\client\client.nim
+cd src
+cd client
+nim c -r client.nim
+cd ..
+cd ..

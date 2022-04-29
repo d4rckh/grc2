@@ -21,4 +21,4 @@ when defined(client):
             let contents: string = readFile(path)
             client.sendFile(path, encode(contents))
         except IOError:
-            client.sendOutput("ERR", "File " & path & " does not exist!") 
+            client.sendOutput("ERR", "File " & path & " does not exist!")

