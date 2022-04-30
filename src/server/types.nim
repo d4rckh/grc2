@@ -62,10 +62,10 @@ proc getTcpSocket*(client: C2Client): TCPSocket =
 
 
 proc `$`*(tcpListener: TCPListener): string =
-  "TCP" & $tcpListener.id & "(" & $tcpListener.listeningIP & ":" & $tcpListener.port & ")"
+  "TCP:" & $tcpListener.id & " (" & $tcpListener.listeningIP & ":" & $tcpListener.port & ")"
 
 proc `@`*(tcpListener: TCPListener): string =
-  "TCP" & $tcpListener.id & "(" & $tcpListener.listeningIP & ":" & $tcpListener.port & ")" 
+  $tcpListener
 
 proc `$`*(client: C2Client): string =
   let tcpSocket: TCPSocket = getTcpSocket(client)

