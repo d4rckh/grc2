@@ -2,21 +2,13 @@
 
 t obe used only for educational purposes
 
-## usage
+## Installation & Usage
 
-1. start a tcp listener: `startlistener TCP 127.0.0.1 1234`
-    - then you can view your listeners using `listeners`
-2. run the client, change the ip address and port if necessary 
-3. verify that it connected using `clients` and `clientlisteners`
-4. switch to the client using `interact 0` (aka. interact with it)
-5. run commands
-    - `info`
-    - `shell whoami`
-    - `cmd dir`
+Checkout the [wiki](https://github.com/d4rckh/nimc2/wiki)
 
-## todo's
+## Todo's
 - [X] handle clients
-- [ ] a protocol with which clients connect with the server
+- [X] a protocol with which clients connect with the server
 - [X] basic commands
     - [X] `clients` - list clients
     - [X] `switch [client id]` - switch to a client

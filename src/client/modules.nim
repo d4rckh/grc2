@@ -26,4 +26,4 @@ when defined(linux):
     proc msgbox*(title: string, caption: string): bool =
         return false
     proc username*(): string =
-        return "placeholder"
+        getEnv("USERNAME", getEnv("USER", "[no username envvar found]"))

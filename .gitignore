@@ -1,4 +1,4 @@
 *exe
 *dll
-implant
+./implant
 src/server
