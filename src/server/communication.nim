@@ -16,7 +16,7 @@ proc sendClientTask*(client: C2Client, taskName: string, jData: JsonNode = nil):
         action: taskName,
         status: TaskNotCompleted,
         arguments: data,
-        future:  new (ref Future[void])
+        future: new (ref Future[void])
     )
 
     client.server.tasks.add(createdTask)

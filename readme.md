@@ -36,7 +36,7 @@ t obe used only for educational purposes
 - [ ] http communication
 - [ ] dns communication
 - [ ] GUI (desktop app / web app)
-- [ ] implant generation
+- [X] implant generation
 - [X] implement a way to add multiple listeners
 - [ ] find fancy names for clients, listeners, etc
 - please suggest cool stuff in issues or make a PR editing this list
