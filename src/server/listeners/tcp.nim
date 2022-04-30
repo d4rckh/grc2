@@ -57,7 +57,7 @@ proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.a
   tcpServer.socket.bindAddr(port.Port, ip)
   tcpServer.socket.listen()
   
-  infoLog "listening on localhost:" & intToStr(port)
+  infoLog "listening on " & tcpServer.listeningIP & ":" & $tcpServer.port
   
   while tcpServer.running:
     let 
