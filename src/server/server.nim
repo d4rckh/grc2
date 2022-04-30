@@ -3,7 +3,12 @@ import types, logging, cli
 
 infoLog "initializing c2 server"
 
-let server = C2Server()
+let server = C2Server(
+  cli: C2Cli(
+    handlingClient: nil,
+    shellMode: false 
+  )
+)
 
 # when defined(debug):
 import listeners/tcp

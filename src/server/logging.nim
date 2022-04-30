@@ -2,14 +2,18 @@ import terminal, base64, strutils
 
 import types
 
-proc prompt*(client: C2Client, cmdMode: bool, server: C2Server) = 
+proc prompt*(server: C2Server) = 
+  if not server.cli.initialized: return
   var menu: string = "main"
+  let client = server.cli.handlingClient
+  let shellMode = server.cli.shellMode
   if not client.isNil():
     if not client.loaded:
-      menu = "client:" & $client.id
+      menu = "client:" & $(client.id)
     else:
       menu = client.username & (if client.isAdmin: "*" else: "") & "@" & client.hostname
-  stdout.styledWrite fgDefault, "(", menu ,")", fgRed, " nimc2 " & (if cmdMode: "$" else: ">") & " " , fgDefault
+  stdout.styledWrite fgDefault, "(", menu ,")", (if shellMode: fgGreen else: fgRed), " nimc2 " & (if shellMode: "$" else: ">") & " " , fgDefault
+  stdout.flushFile()
 
 proc infoLog*(msg: string) =
   stdout.styledWriteLine fgBlue, "[!] ", msg, fgDefault
@@ -20,9 +24,11 @@ proc errorLog*(msg: string) =
 
 proc cConnected*(client: C2Client) =
   stdout.styledWriteLine fgGreen, "[+] ", $client, " connected", fgDefault
+  prompt(client.server)
 
 proc cDisconnected*(client: C2Client) =
   stdout.styledWriteLine fgRed, "[-] ", $client, " disconnected", fgDefault
+  prompt(client.server)
 
 proc logClientOutput*(client: C2Client, category: string, b64: string) =
   for line in decode(b64).split("\n"):

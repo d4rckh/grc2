@@ -9,7 +9,7 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {
     if line.len == 0:
       client.connected = false
       tcpSocket.socket.close()
-      cDisconnected(client)  
+      cDisconnected(client)
       return
       
     let response = parseJson(decode(line))
@@ -59,6 +59,7 @@ proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.a
   
   infoLog "listening on " & tcpServer.listeningIP & ":" & $tcpServer.port
   
+
   while tcpServer.running:
     let 
       (netAddr, clientSocket) = await tcpServer.socket.acceptAddr()

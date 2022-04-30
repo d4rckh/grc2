@@ -19,6 +19,7 @@ type
     sockets*: seq[TCPSocket]
     running*: bool
 
+
 type
   C2Client* = ref object
     # socket*: AsyncSocket
@@ -33,6 +34,11 @@ type
     username*: string
     server*: C2Server
 
+  C2Cli* = ref object
+    handlingClient*: C2Client
+    shellMode*: bool
+    initialized*: bool
+
   Task* = ref object
     client*: C2Client
     id*: int
@@ -43,6 +49,7 @@ type
 
   C2Server* = ref object
     clients*: seq[C2Client]
+    cli*: C2Cli
     # listeners
     tcpListeners*: seq[TCPListener]
     tasks*: seq[Task]
