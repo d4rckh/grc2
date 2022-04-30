@@ -53,12 +53,12 @@ proc procStdin*(server: C2Server) {.async.} =
             # implants
 
             of "generateimplant":
+                var platform: string
+                var ip: string
+                var port: string
+                var failed = false
                 if argsn >= 3:
                     let args_split = args[1].split(":")
-                    var platform: string
-                    var ip: string
-                    var port: string
-                    var failed = false
                     if argsn == 3:
                         let listenerType = args_split[0]
                         platform = args[2]
