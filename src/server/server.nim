@@ -18,9 +18,6 @@ let server = C2Server(
   )
 )
 
-import listeners/tcp
-asyncCheck server.createNewTcpListener(1234, "127.0.0.1")
-
 asyncCheck procStdin(server)
 
 try:
