@@ -1,9 +1,20 @@
-import asyncfutures, asyncnet, json
+import asyncfutures, asyncnet, json, asyncdispatch
 
 type
   TaskStatus* = enum
     TaskCompleted, TaskNotCompleted, TaskCompletedWithError
 
+type
+  CliMode* = enum
+    MainMode, ClientInteractMode, ShellMode, PreparationMode
+
+type
+  CommandCategory* = enum
+    CCNavigation,
+    CCClientInteraction,
+    CCTasks,
+    CCListeners,
+    CCImplants
 
 type
   TCPSocket* = ref object
@@ -33,11 +44,8 @@ type
     hostname*: string
     username*: string
     server*: C2Server
+ 
 
-  C2Cli* = ref object
-    handlingClient*: C2Client
-    shellMode*: bool
-    initialized*: bool
 
   Task* = ref object
     client*: C2Client
@@ -54,6 +62,22 @@ type
     tcpListeners*: seq[TCPListener]
     tasks*: seq[Task]
 
+  C2Cli* = ref object
+    handlingClient*: C2Client
+    mode*: CliMode
+    initialized*: bool
+    commands*: seq[Command]
+
+  Command* = ref object
+    name*: string
+    argsLength*: int
+    usage*: seq[string]
+    execProc*: proc(args: seq[string], server: C2Server) {.async.}
+    cliMode*: seq[CliMode]
+    category*: CommandCategory
+    description*: string
+
+
 proc getTcpSocket*(client: C2Client): TCPSocket =
   if client.listenerType == "tcp":
     let tcpSockets = client.server.tcpListeners[client.listenerId].sockets
@@ -66,7 +90,6 @@ proc getTcpSocket*(client: C2Client): TCPSocket =
     else:
       return clientSocket
   return nil
-
 
 proc `$`*(tcpListener: TCPListener): string =
   "TCP:" & $tcpListener.id & " (" & $tcpListener.listeningIP & ":" & $tcpListener.port & ")"
@@ -101,6 +124,19 @@ proc `$`*(task: Task): string =
       x &= "Completed w/ Error]"
 
   x
+
+proc `$`*(cc: CommandCategory): string =
+  case cc:
+  of CCNavigation:
+    "Navigation"
+  of CCClientInteraction:
+    "Client interaction"
+  of CCImplants:
+    "Implants"
+  of CCListeners:
+    "Listeners"
+  of CCTasks:
+    "Tasks"
 
 proc markAsCompleted*(task: Task, response: JsonNode) = 
   if response["error"].getStr() == "":

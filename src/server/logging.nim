@@ -3,16 +3,43 @@ import terminal, base64, strutils
 import types
 
 proc prompt*(server: C2Server) = 
+  let cli = server.cli
+  
   if not server.cli.initialized: return
-  var menu: string = "main"
+  
   let client = server.cli.handlingClient
-  let shellMode = server.cli.shellMode
-  if not client.isNil():
-    if not client.loaded:
-      menu = "client:" & $(client.id)
+  
+
+  var menu: string = "main"
+  var sign: string = ">"
+  var shellColor = fgRed
+
+  case cli.mode:
+  of ClientInteractMode: 
+    if not client.isNil():
+      if not client.loaded:
+        menu = "client:" & $(client.id)
+      else:
+        menu = client.username & (if client.isAdmin: "*" else: "") & "@" & client.hostname
     else:
-      menu = client.username & (if client.isAdmin: "*" else: "") & "@" & client.hostname
-  stdout.styledWrite fgDefault, "(", menu ,")", (if shellMode: fgGreen else: fgRed), " nimc2 " & (if shellMode: "$" else: ">") & " " , fgDefault
+      menu = "client:unknown"
+    sign = ">"
+  of MainMode:
+    menu = "main"
+    sign = ">"
+  of PreparationMode:
+    menu = "preparing"
+    sign = ">"
+  of ShellMode:
+    if not client.isNil():
+      if not client.loaded:
+        menu = "client:" & $(client.id)
+      else:
+        menu = client.username & (if client.isAdmin: "*" else: "") & "@" & client.hostname
+    else:
+      menu = "client:unknown"
+    sign = (if client.isAdmin: "#" else: "$")
+  stdout.styledWrite fgDefault, "(", menu ,")", shellColor, " nimc2 " & sign & " " , fgDefault
   stdout.flushFile()
 
 proc infoLog*(msg: string) =

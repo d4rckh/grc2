@@ -1,3 +1,3 @@
 #!/bin/bash
 
-nim c -r src/server/server.nim
+nim c -o:./nimc2 -r src/server/server.nim

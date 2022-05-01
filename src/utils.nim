@@ -1,9 +1,9 @@
 import macros, os
 
-macro importCommands*(): untyped =
+macro importDirectory*(a: static string, b: static string, c: static string): untyped =
   var bracket = newNimNode(nnkBracket)
-  for x in walkDir("src/commands", relative=true):
-    echo x
+  for x in walkDir(a, relative=true):
+    echo "importing " & $x
     if x.kind == pcFile:
       let split = x.path.splitFile()
       if split.ext == ".nim":
@@ -13,10 +13,28 @@ macro importCommands*(): untyped =
     newNimNode(nnkInfix).add(
       ident("/"),
       newNimNode(nnkPrefix).add(
-        ident("./"),
-        ident("commands")
+        ident(b),
+        ident(c)
       ),
       bracket
       )
   ))
   return a
+
+macro loadCommands*(a: static string): untyped =
+  let stmtList = newStmtList()
+  echo "hi"
+  for x in walkDir(a, relative=true):
+    echo "loading command " & $x
+    if x.kind == pcFile:
+      let split = x.path.splitFile()
+      echo split.name
+      if split.ext == ".nim":
+        stmtList.add(
+          newCall(
+            newDotExpr(ident("commands"), ident("add")),
+            newDotExpr(ident(split.name), ident("cmd"))
+          )
+        )
+  echo stmtList.repr
+  return stmtList
