@@ -8,5 +8,6 @@
 - Easy to use CLI
 - ...and a lot more features coming soon
 
-Join the [Discord](https://discord.gg/kCjkfQEB) to discuss about this project.
+![image](https://user-images.githubusercontent.com/35298550/166148804-54e6dfc3-751f-4b5c-bd30-4f737d224f00.png)
 
+Join the [Discord](https://discord.gg/kCjkfQEB) to discuss about this project.
