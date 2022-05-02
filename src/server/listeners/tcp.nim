@@ -3,6 +3,8 @@ import asyncdispatch, asyncnet, asyncfutures, strutils, json, base64
 import ../types, ../logging, ../communication
 
 proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {.async.} =
+  
+  var msgS: string = ""
   while true:
     let line = await tcpSocket.socket.recvLine()
 
@@ -11,8 +13,15 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {
       tcpSocket.socket.close()
       cDisconnected(client)
       return
-      
-    let response = parseJson(decode(line))
+
+    var response: JsonNode
+
+    msgS &= line
+    try:
+        response = parseJson(decode(msgS))
+    except JsonParsingError:
+        continue
+    msgS = ""
 
     let error = response["error"].getStr() 
     let taskId = response["taskId"].getInt() 
