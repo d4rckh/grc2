@@ -25,3 +25,7 @@
 ![image](https://user-images.githubusercontent.com/35298550/166148804-54e6dfc3-751f-4b5c-bd30-4f737d224f00.png)
 
 Join the [Discord](https://discord.gg/kCjkfQEB) to discuss about this project.
+
+## Operating System support
+
+The server is fully supported on Linux but unknown on Windows (everything should work unless you are trying to compile a linux implant, but not guarantees). The client is fully supported on Windows, with lack of features on Linux (only shell commands).
