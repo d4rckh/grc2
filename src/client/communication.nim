@@ -16,7 +16,9 @@ proc sendOutput*(client: Socket, taskId: int, category: string, output: string, 
     }
   client.sendData($j)
 
-proc identify*(client: Socket, taskId: int, hostname: string, isAdmin: bool, username: string) =
+proc identify*(client: Socket, taskId: int, hostname: string, isAdmin: bool, username: string, osType: string,
+              windowsVersionInfo: tuple[majorVersion: int, minorVersion: int, buildNumber: int],
+              linuxVersionInfo: tuple[kernelVersion: string]) =
   let j = %*
     {
       "task": "identify",
@@ -25,7 +27,16 @@ proc identify*(client: Socket, taskId: int, hostname: string, isAdmin: bool, use
       "data": {
         "hostname": hostname,
         "isAdmin": isAdmin,
-        "username": username
+        "username": username,
+        "osType": osType,
+        "windowsOsVersionInfo": {
+          "majorVersion": windowsVersionInfo.majorVersion,
+          "minorVersion": windowsVersionInfo.minorVersion,
+          "buildNumber": windowsVersionInfo.buildNumber,
+        },
+        "linuxOsVersionInfo": {
+          "kernelVersion": linuxVersionInfo.kernelVersion
+        }
       }
     }
   client.sendData($j)

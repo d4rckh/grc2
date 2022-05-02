@@ -9,6 +9,10 @@ type
     MainMode, ClientInteractMode, ShellMode, PreparationMode
 
 type
+  OSType* = enum
+    WindowsOS, LinuxOS, UnknownOS
+
+type
   CommandCategory* = enum
     CCNavigation,
     CCClientInteraction,
@@ -30,6 +34,15 @@ type
     sockets*: seq[TCPSocket]
     running*: bool
 
+type 
+  LinuxVersionInfo* = ref object 
+    kernelVersion*: string
+
+type 
+  WindowsVersionInfo* = ref object 
+    majorVersion*: int
+    minorVersion*: int
+    buildNumber*: int
 
 type
   C2Client* = ref object
@@ -43,9 +56,10 @@ type
     isAdmin*: bool
     hostname*: string
     username*: string
+    osType*: OSType
     server*: C2Server
- 
-
+    windowsVersionInfo*: WindowsVersionInfo
+    linuxVersionInfo*: LinuxVersionInfo
 
   Task* = ref object
     client*: C2Client
@@ -61,6 +75,7 @@ type
     # listeners
     tcpListeners*: seq[TCPListener]
     tasks*: seq[Task]
+    osType*: OSType
 
   C2Cli* = ref object
     handlingClient*: C2Client
@@ -94,6 +109,18 @@ proc getTcpSocket*(client: C2Client): TCPSocket =
 proc `$`*(tcpListener: TCPListener): string =
   "TCP:" & $tcpListener.id & " (" & $tcpListener.listeningIP & ":" & $tcpListener.port & ")"
 
+proc `$`*(osType: OSType): string =
+  case osType:
+    of UnknownOS:
+      "unknown"
+    of WindowsOS:
+      "windows"
+    of LinuxOS:
+      "linux"
+
+proc `$`*(windowsVerion: WindowsVersionInfo): string =
+  $windowsVerion.majorVersion & "." & $windowsVerion.minorVersion & " (build: " & $windowsVerion.buildNumber & ")"
+
 proc `@`*(tcpListener: TCPListener): string =
   $tcpListener
 
@@ -110,7 +137,13 @@ proc `@`*(client: C2Client): string =
   else:
     $client & " (" & (if client.connected: "alive" else: "dead") & ") INITIALIZED\n\t" & 
       "Username: " & client.username & "\n\t" &
-      "Is Admin: " & $client.isAdmin
+      "Is Admin: " & $client.isAdmin & "\n\t" &
+      "OS: " & $client.osType & (
+        case client.osType:
+        of LinuxOS: "\n\tKernel Version: " & client.linuxVersionInfo.kernelVersion
+        of WindowsOS: "\n\tWindows Version: " & $client.windowsVersionInfo
+        else: ""
+      )
 
 proc `$`*(task: Task): string =
   var x = "(" & $task.id & ")" & task.action & " ["
@@ -124,6 +157,7 @@ proc `$`*(task: Task): string =
       x &= "Completed w/ Error]"
 
   x
+
 
 proc `$`*(cc: CommandCategory): string =
   case cc:

