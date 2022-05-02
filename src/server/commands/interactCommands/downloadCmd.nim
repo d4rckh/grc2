@@ -16,5 +16,6 @@ let cmd*: Command = Command(
   usage: @["download [path]"],
   cliMode: @[ClientInteractMode],
   description: "Download a file from the target",
-  category: CCClientInteraction
+  category: CCClientInteraction,
+  requiresConnectedClient: true
 )

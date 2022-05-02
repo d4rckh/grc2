@@ -22,5 +22,6 @@ let cmd*: Command = Command(
   usage: @["shell", "shell [command]"],
   cliMode: @[ClientInteractMode],
   description: "Send a shell command or enter shell mode when no command is passed",
-  category: CCClientInteraction
+  category: CCClientInteraction,
+  requiresConnectedClient: true
 )

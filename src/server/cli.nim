@@ -34,6 +34,9 @@ proc procStdin*(server: C2Server) {.async.} =
             if command.cliMode == @[ClientInteractMode] and c2cli.mode != ClientInteractMode:
               errorLog "you must interact with a client to use this command (see 'help interact')"
               continue
+            if command.requiresConnectedClient and not c2cli.handlingClient.connected:
+              errorLog "you can't use this command on a disconnected client"
+              continue
             if command.argsLength <= len(args):
               await command.execProc(args, server)
             else:

