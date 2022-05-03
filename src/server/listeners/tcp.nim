@@ -5,23 +5,35 @@ import ../types, ../logging, ../communication
 proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {.async.} =
   
   var msgS: string = ""
-  while true:
+  var linesRecv: int = 0
+
+  while client.connected:
     let line = await tcpSocket.socket.recvLine()
 
     if line.len == 0:
       client.connected = false
       tcpSocket.socket.close()
-      cDisconnected(client)
-      return
+      cDisconnected(client, "client died")
+      continue
 
-    var response: JsonNode
+    inc linesRecv
+
+    if linesRecv == 3:
+      client.connected = false
+      tcpSocket.socket.close()
+      cDisconnected(client, "too much data sent")
+      continue
 
     msgS &= line
+
+    var response: JsonNode
     try:
-        response = parseJson(decode(msgS))
+      response = parseJson(decode(msgS))
     except JsonParsingError:
-        continue
+      continue
+
     msgS = ""
+    linesRecv = 0 
 
     let error = response["error"].getStr() 
     let taskId = response["taskId"].getInt() 
@@ -66,7 +78,10 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {
               logClientOutput client, "DOWNLOAD", response["data"]["contents"].getStr()
     else:
       await client.askToIdentify()
-          
+
+  for task in server.tasks:
+    if task.client == client:
+      task.markAsCompleted(%*{ "error": "client sent too much data" })
         
 proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.async.} =
   let id = len(server.tcpListeners)

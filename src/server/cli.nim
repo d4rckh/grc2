@@ -11,6 +11,7 @@ proc procStdin*(server: C2Server) {.async.} =
 
   let c2cli = server.cli
   c2cli.initialized = true
+  c2cli.interactive = true
 
   prompt(server)
 
@@ -31,6 +32,7 @@ proc procStdin*(server: C2Server) {.async.} =
       else:
         for command in c2cli.commands:
           if command.name == cmd:
+            c2cli.interactive = false
             if command.cliMode == @[ClientInteractMode] and c2cli.mode != ClientInteractMode:
               errorLog "you must interact with a client to use this command (see 'help interact')"
               continue
@@ -41,6 +43,7 @@ proc procStdin*(server: C2Server) {.async.} =
               await command.execProc(args, server)
             else:
               errorLog "Invalid Usage. Correct usage:\n\t" & command.usage.join("\n\t")
+            c2cli.interactive = true
 
       prompt(server)
       messageFlowVar = spawn stdin.readLine() 

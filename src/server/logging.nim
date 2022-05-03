@@ -5,10 +5,9 @@ import types
 proc prompt*(server: C2Server) = 
   let cli = server.cli
   
-  if not server.cli.initialized: return
+  if not ( server.cli.initialized and server.cli.interactive ): return
   
   let client = server.cli.handlingClient
-  
 
   var menu: string = "main"
   var sign: string = ">"
@@ -53,8 +52,8 @@ proc cConnected*(client: C2Client) =
   stdout.styledWriteLine fgGreen, "[+] ", $client, " connected", fgDefault
   prompt(client.server)
 
-proc cDisconnected*(client: C2Client) =
-  stdout.styledWriteLine fgRed, "[-] ", $client, " disconnected", fgDefault
+proc cDisconnected*(client: C2Client, reason: string = "client died") =
+  stdout.styledWriteLine fgRed, "[-] ", $client, " disconnected", fgDefault, " (", reason, ")"
   prompt(client.server)
 
 proc logClientOutput*(client: C2Client, category: string, b64: string) =

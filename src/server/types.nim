@@ -20,6 +20,16 @@ type
     CCListeners,
     CCImplants
 
+type 
+  LinuxVersionInfo* = ref object 
+    kernelVersion*: string
+
+type 
+  WindowsVersionInfo* = ref object 
+    majorVersion*: int
+    minorVersion*: int
+    buildNumber*: int
+
 type
   TCPSocket* = ref object
     socket*: AsyncSocket
@@ -33,16 +43,6 @@ type
     id*: int
     sockets*: seq[TCPSocket]
     running*: bool
-
-type 
-  LinuxVersionInfo* = ref object 
-    kernelVersion*: string
-
-type 
-  WindowsVersionInfo* = ref object 
-    majorVersion*: int
-    minorVersion*: int
-    buildNumber*: int
 
 type
   C2Client* = ref object
@@ -82,6 +82,7 @@ type
     handlingClient*: C2Client
     mode*: CliMode
     initialized*: bool
+    interactive*: bool
     commands*: seq[Command]
 
   Command* = ref object
@@ -93,7 +94,6 @@ type
     category*: CommandCategory
     description*: string
     requiresConnectedClient*: bool
-
 
 proc getTcpSocket*(client: C2Client): TCPSocket =
   if client.listenerType == "tcp":
