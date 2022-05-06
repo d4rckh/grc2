@@ -20,6 +20,4 @@ let server = C2Server(
 
 asyncCheck procStdin(server)
 
-try:
-  runForever()
-except OSError: discard
+runForever()

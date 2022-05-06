@@ -4,6 +4,15 @@ when defined(windows):
 
   proc rtlGetVersion(lpVersionInformation: var types.OSVersionInfoExW): NTSTATUS
     {.cdecl, importc: "RtlGetVersion", dynlib: "ntdll.dll".}
+  
+  proc convertSidToStringSidA(Sid: PSID, StringSir: ptr LPSTR): NTSTATUS
+    {.cdecl, importc: "ConvertSidToStringSidA", dynlib: "Advapi32.dll".}
+  
+  proc betterLocalAlloc*(uFlags: UINT, uBytes: SIZE_T): PVOID 
+    {.cdecl, importc: "LocalAlloc", dynlib: "Kernel32.dll".}
+
+  # {.compile: "cppModules.cpp".}
+  # proc getIntegritySid(a: ref string): int {.importc.}
 
 
 import os
@@ -26,6 +35,29 @@ when defined(windows):
   proc msgbox*(title: string, caption: string): bool =
     MessageBox(0, title, caption, 0)
     return true
+
+proc getintegrity*(): string =
+  when defined(windows):
+    var hToken: HANDLE
+    
+    if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, addr hToken) == FALSE:
+      return ""
+    
+    var cbSize: DWORD = 0
+    if GetTokenInformation(hToken, tokenIntegrityLevel, NULL, 0, addr cbSize) == FALSE:
+      if GetLastError() == ERROR_INSUFFICIENT_BUFFER:
+        var allocated = LocalAlloc(LPTR, cbSize)
+        var tokIntegrity: PTOKEN_MANDATORY_LABEL = cast[PTOKEN_MANDATORY_LABEL](allocated)
+        if GetTokenInformation(hToken, tokenIntegrityLevel, tokIntegrity, cbSize, addr cbSize):
+          var lpSid: LPSTR
+          discard convertSidToStringSidA(
+            tokIntegrity.Label.Sid,
+            addr lpSid
+          )
+          LocalFree(allocated)
+          return $cstring(lpSid)
+  else:
+    return ""
 
 proc getwindowosinfo*(): tuple[majorVersion: int, minorVersion: int, buildNumber: int] =
   when defined(windows):

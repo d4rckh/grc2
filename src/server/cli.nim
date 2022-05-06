@@ -31,7 +31,7 @@ proc procStdin*(server: C2Server) {.async.} =
           await task.awaitResponse()
       else:
         for command in c2cli.commands:
-          if command.name == cmd:
+          if command.name == cmd or cmd in command.aliases:
             c2cli.interactive = false
             if command.cliMode == @[ClientInteractMode] and c2cli.mode != ClientInteractMode:
               errorLog "you must interact with a client to use this command (see 'help interact')"

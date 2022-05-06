@@ -1,7 +1,6 @@
 import asyncdispatch, strutils, asyncfutures
 
-import ../../types
-import ../../listeners/tcp
+import ../../types, ../../listeners/tcp, ../../logging
 
 proc execProc*(args: seq[string], server: C2Server) {.async.} =
   let argsn = len(args)
@@ -10,13 +9,14 @@ proc execProc*(args: seq[string], server: C2Server) {.async.} =
       if argsn >= 4:
         asyncCheck server.createNewTcpListener(parseInt(args[3]), args[2])
       else:
-        echo "Bad usage, correct usage: startlistener TCP (ip) (port)"
+        errorLog "Bad usage, correct usage: startlistener TCP (ip) (port)"
   else:
-    echo "You need to specify the type of listener you wanna start, supported: TCP"
+    errorLog "You need to specify the type of listener you wanna start, supported: TCP"
 
 let cmd*: Command = Command(
   execProc: execProc,
   name: "startlistener",
+  aliases: @["sl"],
   argsLength: 2,
   usage: @[
     "startlistener [listenerType] [ip] [port]",

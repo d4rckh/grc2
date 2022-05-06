@@ -4,11 +4,12 @@ type
   TaskStatus* = enum
     TaskCompleted, TaskNotCompleted, TaskCompletedWithError
 
-type
+  PreparationSubject* = enum
+    PSListener
+
   CliMode* = enum
     MainMode, ClientInteractMode, ShellMode, PreparationMode
 
-type
   OSType* = enum
     WindowsOS, LinuxOS, UnknownOS
 
@@ -30,7 +31,70 @@ type
     minorVersion*: int
     buildNumber*: int
 
+type 
+  TokenIntegrityLevel* = ref object 
+    sid*: string
+
+type TokenInformation* = ref object
+  integrityLevel*: TokenIntegrityLevel
+
 type
+
+  C2Server* = ref object
+    clients*: seq[C2Client]
+    cli*: C2Cli
+    # listeners
+    tcpListeners*: seq[TCPListener]
+    tasks*: seq[Task]
+    osType*: OSType
+
+  C2Client* = ref object
+    # socket*: AsyncSocket
+    listenerType*: string
+    listenerId*: int
+    id*: int
+    connected*: bool
+    tokenInformation*: TokenInformation
+    # shit
+    loaded*: bool
+    isAdmin*: bool
+    hostname*: string
+    username*: string
+    ipAddress*: string
+    osType*: OSType
+    server*: C2Server
+    windowsVersionInfo*: WindowsVersionInfo
+    linuxVersionInfo*: LinuxVersionInfo
+
+  C2Cli* = ref object
+    handlingClient*: C2Client
+    mode*: CliMode
+    initialized*: bool
+    interactive*: bool
+    commands*: seq[Command]
+    preparing*: PreparationSubject
+
+  Task* = ref object
+    client*: C2Client
+    id*: int
+    action*: string
+    status*: TaskStatus
+    arguments*: JsonNode
+    future*: ref Future[void]
+
+  Command* = ref object
+    name*: string
+    argsLength*: int
+    usage*: seq[string]
+    aliases*: seq[string]
+    execProc*: proc(args: seq[string], server: C2Server) {.async.}
+    cliMode*: seq[CliMode]
+    category*: CommandCategory
+    description*: string
+    requiresConnectedClient*: bool
+
+  # TCP Listener
+
   TCPSocket* = ref object
     socket*: AsyncSocket
     netAddr*: string
@@ -43,57 +107,6 @@ type
     id*: int
     sockets*: seq[TCPSocket]
     running*: bool
-
-type
-  C2Client* = ref object
-    # socket*: AsyncSocket
-    listenerType*: string
-    listenerId*: int
-    id*: int
-    connected*: bool
-    # shit
-    loaded*: bool
-    isAdmin*: bool
-    hostname*: string
-    username*: string
-    ipAddress*: string
-    osType*: OSType
-    server*: C2Server
-    windowsVersionInfo*: WindowsVersionInfo
-    linuxVersionInfo*: LinuxVersionInfo
-
-  Task* = ref object
-    client*: C2Client
-    id*: int
-    action*: string
-    status*: TaskStatus
-    arguments*: JsonNode
-    future*: ref Future[void]
-
-  C2Server* = ref object
-    clients*: seq[C2Client]
-    cli*: C2Cli
-    # listeners
-    tcpListeners*: seq[TCPListener]
-    tasks*: seq[Task]
-    osType*: OSType
-
-  C2Cli* = ref object
-    handlingClient*: C2Client
-    mode*: CliMode
-    initialized*: bool
-    interactive*: bool
-    commands*: seq[Command]
-
-  Command* = ref object
-    name*: string
-    argsLength*: int
-    usage*: seq[string]
-    execProc*: proc(args: seq[string], server: C2Server) {.async.}
-    cliMode*: seq[CliMode]
-    category*: CommandCategory
-    description*: string
-    requiresConnectedClient*: bool
 
 proc getTcpSocket*(client: C2Client): TCPSocket =
   if client.listenerType == "tcp":
@@ -133,6 +146,25 @@ proc `$`*(client: C2Client): string =
   else:
     $client.id & "(" & tcpSocket.netAddr & ")(" & client.hostname & ")"
 
+proc `$`*(integrityLevel: TokenIntegrityLevel): string =
+  case integrityLevel.sid:
+    of "S-1-16-0":
+      return "Untrusted Mandatory Level"
+    of "S-1-16-4096":
+      return "Low Mandatory Level"
+    of "S-1-16-8192":
+      return "Medium Mandatory Level"
+    of "S-1-16-8448":
+      return "Medium Plus Mandatory Level"
+    of "S-1-16-12288":
+      return "High Mandatory Level"
+    of "S-1-16-16384":
+      return "System Mandatory Level"
+    of "S-1-16-20480":
+      return "Protected Process Mandatory Level"
+    of "S-1-16-28672":
+      return "Secure Process Mandatory Level"
+
 proc `@`*(client: C2Client): string =
   if not client.loaded:
     $client & "(" & (if client.connected: "alive" else: "dead") & ")"
@@ -140,7 +172,8 @@ proc `@`*(client: C2Client): string =
     $client & " (" & (if client.connected: "alive" else: "dead") & ")\n\t" & 
       "IP: " & client.ipAddress & "\n\t" &
       "Username: " & client.username & "\n\t" &
-      "Is Admin: " & $client.isAdmin & "\n\t" &
+      "Processs Integrity: " & $client.tokenInformation.integrityLevel & "\n\t" &
+      "Running as admin: " & $client.isAdmin & "\n\t" &
       "OS: " & $client.osType & (
         case client.osType:
         of LinuxOS: "\n\tKernel Version: " & client.linuxVersionInfo.kernelVersion
@@ -160,7 +193,6 @@ proc `$`*(task: Task): string =
       x &= "Completed w/ Error]"
 
   x
-
 
 proc `$`*(cc: CommandCategory): string =
   case cc:

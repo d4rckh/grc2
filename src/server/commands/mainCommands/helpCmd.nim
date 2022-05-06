@@ -7,6 +7,7 @@ proc execProc*(args: seq[string], server: C2Server) {.async.} =
     for command in server.cli.commands:
       if command.name == args[1]:
         echo "-- " & command.name & " --"
+        echo "Aliases: " & command.aliases.join(", ")
         echo "Category: " & $command.category
         echo "Description: " & command.description
         echo "Usage:\n\t" & command.usage.join("\n\t")

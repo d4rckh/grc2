@@ -15,6 +15,9 @@ proc execProc*(args: seq[string], server: C2Server) {.async.} =
 let cmd*: Command = Command(
   execProc: execProc,
   name: "interact",
+  aliases: @[
+    "i"
+  ],
   argsLength: 2,
   usage: @[
     "interact [clientID]",

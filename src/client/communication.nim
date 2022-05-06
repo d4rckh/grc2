@@ -18,7 +18,7 @@ proc sendOutput*(client: Socket, taskId: int, category: string, output: string, 
 
 proc identify*(client: Socket, taskId: int, hostname: string, isAdmin: bool, username: string, osType: string,
               windowsVersionInfo: tuple[majorVersion: int, minorVersion: int, buildNumber: int],
-              linuxVersionInfo: tuple[kernelVersion: string]) =
+              linuxVersionInfo: tuple[kernelVersion: string], ownIntegrity: string) =
   let j = %*
     {
       "task": "identify",
@@ -29,6 +29,7 @@ proc identify*(client: Socket, taskId: int, hostname: string, isAdmin: bool, use
         "isAdmin": isAdmin,
         "username": username,
         "osType": osType,
+        "ownIntegrity": ownIntegrity,
         "windowsOsVersionInfo": {
           "majorVersion": windowsVersionInfo.majorVersion,
           "minorVersion": windowsVersionInfo.minorVersion,
