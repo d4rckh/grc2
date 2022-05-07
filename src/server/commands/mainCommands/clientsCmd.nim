@@ -14,6 +14,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
 let cmd*: Command = Command(
   execProc: execProc,
   name: "clients",
+  aliases: @["c"],
   argsLength: 1,
   usage: @["clients"],
   description: "View clients that were connected and are currently connected",
