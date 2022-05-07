@@ -14,6 +14,7 @@
 </div>
 
 
+
 **nimc2** is a very lightweight C2 written **fully in nim** (implant & server). If you want to give it a try checkout the [wiki](https://github.com/d4rckh/nimc2/wiki) to learn how to install and use nimc2. It's features include:
 - Windows & Linux implant generation
 - TCP socket communication (with HTTP communication coming soon)
