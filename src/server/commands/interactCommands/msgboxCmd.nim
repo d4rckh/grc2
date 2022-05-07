@@ -1,20 +1,21 @@
 import asyncdispatch, strutils, tables
 
-import ../../types
+import ../../types, ../../logging
 
 import ../../../clientTasks/msgbox
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
-  let cmdSplit = originalCommand.split(" ")
-  let slashSplit = cmdSplit[1..(len(cmdSplit) - 1)].join(" ").split("/")
-  
-  discard await msgbox.sendTask(server.cli.handlingClient, slashSplit[1].strip(), slashSplit[0].strip())
+  if len(args) < 2:
+    errorLog "you must specify a title and caption for the message box, see 'help msgbox'"
+    return
+
+  discard await msgbox.sendTask(server.cli.handlingClient, args[1], args[0])
 
 let cmd*: Command = Command(
   execProc: execProc,
   name: "msgbox",
-  argsLength: 3,
-  usage: @["msgbox [title] / [caption]"],
+  argsLength: 2,
+  usage: @["msgbox \"[title]\" \"[caption]\""],
   cliMode: @[ClientInteractMode],
   description: "Send a message box (Windows only)",
   category: CCClientInteraction,

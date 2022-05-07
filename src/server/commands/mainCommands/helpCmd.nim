@@ -3,7 +3,7 @@ import asyncdispatch, strutils, tables
 import ../../types
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
-  if len(args) > 1:
+  if len(args) >= 1:
     for command in server.cli.commands:
       if command.name == args[0]:
         echo "-- " & command.name & " --"
