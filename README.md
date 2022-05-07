@@ -21,7 +21,7 @@
 - Easy to use CLI
 - ...and a lot more features coming soon
 
-![image](https://user-images.githubusercontent.com/35298550/166148804-54e6dfc3-751f-4b5c-bd30-4f737d224f00.png)
+![image](https://user-images.githubusercontent.com/35298550/167257694-1cda7f5c-a013-4910-af93-f51ad1d6ca4a.png)
 
 Join the [Discord](https://discord.gg/kCjkfQEB) to discuss about this project.
 
