@@ -25,6 +25,20 @@
 
 Join the [Discord](https://discord.gg/kCjkfQEB) to discuss about this project.
 
+# Wiki
+
+## Getting started
+
+- [Installation](https://github.com/d4rckh/nimc2/wiki/Installation)
+- [Nimc2 crash course](https://github.com/d4rckh/nimc2/wiki/Usage)
+- [FAQs](https://github.com/d4rckh/nimc2/wiki/FAQs)
+
+## Guides
+
+- [Managing listeners](https://github.com/d4rckh/nimc2/wiki/Managing-listeners)
+- [Creating implants](https://github.com/d4rckh/nimc2/wiki/Creating-implants)
+- [Interacting and managing clients](https://github.com/d4rckh/nimc2/wiki/Interacting-and-managing-clients)
+
 ## Operating System support
 
 The server is fully supported on Linux but unknown on Windows (everything should work unless you are trying to compile a linux implant, but not guarantees). The client is fully supported on Windows, with lack of features on Linux (only shell commands).
