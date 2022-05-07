@@ -1,15 +1,15 @@
-import asyncdispatch
+import asyncdispatch, tables
 
 import ../../types
 
-proc execProc*(args: seq[string], server: C2Server) {.async.} =
+proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   for task in server.tasks:
     echo $task.client & " <= " & $task
 
 let cmd*: Command = Command(
   execProc: execProc,
   name: "tasks",
-  argsLength: 1,
+  argsLength: 0,
   usage: @[
     "tasks",
   ],

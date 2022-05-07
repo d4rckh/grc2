@@ -1,8 +1,8 @@
-import asyncnet, asyncdispatch
+import asyncnet, asyncdispatch, tables
 
 import ../../types
 
-proc execProc*(args: seq[string], server: C2Server) {.async.} =
+proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   for tcpListener in server.tcpListeners:
     tcpListener.running = false
     tcpListener.socket.close()

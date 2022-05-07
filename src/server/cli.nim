@@ -1,4 +1,4 @@
-import asyncdispatch, threadpool, asyncfutures
+import asyncdispatch, threadpool, asyncfutures, parseopt, tables
 import strutils 
 
 import types, logging
@@ -25,7 +25,7 @@ proc procStdin*(server: C2Server) {.async.} =
       
       if c2cli.mode == ShellMode:
         if cmd == "back":
-          await backCmd.cmd.execProc(args, server)
+          c2cli.mode = ClientInteractMode
         else:
           let task = await shell.sendTask(server.cli.handlingClient, args.join(" "))
           await task.awaitResponse()
@@ -33,15 +33,33 @@ proc procStdin*(server: C2Server) {.async.} =
         for command in c2cli.commands:
           if command.name == cmd or cmd in command.aliases:
             c2cli.interactive = false
-            
             if command.cliMode == @[ClientInteractMode] and c2cli.mode != ClientInteractMode:
               errorLog "you must interact with a client to use this command (see 'help interact')"
             elif command.requiresConnectedClient and not c2cli.handlingClient.connected:
               errorLog "you can't use this command on a disconnected client"
-            elif command.argsLength <= len(args):
-              await command.execProc(args, server)
             else:
-              errorLog "Invalid Usage. Correct usage:\n\t" & command.usage.join("\n\t")
+              var flags: Table[string, string] = initTable[string, string]()
+              var parsedArgs: seq[string] = @[]
+
+              var p = initOptParser(args[1..(len(args)-1)].join(" "))
+
+              while true:
+                p.next()
+                case p.kind
+                of cmdEnd: break
+                of cmdShortOption, cmdLongOption:
+                  flags[p.key] = p.val
+                of cmdArgument:
+                  parsedArgs.add(p.key)
+
+              await command.execProc(
+                cmd=command,
+                originalCommand=input,
+                flags=flags,
+                args=parsedArgs,
+                server=server
+              )
+            
             c2cli.interactive = true
 
       prompt(server)

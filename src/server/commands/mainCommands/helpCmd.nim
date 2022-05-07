@@ -1,11 +1,11 @@
-import asyncdispatch, strutils
+import asyncdispatch, strutils, tables
 
 import ../../types
 
-proc execProc*(args: seq[string], server: C2Server) {.async.} =
+proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   if len(args) > 1:
     for command in server.cli.commands:
-      if command.name == args[1]:
+      if command.name == args[0]:
         echo "-- " & command.name & " --"
         echo "Aliases: " & command.aliases.join(", ")
         echo "Category: " & $command.category
@@ -21,7 +21,7 @@ proc execProc*(args: seq[string], server: C2Server) {.async.} =
 let cmd*: Command = Command(
   execProc: execProc,
   name: "help",
-  argsLength: 1,
+  argsLength: 0,
   usage: @[
     "help",
     "help [command]"

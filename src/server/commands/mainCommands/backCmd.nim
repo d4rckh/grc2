@@ -1,8 +1,8 @@
-import asyncdispatch
+import asyncdispatch, tables
 
 import ../../types
 
-proc execProc(args: seq[string], server: C2Server) {.async.} =
+proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   if server.cli.mode == ShellMode:
     server.cli.mode = ClientInteractMode
   else:

@@ -1,43 +1,26 @@
-import asyncdispatch, strutils, asyncfutures, parseopt
+import asyncdispatch, strutils, asyncfutures, tables
 
 import ../../types, ../../listeners/tcp, ../../logging
 
-proc execProc*(args: seq[string], server: C2Server) {.async.} =
+proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
 
-  var listenerType: string = ""
-
-  # for listeners that require an IP and port
-  var ip: string = ""
-  var port: string = ""
-
-  var slArgs: seq[string] = args
-  slArgs[0] = ""
-
-  var p = initOptParser(slArgs.join(" "))
-
-  while true:
-    p.next()
-    case p.kind
-    of cmdEnd: break
-    of cmdShortOption, cmdLongOption:
-      if p.val != "":
-        case p.key:
-        of "ip", "i": ip = p.val
-        of "port", "p": port = p.val
-    of cmdArgument:
-      listenerType = p.key
-
-  if listenerType == "":
+  if len(args) < 1:
     errorLog "you must specify a listener type, supported: tcp (check 'help startlistener' for more info)"
     return
 
+  var listenerType: string = args[0]
+
   case listenerType.toLower():
   of "tcp":
-      if ip != "" and port != "":
-        asyncCheck server.createNewTcpListener(parseInt(port), ip)
-      else:
-        errorLog "--ip and --port flags are required for this listener type"
+    let port = flags.getOrDefault("port", flags.getOrDefault("p", ""))
+    let ip = flags.getOrDefault("ip", flags.getOrDefault("i", ""))
+    
+    if port == "" and ip == "":
+      errorLog "--ip and --port flags are required for this listener type"
+      return
 
+    asyncCheck server.createNewTcpListener(parseInt(port), ip)
+          
 let cmd*: Command = Command(
   execProc: execProc,
   name: "startlistener",

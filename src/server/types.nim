@@ -1,4 +1,4 @@
-import asyncfutures, asyncnet, json, asyncdispatch
+import asyncfutures, asyncnet, json, asyncdispatch, tables
 
 type
   TaskStatus* = enum
@@ -87,7 +87,7 @@ type
     argsLength*: int
     usage*: seq[string]
     aliases*: seq[string]
-    execProc*: proc(args: seq[string], server: C2Server) {.async.}
+    execProc*: proc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.}
     cliMode*: seq[CliMode]
     category*: CommandCategory
     description*: string

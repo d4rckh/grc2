@@ -1,34 +1,15 @@
-import osproc, strutils, asyncdispatch, parseopt
+import osproc, strutils, asyncdispatch, tables
 
 import ../../types
 import ../../logging
 
-proc execProc*(args: seq[string], server: C2Server) {.async.} =
+proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   
-  var listenerType: string = ""
-  var platform: string = ""
-  var ip: string = ""
-  var port: string = ""
-  var showWindow: bool = false
-
-  var slArgs: seq[string] = args
-  slArgs[0] = ""
-
-  var p = initOptParser(slArgs.join(" "))
-
-  while true:
-    p.next()
-    case p.kind
-    of cmdEnd: break
-    of cmdShortOption, cmdLongOption:
-      if p.val != "":
-        case p.key:
-        of "listener", "l": listenerType = p.val
-        of "ip", "i": ip = p.val
-        of "port", "p": port = p.val
-        of "platform", "P": platform = p.val
-        of "showwindow", "s": showWindow = parseBool(p.val)
-    of cmdArgument: discard
+  var listenerType: string = flags.getOrDefault("listener", flags.getOrDefault("l", ""))
+  var platform: string = flags.getOrDefault("platform", flags.getOrDefault("P", ""))
+  var ip: string = flags.getOrDefault("ip", flags.getOrDefault("i", ""))
+  var port: string = flags.getOrDefault("port", flags.getOrDefault("p", ""))
+  var showWindow: bool = parseBool(flags.getOrDefault("showwindow", flags.getOrDefault("s", "no")))
 
   if listenerType == "":
     errorLog "you must specify a listener type, check 'help generateimplant' & https://github.com/d4rckh/nimc2/wiki/Usage#generating-an-implant"
@@ -80,8 +61,8 @@ let cmd*: Command = Command(
   aliases: @["gi"],
   argsLength: 3,
   usage: @[
-    "generateimplant [listenerID] [platform]",
-    "generateimplant [listenerType] [ip] [port] [platform]",
+    "generateimplant -l:[listenerID] -P:[platform]",
+    "generateimplant -l:[listenerType] -i:[ip] -p:[port] -P:[platform]",
   ],
   description: "Generate an implant",
   category: CCImplants
