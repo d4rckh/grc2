@@ -32,6 +32,7 @@ proc receiveCommands(client: Socket) =
 
     case jsonNode["task"].getStr():
     of "identify":
+      echo getintegritygroups()
       client.identify(
         taskId,
         hostname=hostname(),

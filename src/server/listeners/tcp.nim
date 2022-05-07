@@ -107,7 +107,7 @@ proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.a
     return
   
   server.tcpListeners.add(tcpServer)
-  infoLog "listening on " & tcpServer.listeningIP & ":" & $tcpServer.port
+  infoLog "listening on " & tcpServer.listeningIP & ":" & $tcpServer.port & " using a tcp socket"
   
 
   while tcpServer.running:

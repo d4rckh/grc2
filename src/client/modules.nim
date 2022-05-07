@@ -59,6 +59,30 @@ proc getintegrity*(): string =
   else:
     return ""
 
+proc getintegritygroups*(): string =
+  when defined(windows):
+    var hToken: HANDLE
+    
+    if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, addr hToken) == FALSE:
+      return ""
+    
+    var cbSize: DWORD = 0
+    if GetTokenInformation(hToken, tokenGroups, NULL, 0, addr cbSize) == FALSE:
+      if GetLastError() == ERROR_INSUFFICIENT_BUFFER:
+        var allocated = LocalAlloc(LPTR, cbSize)
+        var tokGroups: PTOKEN_GROUPS = cast[PTOKEN_GROUPS](allocated)
+        echo tokGroups.GroupCount
+        for group in tokGroups.Groups:
+          var lpSid: LPSTR
+          discard convertSidToStringSidA(
+            group.Sid,
+            addr lpSid
+          )
+          echo $cstring(lpSid)
+        return "lets go"
+  else:
+    return ""
+
 proc getwindowosinfo*(): tuple[majorVersion: int, minorVersion: int, buildNumber: int] =
   when defined(windows):
     var osInfo: types.OSVersionInfoExW

