@@ -1,23 +1,42 @@
-import osproc, strutils, asyncdispatch
+import osproc, strutils, asyncdispatch, parseopt
 
 import ../../types
 import ../../logging
 
 proc execProc*(args: seq[string], server: C2Server) {.async.} =
   
-  var platform: string
-  var ip: string
-  var port: string
+  var listenerType: string = ""
+  var platform: string = ""
+  var ip: string = ""
+  var port: string = ""
+  var showWindow: bool = false
 
-  let argsn = len(args)
-  if argsn < 3:
-    errorLog "incorrect usage, check https://github.com/d4rckh/nimc2/wiki/Usage#generating-an-implant"
+  var slArgs: seq[string] = args
+  slArgs[0] = ""
+
+  var p = initOptParser(slArgs.join(" "))
+
+  while true:
+    p.next()
+    case p.kind
+    of cmdEnd: break
+    of cmdShortOption, cmdLongOption:
+      if p.val != "":
+        case p.key:
+        of "listener", "l": listenerType = p.val
+        of "ip", "i": ip = p.val
+        of "port", "p": port = p.val
+        of "platform", "P": platform = p.val
+        of "showwindow", "s": showWindow = parseBool(p.val)
+    of cmdArgument: discard
+
+  if listenerType == "":
+    errorLog "you must specify a listener type, check 'help generateimplant' & https://github.com/d4rckh/nimc2/wiki/Usage#generating-an-implant"
     return
 
-  let args_split = args[1].split(":")
+  let args_split = listenerType.split(":")
   
-  if argsn == 3:
-    platform = args[2]
+  if len(args_split) == 2:
     case args_split[0]
     of "tcp":
       let listenerId = parseInt(args_split[1])
@@ -36,13 +55,9 @@ proc execProc*(args: seq[string], server: C2Server) {.async.} =
         return
 
       infoLog "generating implant for " & $tcpListener
-  elif argsn >= 5:
-    platform = args[4]
-    ip = args[2]
-    port = args[3]
 
   let compileCommand = "nim c -d:client " &
-    "--app=gui " & # disable window 
+    (if showWindow: "" else: "--app=gui " & " ") & # disable window 
     "--passL:-s" & " " &  
     "-d:release" & " " &  
     "-d:ip=" & ip & " " & 
