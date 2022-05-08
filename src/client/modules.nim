@@ -1,13 +1,11 @@
 when defined(windows):
   import winim/[inc/lm, lean]
   import types
+  import windowsUtils
 
   proc rtlGetVersion(lpVersionInformation: var types.OSVersionInfoExW): NTSTATUS
     {.cdecl, importc: "RtlGetVersion", dynlib: "ntdll.dll".}
-  
-  proc convertSidToStringSidA(Sid: PSID, StringSir: ptr LPSTR): NTSTATUS
-    {.cdecl, importc: "ConvertSidToStringSidA", dynlib: "Advapi32.dll".}
-  
+    
   proc betterLocalAlloc*(uFlags: UINT, uBytes: SIZE_T): PVOID 
     {.cdecl, importc: "LocalAlloc", dynlib: "Kernel32.dll".}
 
@@ -49,39 +47,67 @@ proc getintegrity*(): string =
         var allocated = LocalAlloc(LPTR, cbSize)
         var tokIntegrity: PTOKEN_MANDATORY_LABEL = cast[PTOKEN_MANDATORY_LABEL](allocated)
         if GetTokenInformation(hToken, tokenIntegrityLevel, tokIntegrity, cbSize, addr cbSize):
-          var lpSid: LPSTR
-          discard convertSidToStringSidA(
-            tokIntegrity.Label.Sid,
-            addr lpSid
-          )
+
           LocalFree(allocated)
-          return $cstring(lpSid)
+          return sidToString(tokIntegrity.Label.Sid)
   else:
     return ""
 
-proc getintegritygroups*(): string =
+proc getintegritygroups*(): seq[tuple[name, sid, domain: string]] =
+  var groups: seq[tuple[name, sid, domain: string]] = @[]
+
   when defined(windows):
     var hToken: HANDLE
     
     if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, addr hToken) == FALSE:
-      return ""
+      return groups
     
+
     var cbSize: DWORD = 0
     if GetTokenInformation(hToken, tokenGroups, NULL, 0, addr cbSize) == FALSE:
       if GetLastError() == ERROR_INSUFFICIENT_BUFFER:
         var allocated = LocalAlloc(LPTR, cbSize)
         var tokGroups: PTOKEN_GROUPS = cast[PTOKEN_GROUPS](allocated)
-        echo tokGroups.GroupCount
-        for group in tokGroups.Groups:
-          var lpSid: LPSTR
-          discard convertSidToStringSidA(
-            group.Sid,
-            addr lpSid
-          )
-          echo $cstring(lpSid)
-        return "lets go"
+        if GetTokenInformation(hToken, tokenGroups, tokGroups, cbSize, addr cbSize):
+          let groupArray: ptr UncheckedArray[SID_AND_ATTRIBUTES] = cast[ptr UncheckedArray[SID_AND_ATTRIBUTES]](addr tokGroups.Groups)
+          for i in 0..(tokGroups.GroupCount - 1):
+            
+            let sid = groupArray[i].Sid
+
+            var nameSize: DWORD = 0
+            var domainNameSize: DWORD = 0
+
+            var groupName: LPWSTR
+            var domainName: LPWSTR
+            var peUse: SID_NAME_USE
+
+            var gnString = ""
+            var dnString = ""
+
+            if LookupAccountSidW(nil, sid, groupName, addr nameSize, domainName, addr domainNameSize, addr peUse) == FALSE:
+              if GetLastError() == ERROR_INSUFFICIENT_BUFFER:
+                var gnAlloc = LocalAlloc(LPTR, nameSize * 2)
+                groupName = cast[LPWSTR](gnAlloc)
+                var dnAlloc = LocalAlloc(LPTR, domainNameSize * 2)
+                domainName = cast[LPWSTR](dnAlloc)
+                if LookupAccountSidW(nil, sid, groupName, addr nameSize, domainName, addr domainNameSize, addr peUse):
+                  gnString = $cast[WideCStringObj](groupName)
+                  dnString = $cast[WideCStringObj](domainName)
+
+                LocalFree(gnAlloc)
+                LocalFree(dnAlloc)
+
+            groups.add((
+              name: gnString, sid: sidToString(sid),
+              domain: dnString
+            ))
+        LocalFree(allocated)
+      else:
+        echo GetLastError()
+    
+    return groups
   else:
-    return ""
+    return groups
 
 proc getwindowosinfo*(): tuple[majorVersion: int, minorVersion: int, buildNumber: int] =
   when defined(windows):

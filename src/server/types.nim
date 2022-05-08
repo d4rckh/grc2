@@ -37,6 +37,7 @@ type
 
 type TokenInformation* = ref object
   integrityLevel*: TokenIntegrityLevel
+  groups*: seq[tuple[name, sid, domain: string]] 
 
 type
 
@@ -73,6 +74,7 @@ type
     interactive*: bool
     commands*: seq[Command]
     preparing*: PreparationSubject
+    lastCommand*: string
 
   Task* = ref object
     client*: C2Client
