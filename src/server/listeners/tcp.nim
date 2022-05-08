@@ -90,8 +90,8 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {
         of "file":
             infoLog "received file " & response["data"]["path"].getStr() & " from " & $client
             logClientOutput client, "DOWNLOAD", response["data"]["contents"].getStr()
-        let task = server.tasks[taskId]
-        task.markAsCompleted(response)
+      let task = server.tasks[taskId]
+      task.markAsCompleted(response)
     else:
       await client.askToIdentify()
 

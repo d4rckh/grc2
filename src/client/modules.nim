@@ -47,9 +47,8 @@ proc getintegrity*(): string =
         var allocated = LocalAlloc(LPTR, cbSize)
         var tokIntegrity: PTOKEN_MANDATORY_LABEL = cast[PTOKEN_MANDATORY_LABEL](allocated)
         if GetTokenInformation(hToken, tokenIntegrityLevel, tokIntegrity, cbSize, addr cbSize):
-
-          LocalFree(allocated)
           return sidToString(tokIntegrity.Label.Sid)
+        LocalFree(allocated)
   else:
     return ""
 

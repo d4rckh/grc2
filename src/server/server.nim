@@ -1,4 +1,4 @@
-import asyncdispatch, asyncfutures
+import asyncdispatch, asyncfutures, json
 import types, logging, cli, ../utils
 
 infoLog "initializing c2 server"
@@ -17,6 +17,15 @@ let server = C2Server(
     commands: commands
   )
 )
+
+proc ctrlc() {.noconv.} =
+  if server.cli.interactive:
+    quit 0
+  else:
+    for task in server.tasks:
+      task.markAsCompleted()
+setControlCHook(ctrlc)
+
 
 asyncCheck procStdin(server)
 

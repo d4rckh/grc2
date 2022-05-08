@@ -2,7 +2,7 @@ import asyncfutures, asyncnet, json, asyncdispatch, tables
 
 type
   TaskStatus* = enum
-    TaskCompleted, TaskNotCompleted, TaskCompletedWithError
+    TaskCompleted, TaskNotCompleted, TaskCompletedWithError, TaskCancelled
 
   PreparationSubject* = enum
     PSListener
@@ -193,6 +193,8 @@ proc `$`*(task: Task): string =
       x &= "Pending]"
     of TaskCompletedWithError:
       x &= "Completed w/ Error]"
+    of TaskCancelled:
+      x &= "Cancelled]"
 
   x
 
@@ -209,8 +211,10 @@ proc `$`*(cc: CommandCategory): string =
   of CCTasks:
     "Tasks"
 
-proc markAsCompleted*(task: Task, response: JsonNode) = 
-  if response["error"].getStr() == "":
+proc markAsCompleted*(task: Task, response: JsonNode = %*{}) = 
+  if response == %*{}:
+    task.status = TaskCancelled
+  elif response["error"].getStr() == "":
     task.status = TaskCompleted
   else:
     task.status = TaskCompletedWithError
