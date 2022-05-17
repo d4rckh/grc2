@@ -41,4 +41,27 @@ Join the [Discord](https://discord.gg/kCjkfQEB) to discuss about this project.
 
 ## Operating System support
 
-The server is fully supported on Linux but unknown on Windows (everything should work unless you are trying to compile a linux implant, but not guarantees). The client is fully supported on Windows, with lack of features on Linux.
+The server is fully supported on Linux but unknown on Windows. The client is fully supported on Windows, with lack of features on Linux.
+
+### Server Support
+
+All server features are available on both Linux and Windows platforms. You might need to install additional dependencies on both platform for cross-platform compilation (check installation wiki page)
+
+
+### Implant Support
+
+| Feature | Windows Support | Linux Support |
+|---|---|---|
+| shell command | ✅ | ✅ |
+| cmd command | ✅ | ❌ `(cmd.exe not present on linux)` |
+| info command | ✅ | ⚠️ |
+| msgbox command | ✅ | ❌ |
+| processes command | ✅ | ❌ |
+| tokeninfo command | ✅ | ❌ |
+| download command | ✅ | ✅ |
+| upload command | ✅ | ✅ |
+
+✅ - yes, complete
+⚠️ - yes, but partially
+❌ - no, does not work at all
+
