@@ -41,7 +41,7 @@ Join the [Discord](https://discord.gg/kCjkfQEB) to discuss about this project.
 
 ## Operating System support
 
-The server is fully supported on Linux but unknown on Windows (everything should work unless you are trying to compile a linux implant, but not guarantees). The client is fully supported on Windows, with lack of features on Linux.
+The server is fully supported on Linux but unknown on Windows. The client is fully supported on Windows, with lack of features on Linux.
 
 ### Server Support
 
