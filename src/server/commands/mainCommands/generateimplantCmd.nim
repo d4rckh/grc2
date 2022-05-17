@@ -10,6 +10,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   var ip: string = flags.getOrDefault("ip", flags.getOrDefault("i", ""))
   var port: string = flags.getOrDefault("port", flags.getOrDefault("p", ""))
   var showWindow: bool = parseBool(flags.getOrDefault("showwindow", flags.getOrDefault("s", "no")))
+  var autoConnectTime: string = flags.getOrDefault("autoconnect", flags.getOrDefault("t", "5000"))
 
   if listenerType == "":
     errorLog "you must specify a listener type, check 'help generateimplant' & https://github.com/d4rckh/nimc2/wiki/Usage#generating-an-implant"
@@ -46,6 +47,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     "-d:release" & " " &  
     "-d:ip=" & ip & " " & 
     "-d:port=" & port & " " & 
+    "-d:autoConnectTime=" & autoConnectTime & " " & 
     (if platform == "windows": "-d:mingw" else: "--os:linux") & " " & 
     "-o:implant" & (if platform == "windows": ".exe " else: " ") & 
     "./src/client/client.nim"
@@ -64,8 +66,8 @@ let cmd*: Command = Command(
   aliases: @["gi"],
   argsLength: 3,
   usage: @[
-    "generateimplant -l:[listenerID] -P:[platform]",
-    "generateimplant -l:[listenerType] -i:[ip] -p:[port] -P:[platform]",
+    "generateimplant -l:[listenerID] -P:[platform] -t:[autoConnectTimeout]",
+    "generateimplant -l:[listenerType] -i:[ip] -p:[port] -P:[platform] -t:[autoConnectTimeout]",
   ],
   description: "Generate an implant",
   category: CCImplants

