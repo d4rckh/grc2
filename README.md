@@ -65,3 +65,6 @@ All server features are available on both Linux and Windows platforms. You might
 ⚠️ - yes, but partially
 ❌ - no, does not work at all
 
+# Support Me
+
+You can support me by becoming a patreon at **[https://www.patreon.com/d4rckh](https://www.patreon.com/d4rckh)** (You also get some exclusive things)
