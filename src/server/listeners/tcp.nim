@@ -1,4 +1,4 @@
-import asyncdispatch, asyncnet, asyncfutures, strutils, json, base64
+import asyncdispatch, asyncnet, asyncfutures, strutils, json, base64, ws
 
 import ../types, ../logging, ../processMessage
 
@@ -52,6 +52,7 @@ proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.a
       running: true
     )
   try:
+    tcpServer.socket.setSockOpt(OptReuseAddr, true)
     tcpServer.socket.bindAddr(port.Port, ip)
     tcpServer.socket.listen()
   except OSError:
@@ -85,7 +86,6 @@ proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.a
     server.clients.add(client)
     tcpServer.sockets.add(tcpSocket)
 
-    cConnected(client)
     asyncCheck processMessages(server, tcpSocket, client)
 
   infoLog $tcpServer & " stopped"

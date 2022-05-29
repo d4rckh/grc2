@@ -1,5 +1,6 @@
 import asyncdispatch, asyncfutures, json
 import types, logging, cli, ../utils
+# import httpapi/httpserver
 
 infoLog "initializing c2 server"
 
@@ -19,14 +20,17 @@ let server = C2Server(
 )
 
 proc ctrlc() {.noconv.} =
-  if server.cli.interactive:
+  if server.cli.interactive or not server.cli.initialized:
     quit 0
   else:
     for task in server.tasks:
       task.markAsCompleted()
+
 setControlCHook(ctrlc)
 
+# import listeners/tcp
+# asyncCheck createNewTcpListener(server, 1337, "127.0.0.1")
 
 asyncCheck procStdin(server)
-
+# asyncCheck startHttpAPI(server)
 runForever()

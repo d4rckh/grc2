@@ -12,3 +12,4 @@ bin           = @["nimc2"]
 
 requires "nim >= 1.6.2"
 requires "winim >= 3.8.0"
+

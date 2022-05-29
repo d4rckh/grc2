@@ -1,4 +1,4 @@
-import asyncdispatch, tables
+import asyncdispatch, tables, ws
 
 import ../../types
 

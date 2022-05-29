@@ -1,4 +1,4 @@
-import asyncfutures, asyncnet, json, asyncdispatch, tables
+import asyncfutures, asyncnet, json, asyncdispatch, tables, ws, std/jsonutils
 
 type
   TaskStatus* = enum
@@ -46,6 +46,8 @@ type
     cli*: C2Cli
     # listeners
     tcpListeners*: seq[TCPListener]
+    wsConnections*: seq[WebSocket]
+    wsMessages*: seq[string]
     tasks*: seq[Task]
     osType*: OSType
 
@@ -84,6 +86,7 @@ type
     status*: TaskStatus
     arguments*: JsonNode
     future*: ref Future[void]
+    output*: JsonNode
 
   Command* = ref object
     name*: string
@@ -149,6 +152,13 @@ proc `$`*(client: C2Client): string =
   else:
     $client.id & "(" & tcpSocket.netAddr & ")(" & client.hostname & ")"
 
+proc `$`*(taskStatus: TaskStatus): string = 
+  case taskStatus:
+    of TaskCompleted: "completed"
+    of TaskNotCompleted: "pending"
+    of TaskCompletedWithError: "completederror"
+    of TaskCancelled: "cancelled"
+
 proc `$`*(integrityLevel: TokenIntegrityLevel): string =
   case integrityLevel.sid:
     of "S-1-16-0":
@@ -183,6 +193,36 @@ proc `@`*(client: C2Client): string =
         of WindowsOS: "\n\tWindows Version: " & $client.windowsVersionInfo
         else: ""
       )
+
+proc `%`*(client: C2Client): JsonNode =
+  return %*{
+    "id": client.id,
+    "ipAddress": client.ipAddress,
+    "hostname": client.hostname,
+    "username": client.username,
+    "osType": client.osType,
+    "windowsVersionInfo": client.windowsVersionInfo,
+    "linuxVersionInfo": client.linuxVersionInfo,
+    "connected": client.connected,
+    "initialized": client.loaded
+  }
+
+proc `%`*(task: Task): JsonNode =
+  return %*{
+    "client": task.client.id,
+    "id": task.id,
+    "action": task.action,
+    "status": $task.status,
+    "arguments": toJson task.arguments,
+    "output": task.output
+  }
+
+proc `%`*(tcpListener: TCPListener): JsonNode =
+  return %*{
+    "id": tcpListener.id,
+    "listeningIP": tcpListener.listeningIP,
+    "port": tcpListener.port
+  }
 
 proc `$`*(task: Task): string =
   var x = "(" & $task.id & ")" & task.action & " ["
