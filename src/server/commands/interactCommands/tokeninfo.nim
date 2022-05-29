@@ -5,18 +5,18 @@ import ../../types, ../../communication
 import ../../../clientTasks/tokinfo
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
-  let client = server.cli.handlingClient
-  
-  # just update the token info
-  let task = await tokinfo.sendTask(client)
-  await task.awaitResponse()
+  for client in server.cli.handlingClient:  
+    # just update the token info
+    let task = await tokinfo.sendTask(client)
+    if not task.isNil(): 
+      await task.awaitResponse()
 
-  echo "-- Token Information --"
-  echo "Integrity: " & $client.tokenInformation.integrityLevel
-  echo "Groups:"
-  for group in client.tokenInformation.groups:
-    stdout.styledWriteLine "\t", (if group.domain == "": "" else: (group.domain & "\\")), 
-            fgGreen, group.name, fgDefault, " (" & group.sid & ")"  
+      echo "-- Token Information --"
+      echo "Integrity: " & $client.tokenInformation.integrityLevel
+      echo "Groups:"
+      for group in client.tokenInformation.groups:
+        stdout.styledWriteLine "\t", (if group.domain == "": "" else: (group.domain & "\\")), 
+          fgGreen, group.name, fgDefault, " (" & group.sid & ")"  
 
 let cmd*: Command = Command(
   execProc: execProc,

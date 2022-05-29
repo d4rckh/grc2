@@ -8,16 +8,21 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     errorLog "you must provide a client id to interact with"
     return
 
-  let clientId = parseInt(args[0])
-  
   let c2cli = server.cli
-  for client in server.clients:
-    if client.id == clientId:
-      c2cli.handlingClient = client
-      c2cli.mode = ClientInteractMode
 
-  if c2cli.handlingClient.isNil() or c2cli.handlingClient.id != clientId:
-    infoLog "client not found"
+  c2cli.handlingClient = @[]
+  
+  for arg in args:
+    let clientId = parseInt(arg)
+    var cFound = false
+    for client in server.clients:
+      if client.id == clientId:
+        c2cli.handlingClient.add client
+        c2cli.mode = ClientInteractMode
+        cFound = true
+
+    if not cFound:
+      infoLog "client not found"
 
 let cmd*: Command = Command(
   execProc: execProc,

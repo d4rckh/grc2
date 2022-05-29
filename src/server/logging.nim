@@ -2,6 +2,18 @@ import terminal, base64, strutils, ws, json
 
 import types
 
+proc genClientSummary(client: seq[C2Client]): string =
+  var menu = "client:unknown"
+  if client.len > 0:
+    if client.len == 1:
+      if not client[0].loaded:
+          menu = "client:" & $(client[0].id)
+      else:
+          menu = client[0].username & (if client[0].isAdmin: "*" else: "") & "@" & client[0].hostname
+    else:
+      menu = $client.len & " clients"
+  return menu
+
 proc prompt*(server: C2Server) = 
   let cli = server.cli
   
@@ -15,13 +27,7 @@ proc prompt*(server: C2Server) =
 
   case cli.mode:
   of ClientInteractMode: 
-    if not client.isNil():
-      if not client.loaded:
-        menu = "client:" & $(client.id)
-      else:
-        menu = client.username & (if client.isAdmin: "*" else: "") & "@" & client.hostname
-    else:
-      menu = "client:unknown"
+    menu = genClientSummary(client)
     sign = ">"
   of MainMode:
     menu = "main"
@@ -30,14 +36,8 @@ proc prompt*(server: C2Server) =
     menu = "preparing"
     sign = ">"
   of ShellMode:
-    if not client.isNil():
-      if not client.loaded:
-        menu = "client:" & $(client.id)
-      else:
-        menu = client.username & (if client.isAdmin: "*" else: "") & "@" & client.hostname
-    else:
-      menu = "client:unknown"
-    sign = (if client.isAdmin: "#" else: "$")
+    menu = genClientSummary(client)
+    sign = (if client.len == 1: ( if client[0].isAdmin: "#" else: "$" ) else: "?")
   stdout.styledWrite "(", menu ,")", shellColor, " nimc2 " & sign & " " , fgDefault
   stdout.flushFile()
 
@@ -72,4 +72,4 @@ proc cDisconnected*(client: C2Client, reason: string = "client died") =
 proc logClientOutput*(client: C2Client, category: string, b64: string) =
   for line in decode(b64).split("\n"):
     if not ( line == "" ): 
-      stdout.styledWriteLine fgGreen, "[=] [Client: ", $client.id, "] ", "[", category, "] ", fgDefault, line
+      stdout.styledWriteLine fgGreen, "[=] [Client: ", $client.id, "] ", "[", category, "] ", fgWhite, line

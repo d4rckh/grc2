@@ -3,7 +3,8 @@ import asyncdispatch, tables
 import ../../types
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
-  echo @(server.cli.handlingClient)
+  for client in server.cli.handlingClient: 
+    echo @client
 
 let cmd*: Command = Command(
   execProc: execProc,

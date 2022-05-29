@@ -12,11 +12,12 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   if not fileExists(args[0]):
     errorLog "file " & args[0] & " does not exist"
     return
-
-  let fileContents = readFile(args[0])
-  let task = await upload.sendTask(server.cli.handlingClient, args[1], encode(fileContents))
   
-  await task.awaitResponse()
+  for client in server.cli.handlingClient:
+    let fileContents = readFile(args[0])
+    let task = await upload.sendTask(client, args[1], encode(fileContents))
+    
+    if not task.isNil(): await task.awaitResponse()
 
 let cmd*: Command = Command(
   execProc: execProc,

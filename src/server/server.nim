@@ -13,7 +13,7 @@ loadCommands("src/server/commands/interactCommands")
 
 let server = C2Server(
   cli: C2Cli(
-    handlingClient: nil,
+    handlingClient: @[],
     mode: MainMode,
     commands: commands
   )

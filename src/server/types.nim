@@ -71,7 +71,7 @@ type
     linuxVersionInfo*: LinuxVersionInfo
 
   C2Cli* = ref object
-    handlingClient*: C2Client
+    handlingClient*: seq[C2Client]
     mode*: CliMode
     initialized*: bool
     interactive*: bool

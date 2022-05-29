@@ -7,7 +7,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     server.cli.mode = ClientInteractMode
   else:
     server.cli.mode = MainMode
-    server.cli.handlingClient = nil
+    server.cli.handlingClient = @[]
 
 let cmd*: Command = Command(
   execProc: execProc,

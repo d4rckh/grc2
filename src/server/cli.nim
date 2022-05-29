@@ -1,10 +1,10 @@
 import asyncdispatch, threadpool, asyncfutures, parseopt, tables
-import strutils 
+import strutils, sequtils
 
 import types, logging
 
 import ../clientTasks/shell
-import commands/mainCommands/backCmd
+# import commands/mainCommands/backCmd
 import communication
 
 proc procStdin*(server: C2Server) {.async.} =
@@ -31,15 +31,16 @@ proc procStdin*(server: C2Server) {.async.} =
         if cmd == "back":
           c2cli.mode = ClientInteractMode
         else:
-          let task = await shell.sendTask(server.cli.handlingClient, args.join(" "))
-          await task.awaitResponse()
+          for client in server.cli.handlingClient:
+            let task = await shell.sendTask(client, args.join(" "))
+            await task.awaitResponse()
       else:
         for command in c2cli.commands:
           if command.name == cmd or cmd in command.aliases:
             c2cli.interactive = false
             if command.cliMode == @[ClientInteractMode] and c2cli.mode != ClientInteractMode:
               errorLog "you must interact with a client to use this command (see 'help interact')"
-            elif command.requiresConnectedClient and not c2cli.handlingClient.connected:
+            elif command.requiresConnectedClient and not filter(c2cli.handlingClient, proc(x: C2Client): bool = x.connected).len == 0:
               errorLog "you can't use this command on a disconnected client"
             else:
               var flags: Table[string, string] = initTable[string, string]()
