@@ -11,6 +11,7 @@ proc genClientSummary(client: seq[C2Client]): string =
       else:
           menu = client[0].username & (if client[0].isAdmin: "*" else: "") & "@" & client[0].hostname
     else:
+    #   menu = "115 clients"
       menu = $client.len & " clients"
   return menu
 

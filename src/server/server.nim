@@ -1,6 +1,6 @@
 import asyncdispatch, asyncfutures, json
 import types, logging, cli, ../utils
-# import httpapi/httpserver
+import httpapi/httpserver
 
 infoLog "initializing c2 server"
 
@@ -32,5 +32,5 @@ setControlCHook(ctrlc)
 # asyncCheck createNewTcpListener(server, 1337, "127.0.0.1")
 
 asyncCheck procStdin(server)
-# asyncCheck startHttpAPI(server)
+asyncCheck startHttpAPI(server)
 runForever()
