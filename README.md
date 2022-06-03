@@ -53,7 +53,7 @@ All server features are available on both Linux and Windows platforms. You might
 | Feature | Windows Support | Linux Support |
 |---|---|---|
 | shell command | ✅ | ✅ |
-| cmd command | ✅ | ❌ `(cmd.exe not present on linux)` |
+| cmd command | ✅ | ❌ |
 | info command | ✅ | ⚠️ |
 | msgbox command | ✅ | ❌ |
 | processes command | ✅ | ❌ |
