@@ -1,4 +1,4 @@
-import asyncdispatch, asyncfutures, json
+import asyncdispatch, asyncfutures
 import types, logging, cli, ../utils
 import httpapi/httpserver
 
@@ -28,8 +28,8 @@ proc ctrlc() {.noconv.} =
 
 setControlCHook(ctrlc)
 
-# import listeners/tcp
-# asyncCheck createNewTcpListener(server, 1337, "127.0.0.1")
+import listeners/tcp
+asyncCheck createNewTcpListener(server, 1337, "127.0.0.1")
 
 asyncCheck procStdin(server)
 asyncCheck startHttpAPI(server)

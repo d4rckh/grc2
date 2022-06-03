@@ -54,6 +54,7 @@ type
   C2Client* = ref object
     # socket*: AsyncSocket
     listenerType*: string
+    hash*: string
     listenerId*: int
     id*: int
     connected*: bool
@@ -103,6 +104,7 @@ type
 
   TCPSocket* = ref object
     socket*: AsyncSocket
+    tcpListener*: TCPListener
     netAddr*: string
     id*: int
 

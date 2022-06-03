@@ -60,6 +60,17 @@ proc cConnected*(client: C2Client)  =
   stdout.styledWriteLine fgGreen, "[+] ", $client, " connected", fgDefault
   prompt(client.server)
 
+proc cReconnected*(client: C2Client)  =
+  for wsConnection in client.server.wsConnections:
+    if wsConnection.readyState == Open:
+      discard ws.send(wsConnection, $(%*{
+        "event": "clientreconnect",
+        "data": %client
+      }))
+
+  stdout.styledWriteLine fgGreen, "[+] ", $client, " reconnected", fgDefault
+  prompt(client.server)
+
 proc cDisconnected*(client: C2Client, reason: string = "client died") =
   for wsConnection in client.server.wsConnections:
     if wsConnection.readyState == Open:
@@ -67,7 +78,7 @@ proc cDisconnected*(client: C2Client, reason: string = "client died") =
         "event": "clientdisconnect",
         "data": %client
       }))
-  stdout.styledWriteLine fgRed, "[-] ", $client, " disconnected", fgDefault, " (", reason, ")"
+  stdout.styledWriteLine fgRed, "[-] ", $client, " disconnected", fgWhite, " (", reason, ")"
   prompt(client.server)
 
 proc logClientOutput*(client: C2Client, category: string, b64: string) =

