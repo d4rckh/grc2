@@ -148,11 +148,13 @@ proc `@`*(tcpListener: TCPListener): string =
   $tcpListener
 
 proc `$`*(client: C2Client): string =
-  let tcpSocket: TCPSocket = getTcpSocket(client)
+#   let tcpSocket: TCPSocket = getTcpSocket(client)
+#   if tcpSocket.isNil():
+#     return $client.id
   if not client.loaded:
-    $client.id & "(" & tcpSocket.netAddr & ")"
+    $client.id & "(" & client.ipAddress & ")"
   else:
-    $client.id & "(" & tcpSocket.netAddr & ")(" & client.hostname & ")"
+    $client.id & "(" & client.ipAddress & ")(" & client.hostname & ")"
 
 proc `$`*(taskStatus: TaskStatus): string = 
   case taskStatus:

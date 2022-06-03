@@ -63,8 +63,6 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
                 server.clients.delete(
                   server.clients.find c
                 )
-
-            return
         if not client.loaded:
           cConnected client[]
           client.loaded = true
