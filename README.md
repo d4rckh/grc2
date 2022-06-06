@@ -60,6 +60,7 @@ All server features are available on both Linux and Windows platforms. You might
 | tokeninfo command | ✅ | ❌ |
 | download command | ✅ | ✅ |
 | upload command | ✅ | ✅ |
+| screenshot command | ✅ | ❌ |
 
 ✅ - yes, complete
 ⚠️ - yes, but partially
