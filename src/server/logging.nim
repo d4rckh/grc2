@@ -1,4 +1,4 @@
-import terminal, base64, strutils, ws, json
+import terminal, base64, strutils, ws, json, os
 
 import types
 
@@ -39,7 +39,7 @@ proc prompt*(server: C2Server) =
   of ShellMode:
     menu = genClientSummary(client)
     sign = (if client.len == 1: ( if client[0].isAdmin: "#" else: "$" ) else: "?")
-  stdout.styledWrite "(", menu ,")", shellColor, " nimc2 " & sign & " " , fgDefault
+  stdout.styledWrite "(", menu, ")", shellColor, " nimc2 ", sign, " " , fgDefault
   stdout.flushFile()
 
 proc infoLog*(msg: string) =
@@ -49,7 +49,9 @@ proc errorLog*(msg: string) =
   for line in msg.split("\n"):
     stdout.styledWriteLine fgRed, "[!] ", line, fgDefault
 
-proc cConnected*(client: C2Client)  =
+proc cConnected*(client: C2Client) =
+  createDir("loot/" & $client.id & "/")
+  createDir("loot/" & $client.id & "/screenshots/")
   for wsConnection in client.server.wsConnections:
     if wsConnection.readyState == Open:
       discard ws.send(wsConnection, $(%*{

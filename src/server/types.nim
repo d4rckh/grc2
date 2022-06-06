@@ -40,10 +40,10 @@ type TokenInformation* = ref object
   groups*: seq[tuple[name, sid, domain: string]] 
 
 type
-
   C2Server* = ref object
     clients*: seq[C2Client]
     cli*: C2Cli
+    configuration*: Table[string, string]
     # listeners
     tcpListeners*: seq[TCPListener]
     wsConnections*: seq[WebSocket]

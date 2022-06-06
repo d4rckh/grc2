@@ -1,4 +1,4 @@
-import asyncdispatch, asyncnet, base64, json, ws, json
+import asyncdispatch, asyncnet, base64, json, ws
 
 import types, logging
 

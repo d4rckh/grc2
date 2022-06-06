@@ -4,3 +4,5 @@
 ./nimc2
 ./test*
 dev_tools/
+loot
+*png

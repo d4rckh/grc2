@@ -1,6 +1,5 @@
 import asyncdispatch, asyncfutures
 import types, logging, cli, ../utils
-import httpapi/httpserver
 
 infoLog "initializing c2 server"
 
@@ -24,13 +23,14 @@ proc ctrlc() {.noconv.} =
     quit 0
   else:
     for task in server.tasks:
-      task.markAsCompleted()
-
+      task.future[].complete()
 setControlCHook(ctrlc)
 
-import listeners/tcp
-asyncCheck createNewTcpListener(server, 1337, "127.0.0.1")
-
+when defined(debug):
+    import listeners/tcp
+    asyncCheck createNewTcpListener(server, 1337, "127.0.0.1")
 asyncCheck procStdin(server)
-asyncCheck startHttpAPI(server)
+when defined(debug):
+    import httpapi/httpserver
+    asyncCheck startHttpAPI(server)
 runForever()

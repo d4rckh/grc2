@@ -8,7 +8,7 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: ref C2Clien
   var linesRecv: int = 0
 
   while client.connected:
-    let line = await tcpSocket.socket.recvLine()
+    let line = await tcpSocket.socket.recvLine(maxLength=1000000)
 
     if line.len == 0:
       client.connected = false
@@ -17,15 +17,14 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: ref C2Clien
       continue
 
     inc linesRecv
-
-    if linesRecv == 3:
-      client.connected = false
-      tcpSocket.socket.close()
-      cDisconnected(client[], "too much data sent")
-      for task in server.tasks:
-        if task.client == client[]:
-          task.markAsCompleted(%*{ "error": "client sent too much data" })
-      continue
+    # if linesRecv == 3:
+    #   client.connected = false
+    #   tcpSocket.socket.close()
+    #   cDisconnected(client[], "too much data sent")
+    #   for task in server.tasks:
+    #     if task.client == client[]:
+    #       task.markAsCompleted(%*{ "error": "client sent too much data" })
+    #   continue
 
     msgS &= line
 
