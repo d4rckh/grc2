@@ -152,9 +152,9 @@ proc `$`*(client: C2Client): string =
 #   if tcpSocket.isNil():
 #     return $client.id
   if not client.loaded:
-    $client.id & "(" & client.ipAddress & ")"
+    client.ipAddress 
   else:
-    $client.id & "(" & client.ipAddress & ")(" & client.hostname & ")"
+    client.username & "@" & client.hostname & "(" & $client.id & ")"
 
 proc `$`*(taskStatus: TaskStatus): string = 
   case taskStatus:
@@ -229,7 +229,7 @@ proc `%`*(tcpListener: TCPListener): JsonNode =
   }
 
 proc `$`*(task: Task): string =
-  var x = "(" & $task.id & ")" & task.action & " ["
+  var x = task.action & " ["
 
   case task.status:
     of TaskCompleted:
@@ -240,6 +240,8 @@ proc `$`*(task: Task): string =
       x &= "Completed w/ Error]"
     of TaskCancelled:
       x &= "Cancelled]"
+  
+  x &= " (" & $task.id & ")"
 
   x
 

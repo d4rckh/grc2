@@ -1,6 +1,6 @@
 import terminal, base64, strutils, ws, json, os
 
-import types
+import types, loot
 
 proc genClientSummary(client: seq[C2Client]): string =
   var menu = "client:unknown"
@@ -50,8 +50,7 @@ proc errorLog*(msg: string) =
     stdout.styledWriteLine fgRed, "[!] ", line, fgDefault
 
 proc cConnected*(client: C2Client) =
-  createDir("loot/" & $client.id & "/")
-  createDir("loot/" & $client.id & "/screenshots/")
+  client.createLootDirectories()
   for wsConnection in client.server.wsConnections:
     if wsConnection.readyState == Open:
       discard ws.send(wsConnection, $(%*{

