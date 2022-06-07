@@ -15,5 +15,5 @@ let cmd*: Command = Command(
   name: "config",
   usage: @["config", "config set [key] \"[value]\""],
   description: "View and change config of the c2 server",
-  category: CCClientInteraction
+  category: CCNavigation
 )

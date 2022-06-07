@@ -19,7 +19,7 @@ let cmd*: Command = Command(
   argsLength: 1,
   usage: @["cmd \"[command]\""],
   cliMode: @[ClientInteractMode],
-  description: "Run a command via cmd.exe (Windows only)",
+  description: "Run a command via cmd.exe",
   category: CCClientInteraction,
   requiresConnectedClient: true
 )

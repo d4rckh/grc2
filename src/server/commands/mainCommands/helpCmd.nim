@@ -1,4 +1,4 @@
-import asyncdispatch, strutils, tables
+import asyncdispatch, strutils, tables, terminal
 
 import ../../types
 
@@ -13,10 +13,10 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
         echo "Usage:\n\t" & command.usage.join("\n\t")
   else:
     for i in CommandCategory:
-      echo "-- " & $i
+      stdout.styledWriteLine fgGreen, "-- ", $i
       for command in server.cli.commands:
         if command.category == i:
-          echo "\t" & command.name & ": " & command.description
+          stdout.styledWriteLine "\t", fgYellow, command.name, fgWhite, ": ", command.description
 
 let cmd*: Command = Command(
   execProc: execProc,

@@ -18,7 +18,7 @@ let cmd*: Command = Command(
   argsLength: 2,
   usage: @["msgbox \"[title]\" \"[caption]\""],
   cliMode: @[ClientInteractMode],
-  description: "Send a message box (Windows only)",
+  description: "Send a message box",
   category: CCClientInteraction,
   requiresConnectedClient: true
 )
