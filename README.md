@@ -48,7 +48,7 @@ The server is fully supported on Linux but unknown on Windows. The client is ful
 All server features are available on both Linux and Windows platforms. You might need to install additional dependencies on both platform for cross-platform compilation (check installation wiki page)
 
 
-### Implant Support
+### Command Support
 
 | Feature | Windows Support | Linux Support |
 |---|---|---|
