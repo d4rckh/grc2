@@ -22,7 +22,7 @@
 - Loot system
 - ...and a lot more features coming soon
 
-![image](https://user-images.githubusercontent.com/35298550/172691201-ebe84e3d-2101-472a-b9b4-3b4e5151b280.png)
+![image](https://user-images.githubusercontent.com/35298550/172691387-f47f6226-a764-4a44-93ff-aa7ec52943e3.png)
 
 Join the [nimc2 discord server](https://discord.gg/dUwqQzk5UM) to discuss about this project.
 
