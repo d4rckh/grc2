@@ -19,7 +19,7 @@ macro importDirectory*(a: static string, b: static string, c: static string): un
       bracket
       )
   ))
-  return a
+  return a 
 
 macro loadCommands*(a: static string): untyped =
   let stmtList = newStmtList()

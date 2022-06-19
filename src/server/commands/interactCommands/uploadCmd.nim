@@ -1,8 +1,6 @@
-import asyncdispatch, tables, os, base64
+import asyncdispatch, tables, os, base64, json
 
 import ../../types, ../../communication, ../../logging
-
-import ../../../clientTasks/upload
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   if len(args) < 1:
@@ -15,7 +13,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   
   for client in server.cli.handlingClient:
     let fileContents = readFile(args[0])
-    let task = await upload.sendTask(client, args[1], encode(fileContents))
+    let task = await client.sendClientTask("upload", %*[ encode(fileContents), args[1] ])
     
     if not task.isNil(): await task.awaitResponse()
 

@@ -259,6 +259,7 @@ proc `$`*(cc: CommandCategory): string =
     "Tasks"
 
 proc markAsCompleted*(task: Task, response: JsonNode = %*{}) = 
+  task.output = response
   if response == %*{}:
     task.status = TaskCancelled
   elif response["error"].getStr() == "":

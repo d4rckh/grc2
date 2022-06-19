@@ -1,4 +1,4 @@
-import terminal, base64, strutils, ws, json, os
+import terminal, base64, strutils, ws, json
 
 import types, loot
 
@@ -43,7 +43,12 @@ proc prompt*(server: C2Server) =
   stdout.flushFile()
 
 proc infoLog*(msg: string) =
-  stdout.styledWriteLine fgBlue, "[!] ", msg, fgDefault
+  for line in msg.split("\n"):
+    if line != "": stdout.styledWriteLine fgBlue, "[!] ", line, fgDefault
+
+proc successLog*(msg: string) =
+  for line in msg.split("\n"):
+    if line != "": stdout.styledWriteLine fgGreen, "[!] ", line, fgDefault
 
 proc errorLog*(msg: string) =
   for line in msg.split("\n"):
@@ -86,3 +91,57 @@ proc logClientOutput*(client: C2Client, category: string, b64: string) =
   for line in decode(b64).split("\n"):
     if not ( line == "" ): 
       stdout.styledWriteLine fgGreen, "[=] [Client: ", $client.id, "] ", "[", category, "] ", fgWhite, line
+
+
+proc printTable*(data: JsonNode) =
+  var tableHeader: seq[string] = @[]
+  for line in data:
+    for key, _ in pairs(line):
+      if not (key in tableHeader): tableHeader.add key
+  echo tableHeader.join("\t")
+  for line in data:
+    for key in tableHeader:
+      let jValue = line{key}
+      case jValue.kind:
+      of JString:
+        stdout.write jValue.getStr("-")
+      of JInt: 
+        stdout.write jValue.getInt(0)
+      of JBool:
+        stdout.write jValue.getBool(false)  
+      of JNull:
+        stdout.write "null"  
+      of JFloat:
+        stdout.write jValue.getFloat(0)
+      of JObject:
+        stdout.write "{object}"
+      of JArray:
+        stdout.write "{array}"
+      stdout.write "\t"
+    stdout.writeLine ""
+
+proc printObject*(data: JsonNode) =
+  for key, val in pairs(data):
+    stdout.styledWrite fgGreen, key, fgWhite, ": "
+    case val.kind:
+      of JString:
+        stdout.write val.getStr("-")
+        stdout.writeLine ""
+      of JInt: 
+        stdout.write val.getInt(0)
+        stdout.writeLine ""
+      of JBool:
+        stdout.write val.getBool(false)  
+        stdout.writeLine ""
+      of JNull:
+        stdout.write "null"  
+        stdout.writeLine ""
+      of JFloat:
+        stdout.write val.getFloat(0)
+        stdout.writeLine ""
+      of JObject:
+        stdout.writeLine ""
+        printObject(val)
+      of JArray:
+        stdout.writeLine ""
+        printTable(val)
