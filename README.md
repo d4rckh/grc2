@@ -19,11 +19,12 @@
 - Ability to create as many listeners as you want
 - A nice task system
 - Easy to use CLI
+- Loot system
 - ...and a lot more features coming soon
 
-![image](https://user-images.githubusercontent.com/35298550/167257694-1cda7f5c-a013-4910-af93-f51ad1d6ca4a.png)
+![image](https://user-images.githubusercontent.com/35298550/172691387-f47f6226-a764-4a44-93ff-aa7ec52943e3.png)
 
-Join the [Discord](https://discord.gg/kCjkfQEB) to discuss about this project.
+Join the [nimc2 discord server](https://discord.gg/dUwqQzk5UM) to discuss about this project.
 
 # Wiki
 
@@ -48,7 +49,7 @@ The server is fully supported on Linux but unknown on Windows. The client is ful
 All server features are available on both Linux and Windows platforms. You might need to install additional dependencies on both platform for cross-platform compilation (check installation wiki page)
 
 
-### Implant Support
+### Command Support
 
 | Feature | Windows Support | Linux Support |
 |---|---|---|
