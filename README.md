@@ -18,8 +18,9 @@
 - TCP socket communication (with HTTP communication coming soon)
 - Ability to create as many listeners as you want
 - A nice task system
-- Easy to use CLI
-- Loot system
+- A loot system for storing screenshots and downloaded files 
+- Customizable modules for extending implants with custom functionality
+- Easy to use CLI 
 - ...and a lot more features coming soon
 
 ![image](https://user-images.githubusercontent.com/35298550/172691387-f47f6226-a764-4a44-93ff-aa7ec52943e3.png)
