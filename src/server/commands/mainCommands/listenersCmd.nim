@@ -7,9 +7,8 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   for tcpListener in server.tcpListeners:
     infoLog @tcpListener
     if "c" in flags or "clients" in flags:
-      for client in server.clients:
-        if client.listenerType == "tcp" and client.listenerId == tcpListener.id and client.connected:
-          infoLog "\t<- " & $client
+      for tcpSocket in tcpListener.sockets:
+        infoLog "\t<- " & $server.clients[tcpSocket.id]
   infoLog $len(server.tcpListeners) & " listeners"
 
 let cmd*: Command = Command(

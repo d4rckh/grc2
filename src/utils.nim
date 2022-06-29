@@ -15,7 +15,7 @@ macro importDirectory*(a: static string, b: static string, c: static string): un
       newNimNode(nnkPrefix).add(
         ident(b),
         ident(c)
-      ),
+      ), 
       bracket
       )
   ))

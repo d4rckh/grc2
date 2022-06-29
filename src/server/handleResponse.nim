@@ -13,7 +13,9 @@ proc handleResponse*(client: C2Client, rewind: bool, response: JsonNode) =
     if not rewind: infoLog "received " & dataType & " (" & dataName & ") from " & $client
     case dataType:
     of "text":
-      infoLog dataContent
+      echo "--------------"
+      infoLog dataContent, colorText=false
+      echo "--------------"
     of "file":
       if not rewind:
         let filePath = client.getLootDirectory() & "/files/" & dataName

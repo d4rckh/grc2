@@ -1,8 +1,8 @@
-import asyncfutures, asyncnet, json, asyncdispatch, tables, ws, std/jsonutils
+import asyncfutures, asyncnet, json, asyncdispatch, tables, ws, std/jsonutils, times
 
 type
   TaskStatus* = enum
-    TaskCompleted, TaskNotCompleted, TaskCompletedWithError, TaskCancelled
+    TaskCreated, TaskCompleted, TaskNotCompleted, TaskCompletedWithError, TaskCancelled
 
   PreparationSubject* = enum
     PSListener
@@ -53,9 +53,7 @@ type
 
   C2Client* = ref object
     # socket*: AsyncSocket
-    listenerType*: string
     hash*: string
-    listenerId*: int
     id*: int
     connected*: bool
     tokenInformation*: TokenInformation
@@ -64,6 +62,7 @@ type
     isAdmin*: bool
     hostname*: string
     username*: string
+    lastCheckin*: DateTime
     ipAddress*: string
     osType*: OSType
     server*: C2Server
@@ -89,6 +88,14 @@ type
     future*: ref Future[void]
     output*: JsonNode
 
+  RawTask* = ref object
+    clientHash*: string
+    id*: int
+    action*: string
+    status*: TaskStatus
+    arguments*: JsonNode
+    output*: JsonNode
+ 
   Command* = ref object
     name*: string
     argsLength*: int
@@ -117,10 +124,9 @@ type
     running*: bool
 
 proc getTcpSocket*(client: C2Client): TCPSocket =
-  if client.listenerType == "tcp":
-    let tcpSockets = client.server.tcpListeners[client.listenerId].sockets
+  for tcpListener in client.server.tcpListeners:
     var clientSocket: TCPSocket
-    for tcpSocket in tcpSockets:
+    for tcpSocket in tcpListener.sockets:
       if tcpSocket.id == client.id:
         clientSocket = tcpSocket
     if clientSocket.isNil():
@@ -152,7 +158,7 @@ proc `$`*(client: C2Client): string =
 #   if tcpSocket.isNil():
 #     return $client.id
   if not client.loaded:
-    client.ipAddress 
+    client.ipAddress & "(" & $client.id & ")"
   else:
     client.username & "@" & client.hostname & "(" & $client.id & ")"
 
@@ -160,6 +166,7 @@ proc `$`*(taskStatus: TaskStatus): string =
   case taskStatus:
     of TaskCompleted: "completed"
     of TaskNotCompleted: "pending"
+    of TaskCreated: "created"
     of TaskCompletedWithError: "completederror"
     of TaskCancelled: "cancelled"
 
@@ -183,12 +190,14 @@ proc `$`*(integrityLevel: TokenIntegrityLevel): string =
       return "Secure Process Mandatory Level"
 
 proc `@`*(client: C2Client): string =
+  let durCheckin: Duration = now() - client.lastCheckin
   if not client.loaded:
     $client & "(" & (if client.connected: "alive" else: "dead") & ")"
   else:
     $client & " (" & (if client.connected: "alive" else: "dead") & ")\n\t" & 
       "IP: " & client.ipAddress & "\n\t" &
       "Username: " & client.username & "\n\t" &
+      "Last Checkin: " & $durCheckin & " ago\n\t" &
       "Processs Integrity: " & $client.tokenInformation.integrityLevel & "\n\t" &
       "Running as admin: " & $client.isAdmin & "\n\t" &
       "OS: " & $client.osType & (
@@ -234,6 +243,8 @@ proc `$`*(task: Task): string =
   case task.status:
     of TaskCompleted:
       x &= "Completed]"
+    of TaskCreated:
+      x &= "Created]"
     of TaskNotCompleted:
       x &= "Pending]"
     of TaskCompletedWithError:

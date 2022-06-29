@@ -1,7 +1,7 @@
 import net, base64, json
 import ../client/communication
 
-proc executeTask*(socket: net.Socket, taskId: int, params: seq[string]) =
+proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
   let taskOutput = TaskOutput(
     task: "output",
     taskId: taskId,

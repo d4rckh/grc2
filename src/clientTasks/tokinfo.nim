@@ -1,7 +1,7 @@
-import std/[os, net, json, jsonutils]
+import std/[net, json, jsonutils]
 import ../client/[communication, modules]
 
-proc executeTask*(socket: net.Socket, taskId: int, params: seq[string]) =
+proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
   let tokenGroups: seq[tuple[name, sid, domain: string]] = getintegritygroups()
   let tokenIntegrity: string = getintegrity() 
   let taskOutput = TaskOutput(
@@ -10,7 +10,6 @@ proc executeTask*(socket: net.Socket, taskId: int, params: seq[string]) =
     error: "",
     data: %*{}
   )
-
   taskOutput.addData(Object, "response", 
     $(%*{
       "tokenGroups": toJson tokenGroups,

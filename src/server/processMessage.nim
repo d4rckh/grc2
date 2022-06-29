@@ -1,4 +1,4 @@
-import asyncdispatch, asyncfutures, strutils, strformat, json, base64, md5, tables, times, os
+import asyncdispatch, asyncfutures, strutils, strformat, json, base64, md5, tables, times, os, asyncnet
 
 import pixie, ws
 
@@ -22,14 +22,11 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
     else: 
       case response["task"].getStr():
       of "identify":
+        var itsReconnection = false
         client.hostname = response["data"]["hostname"].getStr("")
         client.username = response["data"]["username"].getStr("")
         client.isAdmin = response["data"]["isAdmin"].getBool(false)
-        client.tokenInformation = TokenInformation(
-          integrityLevel: TokenIntegrityLevel(
-            sid: response["data"]["ownIntegrity"].getStr("")
-          )
-        )
+
         case response["data"]["osType"].getStr("unknown"):
         of "unknown":
           client.osType = UnknownOS
@@ -45,31 +42,41 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
         client.linuxVersionInfo = LinuxVersionInfo(
           kernelVersion: response["data"]["linuxOsVersionInfo"]["kernelVersion"].getStr(),
         )
-        client.isAdmin = response["data"]["isAdmin"].getBool()
-        client.isAdmin = response["data"]["isAdmin"].getBool()
         client.hash = client[].generateClientHash()
-        if parseBool(server.configuration.getOrDefault("handle_reconnections", "true")):
-          for otherClient in server.clients:
-            if otherClient.hash == client.hash and otherClient.id != client.id:
-              let oldClientId = client.id
-            
-              # migrating client  
-              var tcpSocket = getTcpSocket(client[])
-              tcpSocket.id = otherClient.id
-              client[] = otherClient
-              client.connected = true
-              cReconnected client[]
-
-              # remove old client
-              for c in server.clients:
-                if c.id == oldClientId:
-                  server.clients.delete(
-                    server.clients.find c
-                  )
+        # if parseBool(server.configuration.getOrDefault("handle_reconnections", "true")):
+        #   for otherClient in server.clients:
+        #     if otherClient.hash == client.hash and otherClient.id != client.id:
+        #       let oldClientId = client.id
+        #       for task in server.tasks:
+        #         if task.client.id == client.id:
+        #           task.client = otherClient
+        #       # migrating client  
+        #       var tcpSocket = getTcpSocket(client[])
+        #       tcpSocket.id = otherClient.id
+        #       client[] = otherClient
+        #       client.connected = true
+        #       itsReconnection = true
+        #       # remove old client
+        #       for c in server.clients:
+        #         if c.id == oldClientId:
+        #           server.clients.delete(
+        #             server.clients.find c
+        #           )
+        #           break
+        #       break
+        client.isAdmin = response["data"]["isAdmin"].getBool()
+        client.tokenInformation = TokenInformation(
+          integrityLevel: TokenIntegrityLevel(
+            sid: response["data"]["ownIntegrity"].getStr("")
+          )
+        )
+        if itsReconnection: 
+          cReconnected client[]
         if not client.loaded:
-          cConnected client[]
           client.loaded = true
+          cConnected client[]
       of "output":
+        infoLog $client[] & " completed task " & task.action
         handleResponse(client[], false, response)
     #     let output = response["data"]["output"].getStr()
     #     let category = response["data"]["category"].getStr()
@@ -119,9 +126,9 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
     task.markAsCompleted(response)
     for wsConnection in client.server.wsConnections:
       if wsConnection.readyState == Open:
-        discard wsConnection.send($(%*{
+        discard wsConnection.send $(%*{
           "event": "taskstatus",
           "data": %task
-        }))
+        })
   else:
     await client[].askToIdentify()

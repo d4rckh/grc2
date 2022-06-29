@@ -98,3 +98,11 @@ proc sendFile*(client: Socket, taskId: int, path: string, b64c: string, error: s
       }
     }
   client.sendData($j)
+
+proc newTaskOutput*(taskId: int): TaskOutput =
+  TaskOutput(
+    task: "output",
+    taskId: taskId,
+    error: "",
+    data: %*{}
+  )

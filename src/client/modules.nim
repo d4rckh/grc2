@@ -1,5 +1,5 @@
 when defined(windows):
-  import winim, bitops, strutils
+  import winim, bitops
   import types
   import windowsUtils
 
