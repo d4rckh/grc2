@@ -24,7 +24,7 @@
 
 ![image](https://user-images.githubusercontent.com/35298550/172691387-f47f6226-a764-4a44-93ff-aa7ec52943e3.png)
 
-Join the [nimc2 discord server](https://discord.gg/dUwqQzk5UM) to discuss about this project.
+Join the [discord](https://discord.gg/Ejfma3uWRd) to discuss about this project.
 
 # Wiki
 
