@@ -1,6 +1,6 @@
 import asyncdispatch, asyncnet, asyncfutures, strutils, json, base64, times
 
-import ../types, ../logging, ../processMessage
+import ../types, ../logging, ../processMessage, ../events
 
 proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: ref C2Client) {.async.} =
   
@@ -14,6 +14,7 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: ref C2Clien
       client.connected = false
       tcpSocket.socket.close()
       cDisconnected(client[], "client died")
+      onClientDisconnected(client[])
       continue
 
     inc linesRecv
@@ -45,7 +46,7 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: ref C2Clien
               "taskId": task.id,
               "data": task.arguments
             }
-
+        onClientCheckin(client[])  
         await tcpSocket.socket.send(encode($j) & "\r\n")
       continue
 

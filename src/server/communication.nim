@@ -1,6 +1,6 @@
 import asyncdispatch, asyncnet, base64, json, ws
 
-import types, logging
+import types, logging, events
 
 proc sendClientTask*(client: C2Client, taskName: string, jData: JsonNode = nil): Future[Task] {.async.} =
   if not client.connected:
@@ -30,6 +30,7 @@ proc sendClientTask*(client: C2Client, taskName: string, jData: JsonNode = nil):
       "data": %createdTask
     }))
   
+  onClientTasked(client, createdTask)
   infoLog "tasked " & $client & " with " & taskName
 
   return createdTask
@@ -45,3 +46,7 @@ proc askToIdentify*(client: C2Client) {.async.} =
 proc getClientByHash*(server: C2Server, hash: string): C2Client =
   for client in server.clients: 
     if client.hash == hash: return client
+
+proc getClientById*(server: C2Server, id: int): C2Client =
+  for client in server.clients: 
+    if client.id == id: return client

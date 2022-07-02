@@ -2,7 +2,11 @@ import asyncfutures, asyncnet, json, asyncdispatch, tables, ws, std/jsonutils, t
 
 type
   TaskStatus* = enum
-    TaskCreated, TaskCompleted, TaskNotCompleted, TaskCompletedWithError, TaskCancelled
+    TaskCreated = "created", 
+    TaskCompleted = "completed", 
+    TaskNotCompleted = "pending", 
+    TaskCompletedWithError = "completederror", 
+    TaskCancelled = "cancelled"
 
   PreparationSubject* = enum
     PSListener
@@ -11,7 +15,7 @@ type
     MainMode, ClientInteractMode, ShellMode, PreparationMode
 
   OSType* = enum
-    WindowsOS, LinuxOS, UnknownOS
+    WindowsOS = "windows", LinuxOS = "linux", UnknownOS = "unknown"
 
 type
   CommandCategory* = enum
@@ -47,17 +51,16 @@ type
     # listeners
     tcpListeners*: seq[TCPListener]
     wsConnections*: seq[WebSocket]
+    teamserverClients*: seq[AsyncSocket]
     wsMessages*: seq[string]
     tasks*: seq[Task]
     osType*: OSType
 
   C2Client* = ref object
-    # socket*: AsyncSocket
     hash*: string
     id*: int
     connected*: bool
     tokenInformation*: TokenInformation
-    # shit
     loaded*: bool
     isAdmin*: bool
     hostname*: string
@@ -90,6 +93,7 @@ type
 
   RawTask* = ref object
     clientHash*: string
+    clientId*: int
     id*: int
     action*: string
     status*: TaskStatus
@@ -138,14 +142,14 @@ proc getTcpSocket*(client: C2Client): TCPSocket =
 proc `$`*(tcpListener: TCPListener): string =
   "TCP:" & $tcpListener.id & " (" & $tcpListener.listeningIP & ":" & $tcpListener.port & ")"
 
-proc `$`*(osType: OSType): string =
-  case osType:
-    of UnknownOS:
-      "unknown"
-    of WindowsOS:
-      "windows"
-    of LinuxOS:
-      "linux"
+# proc `$`*(osType: OSType): string =
+#   case osType:
+#     of UnknownOS:
+#       "unknown"
+#     of WindowsOS:
+#       "windows"
+#     of LinuxOS:
+#       "linux"
 
 proc `$`*(windowsVerion: WindowsVersionInfo): string =
   $windowsVerion.majorVersion & "." & $windowsVerion.minorVersion & " (build: " & $windowsVerion.buildNumber & ")"
@@ -162,13 +166,13 @@ proc `$`*(client: C2Client): string =
   else:
     client.username & "@" & client.hostname & "(" & $client.id & ")"
 
-proc `$`*(taskStatus: TaskStatus): string = 
-  case taskStatus:
-    of TaskCompleted: "completed"
-    of TaskNotCompleted: "pending"
-    of TaskCreated: "created"
-    of TaskCompletedWithError: "completederror"
-    of TaskCancelled: "cancelled"
+# proc `$`*(taskStatus: TaskStatus): string = 
+#   case taskStatus:
+#     of TaskCompleted: "completed"
+#     of TaskNotCompleted: "pending"
+#     of TaskCreated: "created"
+#     of TaskCompletedWithError: "completederror"
+#     of TaskCancelled: "cancelled"
 
 proc `$`*(integrityLevel: TokenIntegrityLevel): string =
   case integrityLevel.sid:
@@ -280,3 +284,18 @@ proc markAsCompleted*(task: Task, response: JsonNode = %*{}) =
   if not task.future[].isNil():
     task.future[].complete()
     task.future[] = nil
+
+proc getRawTask*(task: Task): RawTask =
+  RawTask(
+      clientHash: task.client.hash,
+      clientId: task.client.id,
+      id: task.id,
+      action: task.action,
+      status: task.status,
+      arguments: task.arguments,
+      output: task.output
+    )
+
+proc getRawTasks*(tasks: seq[Task]): seq[RawTask] =
+  for task in tasks:
+    result.add getRawTask(task)
