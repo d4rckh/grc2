@@ -1,6 +1,6 @@
 import std/[json, strutils, base64, times], pixie
 
-import types, logging, loot
+import types, logging, loot, events
 
 proc handleResponse*(client: C2Client, rewind: bool, response: JsonNode) = 
   if response{"data"}.isNil():
@@ -21,6 +21,7 @@ proc handleResponse*(client: C2Client, rewind: bool, response: JsonNode) =
         let filePath = client.getLootDirectory() & "/files/" & dataName
         writeFile filePath, dataContent
         successLog "you got new loot!"
+        onNewLoot(client)
     of "object":
       let dataObject = parseJson(dataContent)
       if dataObject.kind == JObject: printObject(dataObject)
@@ -32,3 +33,4 @@ proc handleResponse*(client: C2Client, rewind: bool, response: JsonNode) =
         "/images/" & dataName & "_" & now().format("yyyy-MM-dd-HH-mm-ss") & ".png"
         image.writeFile(filePath)
         successLog "you got new loot!"
+        onNewLoot(client)

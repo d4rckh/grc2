@@ -11,6 +11,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
       inc connectedClients
     else:
       stdout.styledWrite fgRed, "[-] ", $client, fgWhite
+    stdout.styledWrite " Process " & client.pname & "(" & $client.pid & ")"
     stdout.styledWriteLine (if client in server.cli.handlingClient: "(interacting)" else: "")
   infoLog $connectedClients & " clients currently connected"
 

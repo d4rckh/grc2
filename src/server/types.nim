@@ -49,7 +49,8 @@ type
     cli*: C2Cli
     configuration*: Table[string, string]
     # listeners
-    tcpListeners*: seq[TCPListener]
+    # tcpListeners*: seq[TCPListener]
+    listeners*: seq[ListenerInstance]
     wsConnections*: seq[WebSocket]
     teamserverClients*: seq[AsyncSocket]
     wsMessages*: seq[string]
@@ -61,6 +62,8 @@ type
     id*: int
     connected*: bool
     tokenInformation*: TokenInformation
+    pid*: int
+    pname*: string
     loaded*: bool
     isAdmin*: bool
     hostname*: string
@@ -113,6 +116,23 @@ type
 
   # TCP Listener
 
+  ListenerInstance* = ref object
+    title*: string
+    connectedClients*: seq[C2Client]
+    id*: int
+    running*: bool
+    ipAddress*: string
+    port*: Port
+    config*: Table[string, string]
+    listenerType*: string
+    stopProc*: proc() 
+
+  Listener* = ref object
+    name*: string
+    startProc*: proc(
+      server: C2Server, instance: ListenerInstance
+    ) {.nimcall async.}
+
   TCPSocket* = ref object
     socket*: AsyncSocket
     tcpListener*: TCPListener
@@ -127,17 +147,20 @@ type
     sockets*: seq[TCPSocket]
     running*: bool
 
-proc getTcpSocket*(client: C2Client): TCPSocket =
-  for tcpListener in client.server.tcpListeners:
-    var clientSocket: TCPSocket
-    for tcpSocket in tcpListener.sockets:
-      if tcpSocket.id == client.id:
-        clientSocket = tcpSocket
-    if clientSocket.isNil():
-      return nil
-    else:
-      return clientSocket
-  return nil
+# proc getTcpSocket*(client: C2Client): TCPSocket =
+#   for tcpListener in client.server.tcpListeners:
+#     var clientSocket: TCPSocket
+#     for tcpSocket in tcpListener.sockets:
+#       if tcpSocket.id == client.id:
+#         clientSocket = tcpSocket
+#     if clientSocket.isNil():
+#       return nil
+#     else:
+#       return clientSocket
+#   return nil
+
+proc `$`*(l: ListenerInstance): string =
+  l.title & " (" & l.listenerType & ")"
 
 proc `$`*(tcpListener: TCPListener): string =
   "TCP:" & $tcpListener.id & " (" & $tcpListener.listeningIP & ":" & $tcpListener.port & ")"

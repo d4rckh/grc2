@@ -3,16 +3,18 @@ import types
 
 type 
   LootType* = enum
-    LootImage, LootFile
+    LootImage = "image", LootFile = "file"
 
 type
   Loot* = ref object
+    client*: C2Client
     t*: LootType
     file*: string
     data*: string
 
 proc getLootDirectory*(client: C2Client): string = 
-  fmt"loot/{client.username}@{client.hostname} ({client.hash[0 .. 4]})"
+  echo $client
+  result = fmt"loot/{client.username}@{client.hostname} ({client.hash[0 .. 4]})"
 
 proc createLootDirectories*(client: C2Client) =
   let rootDirectory = getLootDirectory client
@@ -26,11 +28,13 @@ proc getLoot*(client: C2Client): seq[Loot] =
     if file.kind == pcFile:
       result.add Loot(
         t: LootImage,
-        file: file.path
+        file: file.path,
+        client: client
       )
   for file in walkDir(rootDirectory & "/files"):
     if file.kind == pcFile:
       result.add Loot(
         t: LootFile,
-        file: file.path
+        file: file.path,
+        client: client
       )
