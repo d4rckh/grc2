@@ -1,34 +1,39 @@
-import asyncdispatch, strutils, asyncfutures, tables
+import asyncdispatch, strutils, asyncfutures, tables, nativesockets
 
-import ../../types, ../../listeners/tcp, ../../logging
+import ../../types, ../../listeners/index, ../../logging
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
 
-  if len(args) < 1:
-    errorLog "you must specify a listener type, supported: tcp (check 'help startlistener' for more info)"
+  if len(args) < 2:
+    errorLog "you must specify a listener type and a name (check 'help startlistener' for more info)"
     return
 
   var listenerType: string = args[0]
+  var listenerName: string = args[1]
 
-  case listenerType.toLower():
-  of "tcp":
-    let port = flags.getOrDefault("port", flags.getOrDefault("p", ""))
-    let ip = flags.getOrDefault("ip", flags.getOrDefault("i", ""))
-    
-    if port == "" and ip == "":
-      errorLog "--ip and --port flags are required for this listener type"
-      return
+  let port = flags.getOrDefault("port", flags.getOrDefault("p", ""))
+  let ip = flags.getOrDefault("ip", flags.getOrDefault("i", ""))
+  
+  if port == "" and ip == "":
+    errorLog "--ip and --port flags are required"
+    return
 
-    asyncCheck server.createNewTcpListener(parseInt(port), ip)
-          
+  for listener in listeners:
+    if listener.name == listenerType:
+      var params: Table[string, string]
+      discard server.startListener(
+        listenerName,
+        tcp.listener,
+        ip, Port parseInt(port), params
+      )
+      
 let cmd*: Command = Command(
   execProc: execProc,
   name: "startlistener",
   aliases: @["sl"],
   argsLength: 1,
   usage: @[
-    "startlistener [listenerType] [..options]",
-    "startlistener tcp --ip/-i:[ip] --port/-p:[port]"
+    "startlistener [listenerType] [listerName] [..options]",
   ],
   description: "Start a new listener",
   category: CCListeners

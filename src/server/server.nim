@@ -60,12 +60,18 @@ proc ctrlc() {.noconv.} =
 setControlCHook(ctrlc)
 
 when defined(debug):
-    import listeners/tcp
-    asyncCheck createNewTcpListener(server, 1337, "127.0.0.1")
+    import listeners/index, tables
+    var params: Table[string, string] 
+    discard server.startListener(
+      "tcp",
+      tcp.listener,
+      "127.0.0.1", Port 1337, params
+    )
 asyncCheck procStdin(server)
 when defined(debug):
   # import httpapi/httpserver
   # asyncCheck startHttpAPI(server)
   import tcpApi
   asyncCheck startTcpApi(server)
+
 runForever()

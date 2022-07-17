@@ -14,7 +14,7 @@ proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
   taskOutput.addData(Text, "path", "Current app path is: " & filePath)
   socket.sendOutput(taskOutput)
   
-  socket.close()
+  # socket.close()
 
   discard execCmdEx(
     "Powershell.exe Start " & filePath & " -Verb Runas",

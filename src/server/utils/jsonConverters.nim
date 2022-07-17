@@ -1,6 +1,6 @@
 import std/[json, jsonutils, times]
 
-import ../types
+import ../types, ../loot
 
 proc clientToJson*(client: C2Client): JsonNode =
   %*{
@@ -16,6 +16,13 @@ proc clientToJson*(client: C2Client): JsonNode =
     "initialized": client.loaded
   }
 
+proc lootToJson*(loot: Loot): JsonNode =
+  %*{
+    "client": loot.client.id,
+    "t": $loot.t,
+    "file": loot.file,
+    "data": loot.data
+  }
 
 proc taskToJson*(task: Task): JsonNode =
   %*{

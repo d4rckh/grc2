@@ -64,6 +64,9 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
         #           )
         #           break
         #       break
+        client.isAdmin = response["data"]["isAdmin"].getBool(false)
+        client.pid = response["data"]["pid"].getInt(0)
+        client.pname = response["data"]["pname"].getStr("")
         client.isAdmin = response["data"]["isAdmin"].getBool()
         client.tokenInformation = TokenInformation(
           integrityLevel: TokenIntegrityLevel(
