@@ -20,7 +20,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   else:
     for listener in server.listeners:
       if listener.title == listenerName:
-        infoLog "generating a listener for " & $listener
+        infoLog "generating an implant for " & $listener
         ip = listener.ipAddress
         port = $listener.port.uint
 
