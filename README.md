@@ -53,23 +53,9 @@ The server is fully supported on Linux but unknown on Windows. The client is ful
 All server features are available on both Linux and Windows platforms. You might need to install additional dependencies on both platform for cross-platform compilation (check installation wiki page)
 
 
-### Command Support
+### Task Support
 
-| Feature | Windows Support | Linux Support |
-|---|---|---|
-| shell command | ✅ | ✅ |
-| cmd command | ✅ | ❌ |
-| info command | ✅ | ⚠️ |
-| msgbox command | ✅ | ❌ |
-| processes command | ✅ | ❌ |
-| tokeninfo command | ✅ | ❌ |
-| download command | ✅ | ✅ |
-| upload command | ✅ | ✅ |
-| screenshot command | ✅ | ❌ |
-
-✅ - yes, complete
-⚠️ - yes, but partially
-❌ - no, does not work at all
+90% of the tasks are Windows exclusive, while the implant can be compiled for linux, limited functionality is available (basic OS tasks like navigating file system and executing commands)
 
 # Support Me
 
