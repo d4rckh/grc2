@@ -17,5 +17,5 @@ proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
   var dotnetV: seq[string] = @[]
   for version in clrVersions(): dotnetV.add version
 
-  taskOutput.addData(Text, "response", """installed dotnet versions: """ & dotnetV.join(", "))
+  taskOutput.addData(Text, "response", "installed dotnet versions: " & dotnetV.join(", "))
   socket.sendOutput(taskOutput)
