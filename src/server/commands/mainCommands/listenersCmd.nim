@@ -1,4 +1,8 @@
-import asyncdispatch, tables, nativesockets
+import std/[
+  asyncdispatch, 
+  tables, 
+  nativesockets
+]
 
 import ../../types
 import ../../logging

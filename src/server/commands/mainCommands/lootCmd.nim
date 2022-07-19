@@ -1,4 +1,9 @@
-import asyncdispatch, tables, os, terminal
+import std/[
+  asyncdispatch, 
+  tables, 
+  os, 
+  terminal
+]
 
 import ../../types, ../../loot
 

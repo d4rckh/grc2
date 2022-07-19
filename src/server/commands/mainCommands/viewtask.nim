@@ -1,4 +1,7 @@
-import asyncdispatch, tables, ws
+import std/[
+  asyncdispatch, 
+  tables
+]
 
 import ../../types, ../../handleResponse
 

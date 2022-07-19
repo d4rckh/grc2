@@ -1,8 +1,15 @@
-import asyncdispatch, asyncfutures, strutils, strformat, json, base64, md5, tables, times, os, asyncnet
+import std/[
+  asyncdispatch, 
+  asyncfutures, 
+  strutils, 
+  strformat, 
+  json, 
+  md5
+]
 
 import pixie, ws
 
-import types, logging, communication, loot, handleResponse, events
+import types, logging, communication, handleResponse, events
 
 proc generateClientHash(c: C2Client): string =
   getMD5(

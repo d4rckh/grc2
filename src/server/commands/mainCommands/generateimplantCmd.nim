@@ -1,4 +1,9 @@
-import osproc, strutils, asyncdispatch, tables
+import std/[
+  osproc, 
+  strutils, 
+  asyncdispatch, 
+  tables
+]
 
 import ../../types
 import ../../logging

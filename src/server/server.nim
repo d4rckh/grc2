@@ -1,10 +1,9 @@
 import std/[
-  os,
   asyncdispatch,
   asyncfutures,
-  marshal
 ]
-import types, logging, communication, cli, ../utils
+
+import types, logging, cli, ../utils
 
 infoLog "initializing c2 server"
 

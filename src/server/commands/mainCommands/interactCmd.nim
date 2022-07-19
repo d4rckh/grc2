@@ -1,4 +1,8 @@
-import strutils, asyncdispatch, tables
+import std/[
+  strutils, 
+  asyncdispatch, 
+  tables
+]
 
 import ../../types
 import ../../logging

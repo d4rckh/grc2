@@ -1,4 +1,9 @@
-import asyncdispatch, strutils, tables, std/jsonutils
+import std/[
+  asyncdispatch, 
+  strutils, 
+  tables, 
+  jsonutils
+]
 
 import ../../types, ../../communication
 

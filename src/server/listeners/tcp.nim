@@ -1,4 +1,12 @@
-import asyncdispatch, asyncnet, asyncfutures, strutils, json, base64, times, tables
+import std/[
+  asyncdispatch, 
+  asyncnet, 
+  asyncfutures, 
+  strutils, 
+  json, 
+  base64, 
+  times
+]
 
 import ../types, ../logging, ../processMessage, ../events
 
@@ -55,7 +63,7 @@ proc createNewTcpListener*(server: C2Server, instance: ListenerInstance) {.async
   let id = 1
   let ipAddress = instance.ipAddress
   let port = instance.port
-  let config = instance.config
+  # let config = instance.config
 
   let tcpServer = TCPListener(
       sockets: @[], 

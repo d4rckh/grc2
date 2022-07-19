@@ -1,4 +1,14 @@
-import asyncfutures, asyncnet, json, asyncdispatch, tables, ws, std/jsonutils, times
+import std/[
+  asyncfutures, 
+  asyncnet, 
+  json, 
+  asyncdispatch, 
+  tables, 
+  jsonutils, 
+  times
+]
+
+import ws
 
 type
   TaskStatus* = enum
@@ -219,12 +229,14 @@ proc `$`*(integrityLevel: TokenIntegrityLevel): string =
 proc `@`*(client: C2Client): string =
   let durCheckin: Duration = now() - client.lastCheckin
   if not client.loaded:
-    $client & "(" & (if client.connected: "alive" else: "dead") & ")"
+    $client
   else:
-    $client & " (" & (if client.connected: "alive" else: "dead") & ")\n\t" & 
+    $client & "\n\t" & 
       "IP: " & client.ipAddress & "\n\t" &
       "Username: " & client.username & "\n\t" &
       "Last Checkin: " & $durCheckin & " ago\n\t" &
+      "Process PID: " & $client.pid & " ago\n\t" &
+      "Process Path: " & client.pname & " ago\n\t" &
       "Processs Integrity: " & $client.tokenInformation.integrityLevel & "\n\t" &
       "Running as admin: " & $client.isAdmin & "\n\t" &
       "OS: " & $client.osType & (

@@ -13,7 +13,7 @@ macro importDirectory*(a: static string, b: static string, c: static string): un
     newNimNode(nnkInfix).add(
       ident("/"),
       newNimNode(nnkPrefix).add(
-        ident(b),
+        ident(b), 
         ident(c)
       ), 
       bracket

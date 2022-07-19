@@ -1,4 +1,7 @@
-import asyncdispatch, tables, terminal
+import std/[
+  asyncdispatch, 
+  tables
+]
 
 import ../../types, ../../communication
 
@@ -8,12 +11,6 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     let task = await client.sendClientTask("tokinfo")
     if not task.isNil(): 
       await task.awaitResponse()
-    #   echo "-- Token Information --"
-    #   echo "Integrity: " & $client.tokenInformation.integrityLevel
-    #   echo "Groups:"
-    #   for group in client.tokenInformation.groups:
-    #     stdout.styledWriteLine "\t", (if group.domain == "": "" else: (group.domain & "\\")), 
-    #       fgGreen, group.name, fgDefault, " (" & group.sid & ")"  
 
 let cmd*: Command = Command(
   execProc: execProc,

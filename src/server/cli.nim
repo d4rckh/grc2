@@ -1,5 +1,13 @@
-import asyncdispatch, threadpool, asyncfutures, parseopt, tables
-import strutils, sequtils, json
+import std/[
+  asyncdispatch, 
+  threadpool, 
+  asyncfutures, 
+  parseopt, 
+  tables,
+  strutils, 
+  sequtils, 
+  json
+]
 
 import types, logging, communication
 

@@ -1,4 +1,9 @@
-import asyncdispatch, asyncnet, base64, json, ws
+import std/[
+  asyncdispatch, 
+  json
+]
+
+import ws
 
 import types, logging, events
 

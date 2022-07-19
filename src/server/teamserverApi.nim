@@ -1,4 +1,4 @@
-import std/[marshal, json, asyncnet]
+import std/[json, asyncnet]
 
 import types, utils/jsonConverters, loot
 

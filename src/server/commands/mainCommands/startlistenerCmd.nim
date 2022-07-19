@@ -1,4 +1,10 @@
-import asyncdispatch, strutils, asyncfutures, tables, nativesockets
+import std/[
+  asyncdispatch, 
+  strutils, 
+  asyncfutures, 
+  tables, 
+  nativesockets
+]
 
 import ../../types, ../../listeners/index, ../../logging
 

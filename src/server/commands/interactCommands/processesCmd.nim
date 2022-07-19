@@ -1,4 +1,8 @@
-import asyncdispatch, strutils, tables, terminal
+import std/[
+  asyncdispatch, 
+  strutils, 
+  tables
+]
 
 import ../../types, ../../communication
 
@@ -7,8 +11,8 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     let task = await client.sendClientTask("processes")
     if not task.isNil(): 
       await task.awaitResponse()
-      for process in client.processes:
-        stdout.styledWriteLine fgGreen, $process.id, "\t", fgWhite, process.name 
+      # for process in client.processes:
+      #   stdout.styledWriteLine fgGreen, $process.id, "\t", fgWhite, process.name 
 
 let cmd*: Command = Command(
   execProc: execProc,

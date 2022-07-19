@@ -67,6 +67,6 @@ proc startTcpApi*(server: C2Server, port = 5051, ip = "127.0.0.1") {.async.} =
   
   while true:
     let 
-      (netAddr, clientSocket) = await tcpSocket.acceptAddr()
+      (_, clientSocket) = await tcpSocket.acceptAddr()
     server.teamserverClients.add clientSocket
     asyncCheck processMessages(server, clientSocket)
