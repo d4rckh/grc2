@@ -8,6 +8,8 @@ import std/[
   times
 ]
 
+import uuid4
+
 import ../types, ../logging, ../processMessage, ../events
 
 proc processMessages(server: C2Server, tcpListener: TCPListener, tcpSocket: TCPSocket, client: ref C2Client) {.async.} =
@@ -94,8 +96,9 @@ proc createNewTcpListener*(server: C2Server, instance: ListenerInstance) {.async
   while tcpServer.running:
     let 
       (netAddr, clientSocket) = await tcpServer.socket.acceptAddr()
+      uuid = $uuid4()
       client = C2Client(
-        id: server.clients.len,
+        id: uuid.split("-")[0],
         connected: true,
         loaded: false,
         isAdmin: false,

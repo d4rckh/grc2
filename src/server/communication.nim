@@ -37,7 +37,7 @@ proc sendClientTask*(client: C2Client, taskName: string, jData: JsonNode = nil):
   
   onClientTasked(client, createdTask)
   infoLog "tasked " & $client & " with " & taskName
-
+  prompt(client.server)
   return createdTask
 
 proc awaitResponse*(task: Task) {.async.} =
@@ -52,6 +52,6 @@ proc getClientByHash*(server: C2Server, hash: string): C2Client =
   for client in server.clients: 
     if client.hash == hash: return client
 
-proc getClientById*(server: C2Server, id: int): C2Client =
+proc getClientById*(server: C2Server, id: string): C2Client =
   for client in server.clients: 
     if client.id == id: return client

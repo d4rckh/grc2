@@ -1,4 +1,4 @@
-from std/net import Socket
+import ../client/types
 
 import download, shell, upload
 
@@ -8,7 +8,7 @@ when defined(windows):
 
 var tasks*: seq[tuple[
   name: string, 
-  execute: proc(socket: Socket, taskId: int, params: seq[string]) {.nimcall.}
+  execute: proc(app: App, taskId: int, params: seq[string]) {.nimcall.}
 ]] = @[]
 
 tasks.add((name: "download", execute: download.executeTask))

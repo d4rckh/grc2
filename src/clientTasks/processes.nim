@@ -1,7 +1,7 @@
 import std/[os, net, json, jsonutils]
-import ../client/[communication, modules]
+import ../client/[communication, modules, types]
 
-proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
+proc executeTask*(app: App, taskId: int, params: seq[string]) =
   let processes: seq[tuple[name: string, id: int]] = getprocesses()
   let taskOutput = TaskOutput(
     task: "output",
@@ -11,4 +11,4 @@ proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
   )
 
   taskOutput.addData(Object, "processes", $(toJson processes))
-  socket.sendOutput(taskOutput)
+  app.sendOutput(taskOutput)

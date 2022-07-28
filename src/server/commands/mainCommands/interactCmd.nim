@@ -17,7 +17,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   c2cli.handlingClient = @[]
   
   for arg in args:
-    let clientId = parseInt(arg)
+    let clientId = arg
     var cFound = false
     for client in server.clients:
       if client.id == clientId:

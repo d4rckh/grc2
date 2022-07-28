@@ -2,10 +2,11 @@ import std/[tables, nativesockets, asyncdispatch]
 
 import ../types
 
-import tcp
+import tcp, httpListener
 
 let listeners* = @[
-  tcp.listener
+  tcp.listener,
+  httpListener.listener
 ]
 
 proc startListener*(server: C2Server, title: string, listener: Listener, ipAddress: string, port: Port, config: Table[string, string]): ListenerInstance = 
@@ -27,3 +28,4 @@ proc stopListener*(server: C2Server, instance: ListenerInstance) =
   server.listeners.delete server.listeners.find instance
 
 export tcp
+export httpListener

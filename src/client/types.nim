@@ -1,5 +1,19 @@
 import winlean
 
+when defined(tcp):
+  import std/net
+elif defined(http):
+  import std/httpclient
+
+type 
+  App* = ref object
+    when defined(tcp):
+      socket*: Socket
+    elif defined(http):
+      httpRoot*: string
+      token*: string
+      httpClient*: HttpClient
+
 type
   USHORT* = uint16
   WCHAR* = distinct int16

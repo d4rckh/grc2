@@ -1,4 +1,7 @@
-import macros, os
+import std/[macros, os, random], uuid4
+
+proc rndStr*: string =
+  return $uuid4()
 
 macro importDirectory*(a: static string, b: static string, c: static string): untyped =
   var bracket = newNimNode(nnkBracket)

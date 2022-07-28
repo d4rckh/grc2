@@ -19,6 +19,9 @@ proc generateClientHash(c: C2Client): string =
 proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} = 
   let server = client.server
 
+  if not (client[] in server.clients):
+    server.clients.add client[]
+
   let error = response["error"].getStr() 
   let taskId = response["taskId"].getInt(-1) 
 

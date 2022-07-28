@@ -19,7 +19,8 @@ let server = C2Server(
     handlingClient: @[],
     mode: MainMode,
     commands: commands
-  )
+  ),
+  debug: false
 )
 
 # if fileExists "save/clients.txt":
@@ -59,13 +60,19 @@ proc ctrlc() {.noconv.} =
 setControlCHook(ctrlc)
 
 when defined(debug):
-    import listeners/index, tables
-    var params: Table[string, string] 
-    discard server.startListener(
-      "tcp",
-      tcp.listener,
-      "127.0.0.1", Port 1337, params
-    )
+  server.debug = true
+  import listeners/index, tables
+  var params: Table[string, string] 
+  discard server.startListener(
+    "tcp_1",
+    tcp.listener,
+    "127.0.0.1", Port 1337, params
+  )
+  discard server.startListener(
+    "http_1",
+    httpListener.listener,
+    "127.0.0.1", Port 8080, params
+  )
 asyncCheck procStdin(server)
 when defined(debug):
   # import httpapi/httpserver

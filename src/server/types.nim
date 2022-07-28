@@ -39,7 +39,7 @@ type
   LinuxVersionInfo* = ref object 
     kernelVersion*: string
 
-type 
+type
   WindowsVersionInfo* = ref object 
     majorVersion*: int
     minorVersion*: int
@@ -66,10 +66,11 @@ type
     wsMessages*: seq[string]
     tasks*: seq[Task]
     osType*: OSType
+    debug*: bool
 
   C2Client* = ref object
     hash*: string
-    id*: int
+    id*: string
     connected*: bool
     tokenInformation*: TokenInformation
     pid*: int
@@ -147,7 +148,7 @@ type
     socket*: AsyncSocket
     tcpListener*: TCPListener
     netAddr*: string
-    id*: int
+    id*: string
 
   TCPListener* = ref object
     socket*: AsyncSocket
@@ -320,17 +321,17 @@ proc markAsCompleted*(task: Task, response: JsonNode = %*{}) =
     task.future[].complete()
     task.future[] = nil
 
-proc getRawTask*(task: Task): RawTask =
-  RawTask(
-      clientHash: task.client.hash,
-      clientId: task.client.id,
-      id: task.id,
-      action: task.action,
-      status: task.status,
-      arguments: task.arguments,
-      output: task.output
-    )
+# proc getRawTask*(task: Task): RawTask =
+#   RawTask(
+#       clientHash: task.client.hash,
+#       clientId: task.client.id,
+#       id: task.id,
+#       action: task.action,
+#       status: task.status,
+#       arguments: task.arguments,
+#       output: task.output
+#     )
 
-proc getRawTasks*(tasks: seq[Task]): seq[RawTask] =
-  for task in tasks:
-    result.add getRawTask(task)
+# proc getRawTasks*(tasks: seq[Task]): seq[RawTask] =
+#   for task in tasks:
+#     result.add getRawTask(task)

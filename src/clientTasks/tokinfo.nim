@@ -1,7 +1,7 @@
 import std/[net, json, jsonutils]
-import ../client/[communication, modules]
+import ../client/[communication, modules, types]
 
-proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
+proc executeTask*(app: App, taskId: int, params: seq[string]) =
   let tokenGroups: seq[tuple[name, sid, domain: string]] = getintegritygroups()
   let tokenIntegrity: string = getintegrity() 
   let taskOutput = TaskOutput(
@@ -16,4 +16,4 @@ proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
       "tokenIntegrity": tokenIntegrity
     })
   )
-  socket.sendOutput(taskOutput)
+  app.sendOutput(taskOutput)

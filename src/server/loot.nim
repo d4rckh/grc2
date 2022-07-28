@@ -13,7 +13,6 @@ type
     data*: string
 
 proc getLootDirectory*(client: C2Client): string = 
-  echo $client
   result = fmt"loot/{client.username}@{client.hostname} ({client.hash[0 .. 4]})"
 
 proc createLootDirectories*(client: C2Client) =

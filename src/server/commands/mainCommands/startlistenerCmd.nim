@@ -29,7 +29,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
       var params: Table[string, string]
       discard server.startListener(
         listenerName,
-        tcp.listener,
+        listener,
         ip, Port parseInt(port), params
       )
       
