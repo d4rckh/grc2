@@ -1,5 +1,7 @@
 import terminal, base64, strutils, ws, json
 
+import terminaltables
+
 import types, loot
 
 proc genClientSummary(client: seq[C2Client]): string =
@@ -96,31 +98,27 @@ proc logClientOutput*(client: C2Client, category: string, b64: string) =
 
 
 proc printTable*(data: JsonNode) =
-  var tableHeader: seq[string] = @[]
+  var headers: seq[string] = @[]
   for line in data:
     for key, _ in pairs(line):
-      if not (key in tableHeader): tableHeader.add key
-  echo tableHeader.join("\t")
+      if not (key in headers): headers.add key
+  var t = newTerminalTable()
+  t.tableWidth = 0
+  t.separateRows = false
+  t.setHeaders(headers)
   for line in data:
-    for key in tableHeader:
-      let jValue = line{key}
-      case jValue.kind:
-      of JString:
-        stdout.write jValue.getStr("-")
-      of JInt: 
-        stdout.write jValue.getInt(0)
-      of JBool:
-        stdout.write jValue.getBool(false)  
-      of JNull:
-        stdout.write "null"  
-      of JFloat:
-        stdout.write jValue.getFloat(0)
-      of JObject:
-        stdout.write "{object}"
-      of JArray:
-        stdout.write "{array}"
-      stdout.write "\t"
-    stdout.writeLine ""
+    var row: seq[string] = @[]
+    for header in headers:
+      if not line{header}.isNil:
+        let jCell = line[header]
+        if jCell.kind == JString:
+          row.add line[header].getStr("-")
+        elif jCell.kind == JInt:
+          row.add $line[header].getInt(0)  
+        else: row.add "-"
+      else: row.add "-"
+    t.addRow row
+  stdout.write t.render()
 
 proc printObject*(data: JsonNode) =
   for key, val in pairs(data):
