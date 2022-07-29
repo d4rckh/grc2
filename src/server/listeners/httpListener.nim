@@ -54,6 +54,7 @@ proc createNewHttpListener*(server: C2Server, instance: ListenerInstance) {.asyn
         else: 
           await req.respond(Http400, "error", headers.newHttpHeaders())
       elif req.reqMethod == HttpGet:
+        client.lastCheckin = now()
         var j: JsonNode = %*[]
         for task in server.tasks:
           if task.status == TaskCreated and task.client == client[]:

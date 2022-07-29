@@ -4,7 +4,8 @@ import std/[
   json, 
   asyncdispatch, 
   tables, 
-  jsonutils, 
+  jsonutils,
+  strutils, 
   times
 ]
 
@@ -144,20 +145,6 @@ type
       server: C2Server, instance: ListenerInstance
     ) {.nimcall async.}
 
-  TCPSocket* = ref object
-    socket*: AsyncSocket
-    tcpListener*: TCPListener
-    netAddr*: string
-    id*: string
-
-  TCPListener* = ref object
-    socket*: AsyncSocket
-    port*: int
-    listeningIP*: string
-    id*: int
-    sockets*: seq[TCPSocket]
-    running*: bool
-
 # proc getTcpSocket*(client: C2Client): TCPSocket =
 #   for tcpListener in client.server.tcpListeners:
 #     var clientSocket: TCPSocket
@@ -170,11 +157,6 @@ type
 #       return clientSocket
 #   return nil
 
-proc `$`*(l: ListenerInstance): string =
-  l.title & " (" & l.listenerType & ")"
-
-proc `$`*(tcpListener: TCPListener): string =
-  "TCP:" & $tcpListener.id & " (" & $tcpListener.listeningIP & ":" & $tcpListener.port & ")"
 
 # proc `$`*(osType: OSType): string =
 #   case osType:
@@ -188,8 +170,6 @@ proc `$`*(tcpListener: TCPListener): string =
 proc `$`*(windowsVerion: WindowsVersionInfo): string =
   $windowsVerion.majorVersion & "." & $windowsVerion.minorVersion & " (build: " & $windowsVerion.buildNumber & ")"
 
-proc `@`*(tcpListener: TCPListener): string =
-  $tcpListener
 
 proc `$`*(client: C2Client): string =
 #   let tcpSocket: TCPSocket = getTcpSocket(client)
@@ -227,19 +207,27 @@ proc `$`*(integrityLevel: TokenIntegrityLevel): string =
     of "S-1-16-28672":
       return "Secure Process Mandatory Level"
 
+proc `$`*(l: ListenerInstance): string =
+  l.title & " (" & l.listenerType & ")"
+
 proc `@`*(client: C2Client): string =
-  let durCheckin: Duration = now() - client.lastCheckin
+  var durCheckin: string
+  if client.lastCheckin.isInitialized:
+    durCheckin = $(now() - client.lastCheckin)
+    durCheckin = durCheckin.split(",")[0]
+  else:
+    durCheckin = "not check in's"
   if not client.loaded:
     $client
   else:
     $client & "\n\t" & 
       "IP: " & client.ipAddress & "\n\t" &
       "Username: " & client.username & "\n\t" &
-      "Last Checkin: " & $durCheckin & " ago\n\t" &
-      "Process PID: " & $client.pid & " ago\n\t" &
-      "Process Path: " & client.pname & " ago\n\t" &
+      "Last Checkin: " & durCheckin & "\n\t" &
+      "Process PID: " & $client.pid & "\n\t" &
+      "Process Path: " & client.pname & "\n\t" &
       "Processs Integrity: " & $client.tokenInformation.integrityLevel & "\n\t" &
-      "Running as admin: " & $client.isAdmin & "\n\t" &
+      (if client.osType != WindowsOS: "Running as admin: " & $client.isAdmin & "\n\t" else: "") &
       "OS: " & $client.osType & (
         case client.osType:
         of LinuxOS: "\n\tKernel Version: " & client.linuxVersionInfo.kernelVersion
@@ -270,12 +258,6 @@ proc `%`*(task: Task): JsonNode =
     "output": task.output
   }
 
-proc `%`*(tcpListener: TCPListener): JsonNode =
-  return %*{
-    "id": tcpListener.id,
-    "listeningIP": tcpListener.listeningIP,
-    "port": tcpListener.port
-  }
 
 proc `$`*(task: Task): string =
   var x = task.action & " ["

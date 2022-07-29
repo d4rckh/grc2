@@ -12,6 +12,34 @@ import uuid4
 
 import ../types, ../logging, ../processMessage, ../events
 
+type 
+  TCPSocket* = ref object
+    socket*: AsyncSocket
+    tcpListener*: TCPListener
+    netAddr*: string
+    id*: string
+
+  TCPListener* = ref object
+    socket*: AsyncSocket
+    port*: int
+    listeningIP*: string
+    id*: int
+    sockets*: seq[TCPSocket]
+    running*: bool
+
+proc `$`*(tcpListener: TCPListener): string =
+  "TCP:" & $tcpListener.id & " (" & $tcpListener.listeningIP & ":" & $tcpListener.port & ")"
+
+proc `@`*(tcpListener: TCPListener): string =
+  $tcpListener
+
+proc `%`*(tcpListener: TCPListener): JsonNode =
+  return %*{
+    "id": tcpListener.id,
+    "listeningIP": tcpListener.listeningIP,
+    "port": tcpListener.port
+  }
+
 proc processMessages(server: C2Server, tcpListener: TCPListener, tcpSocket: TCPSocket, client: ref C2Client) {.async.} =
   
   var msgS: string = ""

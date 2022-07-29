@@ -14,11 +14,9 @@ const autoConnectTime {.intdefine.}: int = 5000
 const ip {.strdefine.}: string = "127.0.0.1"
 
 when defined(tcp):
-  echo "tcp client"
   let app: App = App()
   app.socket = newSocket()
 elif defined(http):
-  echo "http client"
   let app: App = App()
   app.httpRoot = "http://" & ip & ":" & $port
   app.httpClient = newHttpClient()
