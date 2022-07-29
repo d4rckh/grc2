@@ -1,7 +1,6 @@
 import std/[
   asyncdispatch, 
   asynchttpserver, 
-  asyncnet,
   asyncfutures, 
   strutils, 
   json, 

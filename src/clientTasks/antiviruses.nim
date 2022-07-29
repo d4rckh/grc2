@@ -4,9 +4,9 @@ import winim/com
 import ../client/[communication, types]
 
 proc executeTask*(app: App, taskId: int, params: seq[string]) =
-  var antiviruses: seq[tuple[name: string]] = @[]
   let taskOutput = newTaskOutput taskId
-
+  var antiviruses: seq[tuple[name: string]] = @[]
+  
   var wmi = GetObject "winmgmts:{impersonationLevel=impersonate}!\\\\.\\root\\SecurityCenter2"
 
   for av in wmi.execQuery "select * from AntivirusProduct":

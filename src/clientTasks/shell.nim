@@ -2,13 +2,9 @@ import osproc, os, net, strutils, json
 import ../client/[communication, types]
 
 proc executeTask*(app: App, taskId: int, params: seq[string]) =
+  let taskOutput = newTaskOutput taskId
+  
   let toExec = params[0]
-  let taskOutput = TaskOutput(
-    task: "output",
-    taskId: taskId,
-    error: "",
-    data: %*{}
-  )
   
   try:
     let cmdSplit = toExec.split(" ")

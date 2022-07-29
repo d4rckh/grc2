@@ -3,12 +3,7 @@ import ../client/[communication, types]
 
 # code from https://gist.githubusercontent.com/treeform/782149b5fc938753feacfca43637aa90/raw/4e05ca592a02cc2740a67a7e2e3f783876dec879/screenshot.nim 's replies
 proc executeTask*(app: App, taskId: int, params: seq[string]) =
-  let taskOutput = TaskOutput(
-    task: "output",
-    taskId: taskId,
-    error: "",
-    data: %*{}
-  )
+  let taskOutput = newTaskOutput taskId
 
   # get size of the main screen
   var screenRect: windef.Rect

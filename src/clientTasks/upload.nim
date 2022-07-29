@@ -1,13 +1,8 @@
-import net, base64, json
+import std/base64
 import ../client/[communication, types]
 
 proc executeTask*(app: App, taskId: int, params: seq[string]) =
-  let taskOutput = TaskOutput(
-    task: "output",
-    taskId: taskId,
-    error: "",
-    data: %*{}
-  )
+  let taskOutput = newTaskOutput taskId
 
   let fileContents = decode(params[0])
   writeFile(params[1], fileContents)
