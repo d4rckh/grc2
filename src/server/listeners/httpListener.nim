@@ -11,7 +11,6 @@ import std/[
 import ../types, ../logging, ../processMessage, ../events, ../../utils
 
 proc createNewHttpListener*(server: C2Server, instance: ListenerInstance) {.async.} =
-  let id = 1
   let ipAddress = instance.ipAddress
   let port = instance.port
 

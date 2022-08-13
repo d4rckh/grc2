@@ -1,4 +1,4 @@
-import std/[macros, os, random], uuid4
+import std/[macros, os], uuid4
 
 proc rndStr*: string =
   return $uuid4()

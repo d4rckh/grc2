@@ -145,48 +145,14 @@ type
       server: C2Server, instance: ListenerInstance
     ) {.nimcall async.}
 
-# proc getTcpSocket*(client: C2Client): TCPSocket =
-#   for tcpListener in client.server.tcpListeners:
-#     var clientSocket: TCPSocket
-#     for tcpSocket in tcpListener.sockets:
-#       if tcpSocket.id == client.id:
-#         clientSocket = tcpSocket
-#     if clientSocket.isNil():
-#       return nil
-#     else:
-#       return clientSocket
-#   return nil
-
-
-# proc `$`*(osType: OSType): string =
-#   case osType:
-#     of UnknownOS:
-#       "unknown"
-#     of WindowsOS:
-#       "windows"
-#     of LinuxOS:
-#       "linux"
-
 proc `$`*(windowsVerion: WindowsVersionInfo): string =
   $windowsVerion.majorVersion & "." & $windowsVerion.minorVersion & " (build: " & $windowsVerion.buildNumber & ")"
 
-
 proc `$`*(client: C2Client): string =
-#   let tcpSocket: TCPSocket = getTcpSocket(client)
-#   if tcpSocket.isNil():
-#     return $client.id
   if not client.loaded:
     client.ipAddress & "(" & $client.id & ")"
   else:
     client.username & "@" & client.hostname & "(" & $client.id & ")"
-
-# proc `$`*(taskStatus: TaskStatus): string = 
-#   case taskStatus:
-#     of TaskCompleted: "completed"
-#     of TaskNotCompleted: "pending"
-#     of TaskCreated: "created"
-#     of TaskCompletedWithError: "completederror"
-#     of TaskCancelled: "cancelled"
 
 proc `$`*(integrityLevel: TokenIntegrityLevel): string =
   case integrityLevel.sid:
@@ -210,20 +176,21 @@ proc `$`*(integrityLevel: TokenIntegrityLevel): string =
 proc `$`*(l: ListenerInstance): string =
   l.title & " (" & l.listenerType & ")"
 
-proc `@`*(client: C2Client): string =
-  var durCheckin: string
+proc get_last_checkin*(client: C2Client): string =
   if client.lastCheckin.isInitialized:
-    durCheckin = $(now() - client.lastCheckin)
-    durCheckin = durCheckin.split(",")[0]
+    result = $(now() - client.lastCheckin)
+    result = result.split(",")[0]
   else:
-    durCheckin = "not check in's"
+    result = "not check in's"
+
+proc `@`*(client: C2Client): string =
   if not client.loaded:
     $client
   else:
     $client & "\n\t" & 
       "IP: " & client.ipAddress & "\n\t" &
       "Username: " & client.username & "\n\t" &
-      "Last Checkin: " & durCheckin & "\n\t" &
+      "Last Checkin: " & client.get_last_checkin() & "\n\t" &
       "Process PID: " & $client.pid & "\n\t" &
       "Process Path: " & client.pname & "\n\t" &
       "Processs Integrity: " & $client.tokenInformation.integrityLevel & "\n\t" &
@@ -291,7 +258,7 @@ proc `$`*(cc: CommandCategory): string =
   of CCTasks:
     "Tasks"
 
-proc markAsCompleted*(task: Task, response: JsonNode = %*{}) = 
+proc mark_as_completed*(task: Task, response: JsonNode = %*{}) = 
   task.output = response
   if response == %*{}:
     task.status = TaskCancelled
@@ -302,18 +269,3 @@ proc markAsCompleted*(task: Task, response: JsonNode = %*{}) =
   if not task.future[].isNil():
     task.future[].complete()
     task.future[] = nil
-
-# proc getRawTask*(task: Task): RawTask =
-#   RawTask(
-#       clientHash: task.client.hash,
-#       clientId: task.client.id,
-#       id: task.id,
-#       action: task.action,
-#       status: task.status,
-#       arguments: task.arguments,
-#       output: task.output
-#     )
-
-# proc getRawTasks*(tasks: seq[Task]): seq[RawTask] =
-#   for task in tasks:
-#     result.add getRawTask(task)

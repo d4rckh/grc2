@@ -13,7 +13,6 @@ proc genClientSummary(client: seq[C2Client]): string =
       else:
           menu = client[0].username & (if client[0].isAdmin: "*" else: "") & "@" & client[0].hostname
     else:
-    #   menu = "115 clients"
       menu = $client.len & " clients"
   return menu
 
@@ -60,25 +59,7 @@ proc errorLog*(msg: string) =
 
 proc cConnected*(client: C2Client) =
   client.createLootDirectories()
-  for wsConnection in client.server.wsConnections:
-    if wsConnection.readyState == Open:
-      discard ws.send(wsConnection, $(%*{
-        "event": "clientconnect",
-        "data": %client
-      }))
-
   stdout.styledWriteLine fgGreen, "[+] ", $client, " connected", fgDefault
-  prompt(client.server)
-
-proc cReconnected*(client: C2Client)  =
-  for wsConnection in client.server.wsConnections:
-    if wsConnection.readyState == Open:
-      discard ws.send(wsConnection, $(%*{
-        "event": "clientreconnect",
-        "data": %client
-      }))
-
-  stdout.styledWriteLine fgGreen, "[+] ", $client, " reconnected", fgDefault
   prompt(client.server)
 
 proc cDisconnected*(client: C2Client, reason: string = "client died") =
@@ -96,7 +77,6 @@ proc logClientOutput*(client: C2Client, category: string, b64: string) =
     if not ( line == "" ): 
       stdout.styledWriteLine fgGreen, "[=] [Client: ", $client.id, "] ", "[", category, "] ", fgWhite, line
 
-
 proc printTable*(data: JsonNode) =
   var headers: seq[string] = @[]
   for line in data:
@@ -109,13 +89,13 @@ proc printTable*(data: JsonNode) =
   for line in data:
     var row: seq[string] = @[]
     for header in headers:
-      if not line{header}.isNil:
-        let jCell = line[header]
-        if jCell.kind == JString:
-          row.add line[header].getStr("-")
-        elif jCell.kind == JInt:
-          row.add $line[header].getInt(0)  
-        else: row.add "-"
+      if line{header}.isNil:
+        row.add "-"
+        continue
+      let jCell = line[header]
+
+      if jCell.kind == JString: row.add line[header].getStr("-")
+      elif jCell.kind == JInt: row.add $line[header].getInt(0)  
       else: row.add "-"
     t.addRow row
   stdout.write t.render()
