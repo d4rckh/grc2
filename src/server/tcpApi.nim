@@ -52,7 +52,6 @@ proc processMessages(server: C2Server, tcpSocket: AsyncSocket) {.async.} =
             "data": {"file": filePath,
             "fileData": encode readFile(filePath)}
           }) & "\r\n")
-    
 
 proc startTcpApi*(server: C2Server, port = 5051, ip = "127.0.0.1") {.async.} =
   
@@ -61,6 +60,8 @@ proc startTcpApi*(server: C2Server, port = 5051, ip = "127.0.0.1") {.async.} =
     tcpSocket.setSockOpt(OptReuseAddr, true)
     tcpSocket.bindAddr(port.Port, ip)
     tcpSocket.listen()
+  
+    infoLog "teamserver api listening"
   except OSError:
     errorLog getCurrentExceptionMsg()
     return

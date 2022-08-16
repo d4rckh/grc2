@@ -1,4 +1,4 @@
-import winim, pixie, json
+import winim, pixie
 import ../client/[communication, types]
 
 # code from https://gist.githubusercontent.com/treeform/782149b5fc938753feacfca43637aa90/raw/4e05ca592a02cc2740a67a7e2e3f783876dec879/screenshot.nim 's replies

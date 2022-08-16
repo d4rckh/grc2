@@ -1,4 +1,3 @@
-from std/json import `%*`
 from std/strutils import join
 
 from winim/clr import clrVersions

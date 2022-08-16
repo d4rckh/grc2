@@ -25,7 +25,7 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
   let error = response["error"].getStr() 
   let taskId = response["taskId"].getInt(-1) 
 
-  if taskId < -1:
+  if taskId <= -1:
     await client[].askToIdentify()
     return
 

@@ -1,4 +1,4 @@
-import osproc, os, net, strutils, json
+import osproc, os, net, strutils
 import ../client/[communication, types]
 
 proc executeTask*(app: App, taskId: int, params: seq[string]) =

@@ -1,6 +1,5 @@
 import ../client/[communication, types]
 
-from std/json import `%*`
 import winim/lean
 
 proc executeTask*(app: App, taskId: int, params: seq[string]) =

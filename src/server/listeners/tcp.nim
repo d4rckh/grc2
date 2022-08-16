@@ -135,7 +135,8 @@ proc createNewTcpListener*(server: C2Server, instance: ListenerInstance) {.async
         hostname: "placeholder",
         username: "placeholder",
         server: server,
-        ipAddress: netAddr
+        ipAddress: netAddr,
+        lastCheckin: now()
       )
       tcpSocket = TCPSocket(
         socket: clientSocket,

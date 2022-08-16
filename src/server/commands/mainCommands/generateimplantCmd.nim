@@ -15,6 +15,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   var platform: string = flags.getOrDefault("platform", flags.getOrDefault("P", "windows"))
   var ip: string = flags.getOrDefault("ip", flags.getOrDefault("i", ""))
   var port: string = flags.getOrDefault("port", flags.getOrDefault("p", ""))
+  var format: string = flags.getOrDefault("format", flags.getOrDefault("f", "exe"))
   var showWindow: bool = parseBool(flags.getOrDefault("showwindow", flags.getOrDefault("s", "no")))
   var autoConnectTime: string = flags.getOrDefault("autoconnect", flags.getOrDefault("t", "5000"))
 
@@ -31,7 +32,8 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
         listenerType = listener.listenerType
 
   let compileCommand = "nim c -d:client " &
-    (if showWindow: "" else: "--app=gui " & " ") & # disable window 
+    (if showWindow or format == "dll": "" else: "--app=gui " & " ") & # disable window
+    (if format == "dll": "--app=lib --nomain " else: "") & 
     "--passL:-s" & " " &  
     "-d:release" & " " &  
     "-d:ip=" & ip & " " & 
@@ -40,7 +42,6 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     "-d:autoConnectTime=" & autoConnectTime & " " & 
     (if platform == "windows": "-d:mingw " else: "--os:linux ") & 
     (if server.debug: "-d:debug " else: "") & 
-    "-o:implant" & (if platform == "windows": ".exe " else: " ") & 
     "./src/client/client.nim"
 
   echo "Running " & compileCommand
@@ -49,7 +50,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   if exitCode != 0:
     errorLog "failed to build implant, check https://github.com/d4rckh/nimc2/wiki/FAQs"
   else:
-    infoLog "saved implant to implant" & (if platform == "windows": ".exe " else: " ") 
+    infoLog "saved implant"
 
 let cmd*: Command = Command(
   execProc: execProc,

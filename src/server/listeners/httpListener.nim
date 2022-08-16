@@ -32,7 +32,8 @@ proc createNewHttpListener*(server: C2Server, instance: ListenerInstance) {.asyn
         hostname: "placeholder",
         username: "placeholder",
         server: server,
-        ipAddress: req.hostname
+        ipAddress: req.hostname,
+        lastCheckin: now()
       )
       clientMap.add (token: token, client: cRef)
       await req.respond(Http200, token, headers.newHttpHeaders())

