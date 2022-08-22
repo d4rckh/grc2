@@ -32,6 +32,10 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
   let task = server.tasks[taskId]
   if error != "":
     errorLog $client[] & ": " & error
+    
+    if client.server.cli.waitingForOutput:
+      client.server.cli.waitingForOutput = false
+      prompt(client.server)
   else: 
     case response["task"].getStr():
     of "identify":

@@ -8,14 +8,19 @@ import ../../types
 import ../../logging
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
-  if len(args) < 1:
-    errorLog "you must provide a client id to interact with"
-    return
-
   let c2cli = server.cli
 
   c2cli.handlingClient = @[]
   
+  if server.clients.len() < 2:
+    c2cli.handlingClient.add server.clients[0]
+    c2cli.mode = ClientInteractMode
+    return 
+
+  if len(args) < 1:
+    errorLog "you must provide a client id to interact with"
+    return
+
   for arg in args:
     let clientId = arg
     var cFound = false
