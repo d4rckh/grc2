@@ -31,6 +31,8 @@ proc procStdin*(server: C2Server) {.async.} =
       let args = input.split(" ")
       let cmd = args[0]
       
+      c2cli.waitingForOutput = false
+
       if c2cli.mode == ShellMode:
         if cmd == "back":
           c2cli.mode = ClientInteractMode
@@ -70,7 +72,6 @@ proc procStdin*(server: C2Server) {.async.} =
                 args=parsedArgs,
                 server=server
               )
-            
             c2cli.interactive = true
 
       prompt(server)

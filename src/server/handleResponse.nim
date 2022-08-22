@@ -34,3 +34,7 @@ proc handleResponse*(client: C2Client, rewind: bool, response: JsonNode) =
         image.writeFile(filePath)
         successLog "you got new loot!"
         onNewLoot(client)
+
+  if client.server.cli.waitingForOutput:
+    client.server.cli.waitingForOutput = false
+    prompt(client.server)

@@ -19,10 +19,10 @@ proc genClientSummary(client: seq[C2Client]): string =
 proc prompt*(server: C2Server) = 
   let cli = server.cli
   
-  if not ( server.cli.initialized and server.cli.interactive ): return
-  
-  let client = server.cli.handlingClient
+  if not cli.interactive: return
+  if cli.waitingForOutput: return
 
+  let client = server.cli.handlingClient
   var menu: string = "main"
   var sign: string = ">"
   var shellColor = fgRed

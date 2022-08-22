@@ -18,7 +18,8 @@ let server = C2Server(
   cli: C2Cli(
     handlingClient: @[],
     mode: MainMode,
-    commands: commands
+    commands: commands,
+    waitingForOutput: false
   ),
   debug: false
 )

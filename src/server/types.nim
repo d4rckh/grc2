@@ -96,6 +96,7 @@ type
     commands*: seq[Command]
     preparing*: PreparationSubject
     lastCommand*: string
+    waitingForOutput*: bool
 
   Task* = ref object
     client*: C2Client
