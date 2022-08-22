@@ -7,6 +7,9 @@ elif defined(http):
 
 type 
   App* = ref object
+    ip*: string
+    port*: int
+    autoConnectTime*: int
     when defined(tcp):
       socket*: Socket
     elif defined(http):

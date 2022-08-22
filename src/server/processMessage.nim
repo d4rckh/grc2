@@ -7,7 +7,7 @@ import std/[
   md5
 ]
 
-import pixie, ws
+import pixie
 
 import types, logging, communication, handleResponse, events
 

