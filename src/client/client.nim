@@ -24,7 +24,6 @@ app.autoConnectTime = autoConnectTime
 when defined(tcp):
   app.socket = newSocket()
 elif defined(http):
-  let app: App = App()
   app.httpRoot = "http://" & ip & ":" & $port
   app.httpClient = newHttpClient()
 
