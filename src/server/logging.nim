@@ -59,7 +59,7 @@ proc errorLog*(msg: string) =
 
 proc cConnected*(client: C2Client) =
   client.createLootDirectories()
-  stdout.styledWriteLine fgGreen, "[+] ", $client, " connected", fgDefault
+  stdout.styledWriteLine fgGreen, "[+] ", $client, " identified", fgDefault
   prompt(client.server)
 
 proc cDisconnected*(client: C2Client, reason: string = "client died") =

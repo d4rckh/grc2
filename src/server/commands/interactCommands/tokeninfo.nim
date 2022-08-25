@@ -10,7 +10,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     # just update the token info
     let task = await client.sendClientTask("tokinfo")
     if not task.isNil(): 
-      await task.awaitResponse()
+      server.cli.waitingForOutput = true
 
 let cmd*: Command = Command(
   execProc: execProc,

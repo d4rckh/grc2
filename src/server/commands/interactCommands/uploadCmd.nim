@@ -21,7 +21,8 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     let fileContents = readFile(args[0])
     let task = await client.sendClientTask("upload", %*[ encode(fileContents), args[1] ])
     
-    if not task.isNil(): await task.awaitResponse()
+    if not task.isNil(): 
+      server.cli.waitingForOutput = true
 
 let cmd*: Command = Command(
   execProc: execProc,

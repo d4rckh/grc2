@@ -7,6 +7,10 @@ proc handleResponse*(client: C2Client, rewind: bool, response: JsonNode) =
     errorLog "task does not have data"
   else:
     for key, value in pairs(response["data"]):
+      if not key.contains("::"):
+        if response["data"].kind == JObject: printObject(response["data"])
+        elif response["data"].kind == JArray: printTable(response["data"])
+        break
       let dataName = key.split("::")[0]
       let dataType = key.split("::")[1]
       let dataContent = decode(value.getStr())

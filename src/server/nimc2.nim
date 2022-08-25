@@ -74,11 +74,12 @@ when defined(debug):
     httpListener.listener,
     "127.0.0.1", Port 8080, params
   )
-asyncCheck procStdin(server)
+  
 when defined(debug):
   # import httpapi/httpserver
   # asyncCheck startHttpAPI(server)
   import tcpApi
   asyncCheck startTcpApi(server)
+asyncCheck procStdin(server)
 
 runForever()

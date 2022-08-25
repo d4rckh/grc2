@@ -10,7 +10,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   for client in server.cli.handlingClient:
     let task = await client.sendClientTask("processes")
     if not task.isNil(): 
-      await task.awaitResponse()
+      server.cli.waitingForOutput = true
       # for process in client.processes:
       #   stdout.styledWriteLine fgGreen, $process.id, "\t", fgWhite, process.name 
 
