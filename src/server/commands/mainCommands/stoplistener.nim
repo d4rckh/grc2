@@ -32,7 +32,7 @@ let cmd*: Command = Command(
   aliases: @["stopl"],
   argsLength: 1,
   usage: @[
-    "startlistener[listerName]",
+    "stoplistener [listerName]",
   ],
   description: "Stop a listener",
   category: CCListeners

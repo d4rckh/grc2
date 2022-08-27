@@ -6,3 +6,5 @@
 dev_tools/
 loot
 *png
+
+tools/binarytoc/target

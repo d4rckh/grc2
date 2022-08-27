@@ -61,7 +61,7 @@ proc startTcpApi*(server: C2Server, port = 5051, ip = "127.0.0.1") {.async.} =
     tcpSocket.bindAddr(port.Port, ip)
     tcpSocket.listen()
   
-    infoLog "teamserver api listening"
+    infoLog "teamserver api listening on port " & $port
   except OSError:
     errorLog getCurrentExceptionMsg()
     return
