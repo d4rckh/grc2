@@ -1,4 +1,4 @@
-import std/[base64, json, os, jsonutils, strutils]
+import std/[json, os, jsonutils, strutils]
 
 import winim/lean
 
