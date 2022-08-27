@@ -91,11 +91,7 @@ when defined(library) and defined(windows):
 
   proc DllMain(hinstDLL: HINSTANCE, fdwReason: DWORD, lpvReserved: LPVOID) : BOOL {.stdcall, exportc, dynlib.} =
     NimMain()
-    
-    if fdwReason == DLL_PROCESS_ATTACH: 
-      MessageBox(0, "Hello, world !", "Nim is Powerful", 0)
-      beginConnection()
-
+    if fdwReason == DLL_PROCESS_ATTACH: beginConnection()
     return true
 else:
   beginConnection()
