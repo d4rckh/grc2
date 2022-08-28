@@ -1,10 +1,11 @@
+# binary files
 *exe
+*bin
+!donut.exe
 *dll
-./implant
-./nimc2
-./test*
-dev_tools/
-loot
-*png
 
+# don't publish loot
+loot
+
+dev_tools
 tools/binarytoc/target
