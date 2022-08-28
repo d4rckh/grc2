@@ -20,9 +20,10 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   var showWindow: bool = parseBool(flags.getOrDefault("showwindow", flags.getOrDefault("s", "no")))
   var autoConnectTime: string = flags.getOrDefault("autoconnect", flags.getOrDefault("t", "5000"))
 
-  if ( not defined(windows) ) and format == "shellcode":
-    errorLog "can't generate shellcode on linux"
-    return
+  when not defined(windows):
+    if format == "shellcode":
+      errorLog "can't generate shellcode on linux"
+      return
 
   # infoLog "generating implant for " & $tcpListener
   if listenerType == "tcp" and ip == "" and port == "":
@@ -35,7 +36,6 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
         ip = listener.ipAddress
         port = $listener.port.uint
         listenerType = listener.listenerType
-
 
   var createShellcode = false
   if format == "shellcode":
