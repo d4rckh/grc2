@@ -4,9 +4,9 @@ version       = "0.1.0"
 author        = "Anonymous"
 description   = "a cool c2"
 license       = "GPL-2.0-only"
+
 srcDir        = "src/server"
 bin           = @["nimc2"]
-
 
 # Dependencies
 

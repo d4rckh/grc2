@@ -12,7 +12,7 @@ macro importDirectory*(a: static string, b: static string, c: static string): un
         echo "importing file " & split.name 
         bracket.add ident(split.name)
   let a = newStmtList(
-  newNimNode(nnkImportStmt).add(
+  newNimNode(nnkImportStmt).add( 
     newNimNode(nnkInfix).add(
       ident("/"),
       newNimNode(nnkPrefix).add(

