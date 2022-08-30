@@ -5,7 +5,7 @@ import std/[
 
 import ws
 
-import types, logging, events, tasks
+import types, logging, events
 
 proc sendClientTask*(client: C2Client, taskName: string, data: JsonNode = %*[]): Future[Task] {.async.} =
   if not client.connected:

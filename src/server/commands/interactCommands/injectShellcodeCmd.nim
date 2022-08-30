@@ -19,7 +19,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
       if not task.isNil(): 
         await task.awaitResponse()
         if not task.isError():
-          successLog "injected " & $shellcode.len & " -> " & " PID " & args[0]
+          successLog "injected " & $shellcode.len & " bytes in process with PID " & args[0]
         else:
           errorLog "error from agent: " & task.output.error
 

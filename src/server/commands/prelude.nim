@@ -9,5 +9,5 @@ import std/[
 ]
 export asyncdispatch, tables, json, jsonutils, strutils, os, osproc, terminal
 
-import ../types, ../communication, ../logging, ../tasks, ../loot, ../listeners/index as listeners
+import ../types, ../communication, ../logging, ../tasks, ../loot, ../listeners
 export types, communication, logging, tasks, loot, listeners

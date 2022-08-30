@@ -7,7 +7,7 @@ proc executeTask*(app: App, taskId: int, params: seq[string]) =
   try:
     let contents = readFile(params[0])
     taskOutput.addData(DataType.File, splitPath(params[0]).tail, contents)
-  except IOError:
+  except:
     taskOutput.error = getCurrentExceptionMsg()
   
   app.sendOutput(taskOutput)

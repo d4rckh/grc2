@@ -17,7 +17,8 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     
     if not task.isNil(): 
       await task.awaitResponse()
-      
+      if not task.isError(): successLog "successfully uploaded file"
+      else: errorLog task.output.error
 
 let cmd*: Command = Command(
   execProc: execProc,

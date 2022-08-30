@@ -4,6 +4,9 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   for task in server.tasks:
     if $task.id == args[0]:
       logTaskOutput(task)
+      return
+
+  errorLog "task not found"
 
 let cmd*: Command = Command(
   execProc: execProc,

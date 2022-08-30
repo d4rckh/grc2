@@ -4,7 +4,7 @@ import std/[
   json
 ]
 
-import ../../types, ../../logging, ../../communication, ../../tasks
+import ../../types, ../../logging, ../../communication
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   if len(args) < 2:

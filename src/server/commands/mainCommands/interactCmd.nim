@@ -4,14 +4,14 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   let c2cli = server.cli
 
   c2cli.handlingClient = @[]
-  
-  if server.clients.len() < 2:
-    c2cli.handlingClient.add server.clients[0]
-    c2cli.mode = ClientInteractMode
-    return 
+
+  if server.clients.len < 1:
+    errorLog "no agents connected"
+    return
 
   if len(args) < 1:
-    errorLog "you must provide a client id to interact with"
+    c2cli.handlingClient.add server.clients[server.clients.len - 1]
+    c2cli.mode = ClientInteractMode
     return
 
   for arg in args:
@@ -24,7 +24,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
         cFound = true
 
     if not cFound:
-      infoLog "client not found"
+      infoLog "agent not found"
 
 let cmd*: Command = Command(
   execProc: execProc,
