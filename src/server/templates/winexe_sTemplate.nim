@@ -29,15 +29,21 @@ let tmpl* = Template(
 
     writeFile("_temp.c", c_template)
 
+    var cmdOut = 1
+
     when defined(windows):
-      if execCmd("gcc _temp.c") == 0:
-        let exe_bin = readFile("a.exe")
-        # clean up
-        removeFile("a.exe")
-        removeFile("_temp.c")
-        return exe_bin
-      else:
-        errorLog "error compiling with gcc. is it in path?"
-        removeFile("_temp.c")
-        return ""
+      cmdOut = execCmd("gcc _temp.c")
+    else:
+      cmdOut = execCmd("x86_64-w64-mingw32-gcc _temp.c")
+
+    if cmdOut == 0:
+      let exe_bin = readFile("a.exe")
+      # clean up
+      removeFile("a.exe")
+      removeFile("_temp.c")
+      return exe_bin
+    else:
+      errorLog "error compiling with gcc. is it in path?"
+      removeFile("_temp.c")
+      return ""
 )

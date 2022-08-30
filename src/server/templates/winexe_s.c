@@ -14,5 +14,7 @@ int main() {
 
   WaitForSingleObject(hThread, INFINITE);
 
+  CloseHandle(hThread);
+
   return 0;
 }
