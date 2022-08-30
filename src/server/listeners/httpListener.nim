@@ -57,6 +57,7 @@ proc createNewHttpListener*(server: C2Server, instance: ListenerInstance) {.asyn
         var j: JsonNode = %*[]
         for task in server.tasks:
           if task.status == TaskCreated and task.client == client[]:
+            task.status = TaskNotCompleted
             j.add %*{
               "task": task.action,
               "taskId": task.id,

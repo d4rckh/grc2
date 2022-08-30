@@ -1,12 +1,4 @@
-import std/[
-  asyncdispatch, 
-  strutils, 
-  asyncfutures, 
-  tables, 
-  nativesockets
-]
-
-import ../../types, ../../listeners/index, ../../logging
+import ../prelude
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
 

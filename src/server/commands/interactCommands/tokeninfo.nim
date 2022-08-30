@@ -1,16 +1,12 @@
-import std/[
-  asyncdispatch, 
-  tables
-]
-
-import ../../types, ../../communication
+import ../prelude
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   for client in server.cli.handlingClient:  
     # just update the token info
     let task = await client.sendClientTask("tokinfo")
     if not task.isNil(): 
-      server.cli.waitingForOutput = true
+      await task.awaitResponse()
+      logTaskOutput(task)
 
 let cmd*: Command = Command(
   execProc: execProc,

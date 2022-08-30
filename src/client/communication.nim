@@ -1,7 +1,7 @@
 import std/[base64, json]
 
 when defined(tcp):
-  import std/net
+  import std/[net, os]
 elif defined(http):
   import std/httpclient
 
@@ -43,7 +43,7 @@ proc sendData(app: App, data: string) =
       return
 
 type DataType* = enum
-  File = "file", Text = "text", Code = "code", Image = "image", Object = "object"
+  File = "file", Text = "text", Image = "image", Object = "object"
 
 type 
   TaskOutput* = ref object

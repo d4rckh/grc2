@@ -1,11 +1,4 @@
-import std/[
-  asyncdispatch, 
-  tables, 
-  os, 
-  terminal
-]
-
-import ../../types, ../../loot
+import ../prelude
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   for client in server.clients:

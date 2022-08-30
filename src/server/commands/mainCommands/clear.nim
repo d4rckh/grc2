@@ -1,13 +1,8 @@
-import std/[
-  asyncdispatch, 
-  tables, 
-  terminal
-]
-
-import ../../types
+import ../prelude
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   stdout.eraseScreen()
+  setCursorPos(0,0)
 
 let cmd*: Command = Command(
   execProc: execProc,

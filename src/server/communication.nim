@@ -5,17 +5,12 @@ import std/[
 
 import ws
 
-import types, logging, events
+import types, logging, events, tasks
 
-proc sendClientTask*(client: C2Client, taskName: string, jData: JsonNode = nil): Future[Task] {.async.} =
+proc sendClientTask*(client: C2Client, taskName: string, data: JsonNode = %*[]): Future[Task] {.async.} =
   if not client.connected:
     errorLog "can't send task to disconnected client: " & $client
     return
-  var data: JsonNode
-  if jData.isNil:
-    data = %*[]
-  else: 
-    data = jData
 
   let createdTask = Task(
     client: client,
@@ -24,7 +19,7 @@ proc sendClientTask*(client: C2Client, taskName: string, jData: JsonNode = nil):
     status: TaskCreated,
     arguments: data,
     future: new (ref Future[void]),
-    output: %*{}
+    output: TaskOutput()
   )
 
   client.server.tasks.add(createdTask)
@@ -40,10 +35,11 @@ proc sendClientTask*(client: C2Client, taskName: string, jData: JsonNode = nil):
   prompt(client.server)
   return createdTask
 
-proc awaitResponse*(task: Task) {.async.} =
+proc awaitResponse*(task: Task): Future[void] =
+  task.client.server.cli.waitingForOutput = true
   if task.future[].isNil():
     task.future[] = newFuture[void]()
-  await task.future[]
+  return task.future[]
 
 proc askToIdentify*(client: C2Client) {.async.} =
   discard await client.sendClientTask("identify")

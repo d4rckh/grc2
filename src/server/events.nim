@@ -17,6 +17,6 @@ proc onClientTasked*(client: C2Client, task: Task) =
 proc onNewLoot*(client: C2Client) =
   sendLoot(client.server)
 
-proc onClientTaskCompleted*(client: C2Client, task: Task) =
-  sendTaskUpdate(client.server, task)
-  sendTasks(client.server)
+proc onClientTaskCompleted*(task: Task) =
+  sendTaskUpdate(task.client.server, task)
+  sendTasks(task.client.server)

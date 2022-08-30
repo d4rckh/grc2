@@ -17,7 +17,15 @@ fn main() {
         .open(out_path)
         .unwrap();
 
+    let mut no = 1;
+
+    write!(file, "\"").unwrap();
+
     for ch in bin {
         write!(file, "\\x{ch:x}").unwrap();
+        if no % 10 == 0 {
+            write!(file, "\"\n\"").unwrap()
+        }
+        no += 1;
     }
 }

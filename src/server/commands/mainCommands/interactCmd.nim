@@ -1,11 +1,4 @@
-import std/[
-  strutils, 
-  asyncdispatch, 
-  tables
-]
-
-import ../../types
-import ../../logging
+import ../prelude
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   let c2cli = server.cli

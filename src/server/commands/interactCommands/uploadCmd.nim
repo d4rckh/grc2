@@ -1,12 +1,6 @@
-import std/[
-  asyncdispatch, 
-  tables, 
-  os, 
-  base64, 
-  json
-]
+import ../prelude
 
-import ../../types, ../../communication, ../../logging
+import std/base64
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   if len(args) < 1:
@@ -22,7 +16,8 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     let task = await client.sendClientTask("upload", %*[ encode(fileContents), args[1] ])
     
     if not task.isNil(): 
-      server.cli.waitingForOutput = true
+      await task.awaitResponse()
+      
 
 let cmd*: Command = Command(
   execProc: execProc,
