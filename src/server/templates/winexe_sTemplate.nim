@@ -32,9 +32,9 @@ let tmpl* = Template(
     var cmdOut = 1
 
     when defined(windows):
-      cmdOut = execCmd("gcc _temp.c")
+      cmdOut = execCmd("gcc -s _temp.c")
     else:
-      cmdOut = execCmd("x86_64-w64-mingw32-gcc _temp.c")
+      cmdOut = execCmd("x86_64-w64-mingw32-gcc -s _temp.c")
 
     if cmdOut == 0:
       let exe_bin = readFile("a.exe")
