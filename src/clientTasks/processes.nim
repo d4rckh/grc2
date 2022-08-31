@@ -5,5 +5,5 @@ proc executeTask*(app: App, taskId: int, params: seq[string]) =
   let taskOutput = newTaskOutput taskId
 
   let processes: seq[tuple[name: string, id: int]] = getprocesses()
-  taskOutput.addData(Object, "processes", $(toJson processes))
+  taskOutput.data = $(toJson processes)
   app.sendOutput(taskOutput)

@@ -6,7 +6,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     let task = await client.sendClientTask("tokinfo")
     if not task.isNil(): 
       await task.awaitResponse()
-      if not task.isError(): logTaskOutput(task)
+      if not task.isError(): printObject(parseJson(task.output.data))
       else:
         errorLog task.output.error
 

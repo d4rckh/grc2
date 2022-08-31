@@ -12,5 +12,5 @@ proc executeTask*(app: App, taskId: int, params: seq[string]) =
   for av in wmi.execQuery "select * from AntivirusProduct":
     antiviruses.add (name: $av.displayName)
   
-  taskOutput.addData Object, "response", $(toJson antiviruses)
+  taskOutput.data = $(toJson antiviruses)
   app.sendOutput taskOutput

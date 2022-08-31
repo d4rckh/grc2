@@ -5,7 +5,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     let task = await client.sendClientTask("processes")
     if not task.isNil(): 
       await task.awaitResponse()
-      let processesJson = parseJson(task.output.data[0].content)
+      let processesJson = parseJson(task.output.data)
       var processes: seq[tuple[name: string, id: int]]
       
       for pJson in processesJson:

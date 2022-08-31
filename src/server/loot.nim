@@ -3,7 +3,7 @@ import types
 
 type 
   LootType* = enum
-    LootImage = "image", LootFile = "file"
+    LootFile = "file"
 
 type
   Loot* = ref object
@@ -18,18 +18,10 @@ proc getLootDirectory*(client: C2Client): string =
 proc createLootDirectories*(client: C2Client) =
   let rootDirectory = getLootDirectory client
   createDir rootDirectory
-  createDir rootDirectory & "/images/"
   createDir rootDirectory & "/files/"
 
 proc getLoot*(client: C2Client): seq[Loot] = 
   let rootDirectory = getLootDirectory client
-  for file in walkDir(rootDirectory & "/images"):
-    if file.kind == pcFile:
-      result.add Loot(
-        t: LootImage,
-        file: file.path,
-        client: client
-      )
   for file in walkDir(rootDirectory & "/files"):
     if file.kind == pcFile:
       result.add Loot(
@@ -37,3 +29,9 @@ proc getLoot*(client: C2Client): seq[Loot] =
         file: file.path,
         client: client
       )
+
+proc saveLoot*(client: C2Client, lt: LootType, name: string, contents: string) =
+  case lt:
+  of LootFile:
+    let filePath = client.getLootDirectory() & "/files/" & name
+    writeFile filePath, contents

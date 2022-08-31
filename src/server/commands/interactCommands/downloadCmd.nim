@@ -9,8 +9,8 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     let task = await client.sendClientTask("download", %*[ args[0] ])
     if not task.isNil(): 
       await task.awaitResponse()
-      if not task.isError():
-        logTaskOutput(task, true)
+      if not task.isError(): discard
+        # TODO: parse
       else:
         errorLog "error from agent: " & task.output.error
 

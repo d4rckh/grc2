@@ -5,7 +5,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     let task = await client.sendClientTask(args[0], toJson args[1..(args.len-1)])
     if not task.isNil(): 
       await task.awaitResponse()
-      logTaskOutput(task)
+      echo "response: " & task.output.data
 
 let cmd*: Command = Command(
   execProc: execProc,

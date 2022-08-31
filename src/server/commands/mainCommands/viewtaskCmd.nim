@@ -3,7 +3,7 @@ import ../prelude
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   for task in server.tasks:
     if $task.id == args[0]:
-      logTaskOutput(task)
+      echo "response: " & task.output.data
       return
 
   errorLog "task not found"

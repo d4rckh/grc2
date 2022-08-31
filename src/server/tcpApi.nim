@@ -44,7 +44,6 @@ proc processMessages(server: C2Server, tcpSocket: AsyncSocket) {.async.} =
         ) 
         var filePath: string = ""
         case lootType:
-        of LootImage: filePath = rootDirectory & "/images/" & fileName
         of LootFile: filePath = rootDirectory & "/files/" & fileName
         if fileExists(filePath):
           await tcpSocket.send($(%*{

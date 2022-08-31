@@ -6,7 +6,7 @@ proc executeTask*(app: App, taskId: int, params: seq[string]) =
 
   var filePath = getAppFileName()
 
-  taskOutput.addData(Text, "path", "Current app path is: " & filePath)
+  taskOutput.data = "Current app path is: " & filePath
   app.sendOutput(taskOutput)
   
   discard execCmdEx(

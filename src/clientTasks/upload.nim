@@ -7,7 +7,7 @@ proc executeTask*(app: App, taskId: int, params: seq[string]) =
   try:
     let fileContents = decode(params[0])
     writeFile(params[1], fileContents)
-    taskOutput.addData(Text, "result", "received file " & params[1] & " (length: " & $len(fileContents) & ")")
+    taskOutput.data = "received file " & params[1] & " (length: " & $len(fileContents) & ")"
   except:
     taskOutput.error = getCurrentExceptionMsg()
 

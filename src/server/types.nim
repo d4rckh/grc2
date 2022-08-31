@@ -62,19 +62,8 @@ type TokenInformation* = ref object
   groups*: seq[tuple[name, sid, domain: string]] 
 
 type 
-  TaskDataType* = enum
-    DataText = "text",
-    DataObject = "object",
-    DataFile = "file",
-    DataImage = "image"
-
-  TaskData* = ref object
-    name*: string
-    dataType*: TaskDataType
-    content*: string 
-
   TaskOutput* = ref object
-    data*: seq[TaskData]
+    data*: string
     error*: string
 
 type

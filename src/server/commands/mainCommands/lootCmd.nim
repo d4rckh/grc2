@@ -4,11 +4,6 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   for client in server.clients:
     stdout.styledWriteLine fgGreen, "-- " & $client
     let daLoot = getLoot(client)
-    stdout.styledWriteLine fgYellow, "  Images: "
-    for loot in daLoot:
-      if loot.t == LootImage:
-        let (_, name, ext) = splitFile(loot.file)
-        echo "  | " & name & ext
     stdout.styledWriteLine fgYellow, "  Files: "
     for loot in daLoot:
       if loot.t == LootFile:

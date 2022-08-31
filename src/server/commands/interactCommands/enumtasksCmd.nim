@@ -7,7 +7,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
       await task.awaitResponse()
       if not task.isError():
         infoLog "supported tasks by " & $client & ":" 
-        let tasksJson = parseJson(task.output.data[0].content)
+        let tasksJson = parseJson(task.output.data)
         for taskJson in tasksJson:
           infoLog taskJson["name"].getStr("-"), false
         infoLog "if a cli command is not implemented for any of the tasks, you can use the 'sendtask' command."

