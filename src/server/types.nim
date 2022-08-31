@@ -85,7 +85,6 @@ type
     hash*: string
     id*: string
     connected*: bool
-    tokenInformation*: TokenInformation
     pid*: int
     pname*: string
     loaded*: bool
@@ -96,9 +95,7 @@ type
     ipAddress*: string
     osType*: OSType
     server*: C2Server
-    processes*: seq[tuple[name: string, id: int]]
     windowsVersionInfo*: WindowsVersionInfo
-    linuxVersionInfo*: LinuxVersionInfo
 
   C2Cli* = ref object
     handlingClient*: seq[C2Client]
@@ -197,11 +194,9 @@ proc `@`*(client: C2Client): string =
       "Last Checkin: " & client.get_last_checkin() & "\n\t" &
       "Process PID: " & $client.pid & "\n\t" &
       "Process Path: " & client.pname & "\n\t" &
-      "Processs Integrity: " & $client.tokenInformation.integrityLevel & "\n\t" &
       (if client.osType != WindowsOS: "Running as admin: " & $client.isAdmin & "\n\t" else: "") &
       "OS: " & $client.osType & (
         case client.osType:
-        of LinuxOS: "\n\tKernel Version: " & client.linuxVersionInfo.kernelVersion
         of WindowsOS: "\n\tWindows Version: " & $client.windowsVersionInfo
         else: ""
       )
@@ -214,7 +209,6 @@ proc `%`*(client: C2Client): JsonNode =
     "username": client.username,
     "osType": client.osType,
     "windowsVersionInfo": client.windowsVersionInfo,
-    "linuxVersionInfo": client.linuxVersionInfo,
     "connected": client.connected,
     "initialized": client.loaded
   }

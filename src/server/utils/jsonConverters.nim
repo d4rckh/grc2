@@ -12,7 +12,6 @@ proc clientToJson*(client: C2Client): JsonNode =
     "osType": client.osType,
     "lastCheckin": client.lastCheckin.toTime.toUnix,
     "windowsVersionInfo": client.windowsVersionInfo,
-    "linuxVersionInfo": client.linuxVersionInfo,
     "initialized": client.loaded
   }
 

