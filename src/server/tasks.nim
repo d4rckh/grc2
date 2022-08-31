@@ -1,6 +1,6 @@
-import std/[json, strutils, base64, times, asyncfutures], pixie
+import std/[strutils, base64, times, asyncfutures], pixie
 
-import types, logging, loot, events
+import types, events
 
 proc isError*(task: Task): bool = 
   task.output.error != ""
