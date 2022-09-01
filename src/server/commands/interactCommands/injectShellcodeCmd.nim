@@ -1,11 +1,4 @@
-import std/[
-  asyncdispatch, 
-  tables
-]
-
-import system/io, json
-
-import ../../types, ../../logging, ../../communication, ../../tasks
+import ../prelude 
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   if args.len < 2:

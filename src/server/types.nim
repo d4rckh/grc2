@@ -1,10 +1,8 @@
 import std/[
   asyncfutures, 
   asyncnet, 
-  json, 
   asyncdispatch, 
   tables, 
-  jsonutils,
   strutils, 
   times
 ]
@@ -183,46 +181,6 @@ proc get_last_checkin*(client: C2Client): string =
     result = result.split(",")[0]
   else:
     result = "not check in's"
-
-proc `@`*(client: C2Client): string =
-  if not client.loaded:
-    $client
-  else:
-    $client & "\n\t" & 
-      "IP: " & client.ipAddress & "\n\t" &
-      "Username: " & client.username & "\n\t" &
-      "Last Checkin: " & client.get_last_checkin() & "\n\t" &
-      "Process PID: " & $client.pid & "\n\t" &
-      "Process Path: " & client.pname & "\n\t" &
-      (if client.osType != WindowsOS: "Running as admin: " & $client.isAdmin & "\n\t" else: "") &
-      "OS: " & $client.osType & (
-        case client.osType:
-        of WindowsOS: "\n\tWindows Version: " & $client.windowsVersionInfo
-        else: ""
-      )
-
-proc `%`*(client: C2Client): JsonNode =
-  return %*{
-    "id": client.id,
-    "ipAddress": client.ipAddress,
-    "hostname": client.hostname,
-    "username": client.username,
-    "osType": client.osType,
-    "windowsVersionInfo": client.windowsVersionInfo,
-    "connected": client.connected,
-    "initialized": client.loaded
-  }
-
-proc `%`*(task: Task): JsonNode =
-  return %*{
-    "client": task.client.id,
-    "id": task.id,
-    "action": task.action,
-    "status": $task.status,
-    "arguments": toJson task.arguments,
-    "output": task.output
-  }
-
 
 proc `$`*(task: Task): string =
   var x = task.action & " ["

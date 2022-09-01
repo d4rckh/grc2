@@ -1,4 +1,4 @@
-import terminal, base64, strutils, ws, json
+import terminal, base64, strutils, json
 
 import terminaltables
 
@@ -63,12 +63,6 @@ proc cConnected*(client: C2Client) =
   prompt(client.server)
 
 proc cDisconnected*(client: C2Client, reason: string = "client died") =
-  for wsConnection in client.server.wsConnections:
-    if wsConnection.readyState == Open:
-      discard ws.send(wsConnection, $(%*{
-        "event": "clientdisconnect",
-        "data": %client
-      }))
   stdout.styledWriteLine fgRed, "[-] ", $client, " disconnected", fgWhite, " (", reason, ")"
   prompt(client.server)
 

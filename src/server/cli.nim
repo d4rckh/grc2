@@ -5,8 +5,7 @@ import std/[
   parseopt, 
   tables,
   strutils, 
-  sequtils, 
-  json
+  sequtils 
 ]
 
 import types, logging, communication

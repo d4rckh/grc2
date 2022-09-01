@@ -1,9 +1,4 @@
-import std/[
-  asyncdispatch, 
-  json
-]
-
-import ws
+import std/asyncdispatch
 
 import types, logging, events
 
@@ -23,12 +18,6 @@ proc sendClientTask*(client: C2Client, taskName: string, arguments: seq[string] 
   )
 
   client.server.tasks.add(createdTask)
-
-  for wsConnection in client.server.wsConnections:
-    discard wsConnection.send($(%*{
-      "event": "newtask",
-      "data": %createdTask
-    }))
   
   onClientTasked(client, createdTask)
   infoLog "tasked " & $client & " with " & taskName
