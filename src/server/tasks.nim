@@ -1,4 +1,4 @@
-import std/asyncfutures, pixie
+import std/asyncfutures, tlv
 
 import types, events
 
@@ -15,3 +15,13 @@ proc markAsCompleted*(task: Task) =
 
   onClientTaskCompleted(task)
 
+proc toTLV*(task: Task): string =
+  let b = initBuilder()
+  
+  b.addInt32(cast[int32](task.id))
+  b.addString(task.action)
+
+  b.addInt32(cast[int32](len task.arguments))
+  for argument in task.arguments: b.addString(argument)
+
+  return b.encodeString()

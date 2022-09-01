@@ -6,7 +6,24 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     let task = await client.sendClientTask("tokinfo")
     if not task.isNil(): 
       await task.awaitResponse()
-      if not task.isError(): printObject(parseJson(task.output.data))
+      if not task.isError(): 
+        let p = initParser()
+        p.setBuffer(cast[seq[byte]](task.output.data))
+
+        var tokenInformation: tuple[integrity: string, groups: seq[tuple[name, sid, domain: string]]]
+
+        tokenInformation.integrity = p.extractString()
+
+        let groupsCount = p.extractInt32()
+
+        for _ in 1..groupsCount:
+          tokenInformation.groups.add (
+            name: p.extractString(),
+            sid: p.extractString(),
+            domain: p.extractString()
+          )
+
+        printObject(toJson tokenInformation)
       else:
         errorLog task.output.error
 

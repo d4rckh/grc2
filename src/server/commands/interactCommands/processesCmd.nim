@@ -5,21 +5,32 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     let task = await client.sendClientTask("processes")
     if not task.isNil(): 
       await task.awaitResponse()
-      let processesJson = parseJson(task.output.data)
-      var processes: seq[tuple[name: string, id: int]]
+      var processes: seq[tuple[id: int32, name: string]]
       
-      for pJson in processesJson:
-        let name = pJson["name"].getStr("-")
-        let id = pJson["id"].getInt(0)
-        if args.len > 0: 
-          if not ( args[0].toLowerAscii() in name.toLowerAscii() ): continue
-        processes.add (name: name, id: id)
+      let p = initParser()
+      p.setBuffer(cast[seq[byte]](task.output.data))
 
-      if processes.len == 0:
+      let psCount = p.extractInt32()
+      for _ in 1..psCount:
+        processes.add (
+          id: p.extractInt32(),
+          name: p.extractString()
+        )
+
+      if args.len < 1: 
+        printTable(toJson processes)
+        return 
+
+      var filteredProcesses: seq[tuple[id: int32, name: string]]
+      for process in processes:
+        if not ( args[0].toLowerAscii() in process.name.toLowerAscii() ): continue
+        filteredProcesses.add (id: process.id, name: process.name)
+
+      if filteredProcesses.len == 0:
         infoLog "no processes found with name"
         return
       
-      printTable(toJson processes)
+      printTable(toJson filteredProcesses)
 
 let cmd*: Command = Command(
   execProc: execProc,

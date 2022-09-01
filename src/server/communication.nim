@@ -7,7 +7,7 @@ import ws
 
 import types, logging, events
 
-proc sendClientTask*(client: C2Client, taskName: string, data: JsonNode = %*[]): Future[Task] {.async.} =
+proc sendClientTask*(client: C2Client, taskName: string, arguments: seq[string] = @[]): Future[Task] {.async.} =
   if not client.connected:
     errorLog "can't send task to disconnected client: " & $client
     return
@@ -17,7 +17,7 @@ proc sendClientTask*(client: C2Client, taskName: string, data: JsonNode = %*[]):
     id: len(client.server.tasks),
     action: taskName,
     status: TaskCreated,
-    arguments: data,
+    arguments: arguments,
     future: new (ref Future[void]),
     output: TaskOutput()
   )

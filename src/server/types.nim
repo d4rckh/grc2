@@ -112,7 +112,7 @@ type
     id*: int
     action*: string
     status*: TaskStatus
-    arguments*: JsonNode
+    arguments*: seq[string]
     future*: ref Future[void]
     output*: TaskOutput
  

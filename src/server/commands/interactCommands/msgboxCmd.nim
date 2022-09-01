@@ -12,7 +12,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     return
   
   for client in server.cli.handlingClient:
-    let task = await client.sendClientTask("msgbox", %*[ args[0], args[1] ])
+    let task = await client.sendClientTask("msgbox", @[ args[0], args[1] ])
     if not task.isNil(): 
       successLog "trying to spawn a messagebox"
   

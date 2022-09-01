@@ -20,7 +20,7 @@ proc processMessage*(client: ref C2Client, response: string) {.async.} =
 
   if not (client[] in server.clients):
     server.clients.add client[]
- 
+
   let p = initParser()
   p.setBuffer(cast[seq[byte]](response))
 
@@ -28,13 +28,8 @@ proc processMessage*(client: ref C2Client, response: string) {.async.} =
   let taskName = p.extractString()
   let error = p.extractString()
   let data = p.extractString()
-
-  echo taskId
-  echo taskName
-  echo error
-  echo data
-
-  if taskId <= -1:
+  
+  if taskId < 0:
     await client[].askToIdentify()
     return
 

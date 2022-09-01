@@ -8,7 +8,7 @@ let tmpl* = Template(
   outExtension: "exe",
   build: proc(shellcode: string): string =
     let byteArray = cast[seq[byte]](shellcode)
-    
+
     var c_char_array = "\""
 
     var i = 1
