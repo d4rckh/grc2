@@ -24,6 +24,7 @@ type
     id*: int
     sockets*: seq[TCPSocket]
     running*: bool
+    listenerInstance: ListenerInstance
 
 proc `$`*(tcpListener: TCPListener): string =
   "TCP:" & $tcpListener.id & " (" & $tcpListener.listeningIP & ":" & $tcpListener.port & ")"
@@ -71,7 +72,7 @@ proc processMessages(server: C2Server, tcpListener: TCPListener, tcpSocket: TCPS
         await tcpSocket.socket.send(c.encodeString())
       except OSError: discard
       
-    else: discard processMessage(client, line)
+    else: discard processMessage(client, tcpListener.listenerInstance, line)
 
 proc createNewTcpListener*(server: C2Server, instance: ListenerInstance) {.async.} =
   let id = 1
@@ -85,7 +86,8 @@ proc createNewTcpListener*(server: C2Server, instance: ListenerInstance) {.async
       listeningIP: ipAddress,
       id: id, 
       socket: newAsyncSocket(),
-      running: true
+      running: true,
+      listenerInstance: instance
     )
   try:
     tcpServer.socket.setSockOpt(OptReuseAddr, true)

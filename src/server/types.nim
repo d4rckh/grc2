@@ -94,6 +94,7 @@ type
     osType*: OSType
     server*: C2Server
     windowsVersionInfo*: WindowsVersionInfo
+    lastHandledBy*: ListenerInstance
 
   C2Cli* = ref object
     handlingClient*: seq[C2Client]

@@ -15,11 +15,13 @@ proc generateClientHash(c: C2Client) =
     fmt"{c.ipAddress}{c.hostname}{c.username}{c.osType}{$c.windowsVersionInfo}"
   )
 
-proc processMessage*(client: ref C2Client, response: string) {.async.} = 
+proc processMessage*(client: ref C2Client, listenerInstance: ListenerInstance, response: string) {.async.} = 
   let server = client.server
 
   if not (client[] in server.clients):
     server.clients.add client[]
+
+  client.lastHandledBy = listenerInstance
 
   let p = initParser()
   p.setBuffer(cast[seq[byte]](response))

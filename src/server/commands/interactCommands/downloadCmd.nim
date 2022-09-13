@@ -9,8 +9,13 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     let task = await client.sendClientTask("download", @[ args[0] ])
     if not task.isNil(): 
       await task.awaitResponse()
-      if not task.isError(): discard
-        # TODO: parse
+      if not task.isError():
+        let p = initParser()
+        p.setBuffer(cast[seq[byte]](task.output.data))
+
+        client.saveLoot(
+          LootFile, splitPath(args[0]).tail, p.extractString() 
+        )
       else:
         errorLog "error from agent: " & task.output.error
 

@@ -46,7 +46,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     "-d:port=" & port & " " & 
     "-d:autoConnectTime=" & autoConnectTime & " " & 
     (if platform == "windows": "-d:mingw " else: "--os:linux ") & 
-    (if server.debug: "-d:debug " else: "") & 
+    (if server.debug: "-d:debug " else: " ") & 
     "-o:implant" & 
     (
       if platform == "windows" and format == "dll": ".dll" 

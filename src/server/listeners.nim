@@ -25,7 +25,9 @@ proc startListener*(server: C2Server, title: string, listener: Listener, ipAddre
 proc stopListener*(server: C2Server, instance: ListenerInstance) = 
   if not instance.stopProc.isNil:
     instance.stopProc()
-  server.listeners.delete server.listeners.find instance
+  server.listeners.delete(
+    server.listeners.find instance
+  )
 
 export tcpListener
 export httpListener

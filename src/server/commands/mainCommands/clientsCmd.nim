@@ -1,11 +1,19 @@
 import ../prelude
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
+  if server.clients.len == 0:
+    infolog "no clients connected"
+    return
+
+  var table: JsonNode = %*[]
   for client in server.clients:
-    stdout.styledWrite fgGreen, "[+] ", $client, fgWhite
-    stdout.styledWrite " PID: " & $client.pid
-    stdout.styledWriteLine (if client in server.cli.handlingClient: " (interacting)" else: "")
+    table.add %*{
+      "client": $client,
+      "last check in": client.get_last_checkin(),
+      "process": $client.pid,
+    }
   
+  printTable(table)
   infoLog $server.clients.len & " clients"
 
 let cmd*: Command = Command(

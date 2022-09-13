@@ -35,14 +35,11 @@ else:
     const osType = "unknown"
 
 proc handleTask(app: App, taskTLV: string) =
-  echo taskTLV
-
   let p = initParser()
   p.setBuffer(cast[seq[byte]](taskTLV))
 
   let taskId = p.extractInt32()
   let taskName = p.extractString()
-  echo taskName
   let paramCount = p.extractInt32()
   var params = newSeqOfCap[string](paramCount)
 
