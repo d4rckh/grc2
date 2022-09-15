@@ -3,7 +3,6 @@
 #include <Windows.h>
 
 #include <init.h>
-#include <windows_utils.h>
 #include <http_client.h>
 #include <communication.h>
 #include <tlv.h>
@@ -41,13 +40,12 @@ int main() {
       for (int i = 0; i < tasksCount; i++) {
         int taskId = extractInt32(&tasksTLV);
         int taskNameSize = extractInt32(&tasksTLV);
-        int argc = extractInt32(&tasksTLV);
 
         char * taskName = malloc(taskNameSize + 1);
         extractBytes(&tasksTLV, taskNameSize, taskName);
         taskName[taskNameSize] = 0x00;
 
-        int argBytes = extractInt32(&tasksTLV);
+        int argBytes = extractInt32(&tasksTLV); 
         char * args = malloc(argBytes);
         extractBytes(&tasksTLV, argBytes, args);
         

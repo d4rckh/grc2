@@ -3,6 +3,7 @@
 
 #include <types.h>
 #include <http_client.h>
+#include <windows_utils.h>
 #include <tlv.h>
 
 #include <config.h>
