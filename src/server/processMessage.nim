@@ -45,18 +45,21 @@ proc processMessage*(client: ref C2Client, listenerInstance: ListenerInstance, r
   else: 
     case taskName:
     of "identify":
+      echo "got identification!"
       let p = initParser()
       p.setBuffer(cast[seq[byte]](data))
+      
 
       client.username = p.extractString()
       client.hostname = p.extractString()
       client.isAdmin = p.extractBool()
-
+      
       client.osType = parseEnum[OSType](p.extractString())
 
       client.pid = p.extractInt32()
       client.pname = p.extractString()
-
+      
+      
       client.windowsVersionInfo = WindowsVersionInfo(
         majorVersion: p.extractInt32(),
         minorVersion: p.extractInt32(),

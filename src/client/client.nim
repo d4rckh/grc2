@@ -40,6 +40,7 @@ proc handleTask(app: App, taskTLV: string) =
 
   let taskId = p.extractInt32()
   let taskName = p.extractString()
+  discard p.extractInt32() # param buf size
   let paramCount = p.extractInt32()
   var params = newSeqOfCap[string](paramCount)
 

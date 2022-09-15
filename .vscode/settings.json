@@ -1,0 +1,11 @@
+{
+  "files.associations": {
+    "windows.h": "c",
+    "wininet.h": "c",
+    "stdio.h": "c",
+    "http_client.h": "c",
+    "communication.h": "c",
+    "lmcons.h": "c",
+    "tlv.h": "c"
+  }
+}

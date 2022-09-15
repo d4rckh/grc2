@@ -57,7 +57,6 @@ proc createNewHttpListener*(server: C2Server, instance: ListenerInstance) {.asyn
         onClientCheckin(client[])
         
         var tasks: seq[Task]
-        
         for task in server.tasks:
           if task.status == TaskCreated and task.client == client[]:
             task.status = TaskNotCompleted
