@@ -48,6 +48,7 @@ proc createNewHttpListener*(server: C2Server, instance: ListenerInstance) {.asyn
         return
       if req.reqMethod == HttpPost:
         if not client.isNil():
+          writeFile("a.bin", req.body)
           discard processMessage(client, instance, req.body) 
           await req.respond(Http200, "ok", headers.newHttpHeaders())
         else: 

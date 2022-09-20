@@ -24,6 +24,9 @@ proc toTLV*(task: Task): string =
   let bArgs = initBuilder()  
   bArgs.addInt32(cast[int32](len task.arguments))
   for argument in task.arguments: bArgs.addString(argument)
+  
   b.addString(bArgs.encodeString())
+  
+  writeFile("b.bin", b.encodeString())
   
   return b.encodeString()

