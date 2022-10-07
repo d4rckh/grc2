@@ -7,5 +7,6 @@
     "communication.h": "c",
     "lmcons.h": "c",
     "tlv.h": "c"
-  }
+  },
+  "C_Cpp.errorSquiggles": "Disabled"
 }

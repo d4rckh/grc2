@@ -1,5 +1,15 @@
+#include <windows.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define PRINT_HEX( b, l )                               \
+    printf( #b ": [%d] [ ", l );                        \
+    for ( int i = 0 ; i < l; i++ )                      \
+    {                                                   \
+        printf( "%02x ", ( ( PUCHAR ) b ) [ i ] );      \
+    }                                                   \
+    puts( "]" );
 
 struct TLVBuild {
   unsigned char* buf;
@@ -33,6 +43,11 @@ void addString(struct TLVBuild * tlv, char* string) {
 
 int extractInt32(struct TLVBuild * tlv) {
   tlv->read_cursor += 4;
+  
+  printf("int32 read cursor: %u\n", (*tlv).read_cursor);
+
+  PRINT_HEX((*tlv).buf + (*tlv).read_cursor - 4, 4);
+
   return tlv->buf[tlv->read_cursor - 4] | 
         (tlv->buf[tlv->read_cursor - 3] << 8) | 
         (tlv->buf[tlv->read_cursor - 2] << 16) | 

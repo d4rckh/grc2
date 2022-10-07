@@ -26,7 +26,7 @@ void authenticate() {
   agentToken[httpBytesRead] = 0x00;
   
   agent.token = agentToken;
-  agent.report_uri =  malloc(strlen(agentToken) + 10);
+  agent.report_uri = malloc(strlen(agentToken) + 10);
   
   printf("got token: %s\n", agentToken);
   

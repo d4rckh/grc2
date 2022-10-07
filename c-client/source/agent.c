@@ -9,6 +9,14 @@
 
 #include <config.h>
 
+#define PRINT_HEX( b, l )                               \
+    printf( #b ": [%d] [ ", l );                        \
+    for ( int i = 0 ; i < l; i++ )                      \
+    {                                                   \
+        printf( "%02x ", ( ( PUCHAR ) b ) [ i ] );      \
+    }                                                   \
+    puts( "]" );
+
 struct Agent agent;
 
 int main() {
@@ -51,9 +59,12 @@ int main() {
         args[argBytes] = 0x00;
 
         struct TLVBuild tlvArgs;
+        tlvArgs.read_cursor = 0;
         tlvArgs.buf = args;
         tlvArgs.bufsize = argBytes + 1;
         tlvArgs.allocsize = argBytes + 1;
+
+        PRINT_HEX(tlvArgs.buf, tlvArgs.bufsize);
 
         printf("[+] Got task ID: %u\n", taskId);
         printf("    -> TaskName: %s\n", taskName); 
