@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -61,8 +62,8 @@ void extractBytes(struct TLVBuild * tlv, int bytes, char* buffer) {
   tlv->read_cursor += bytes;
 }
 
-void addBytes(struct TLVBuild * tlv, int size, char* buff) {
-  addInt32(tlv, size);
+void addBytes(struct TLVBuild * tlv, bool save_size, int size, char* buff) {
+  if (save_size) addInt32(tlv, size);
   for (int i = 0; i < size; i ++) {
     addByte(tlv, buff[i]);
   }

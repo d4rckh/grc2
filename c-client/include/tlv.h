@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 struct TLVBuild {
   unsigned char* buf;
   int allocsize;
@@ -10,4 +12,4 @@ void addInt32(struct TLVBuild * tlv, int value);
 void addString(struct TLVBuild * tlv, char* string);
 int extractInt32(struct TLVBuild * tlv);
 void extractBytes(struct TLVBuild * tlv, int bytes, char* buffer);
-void addBytes(struct TLVBuild * tlv, int size, char* buff);
+void addBytes(struct TLVBuild * tlv, bool save_size, int size, char* buff);

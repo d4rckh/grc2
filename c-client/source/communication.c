@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 #include <Windows.h>
 #include <lmcons.h>
 
@@ -48,7 +50,7 @@ void send_output(int taskId, char* typ, char* error, int size, char * buff) {
   addInt32(&outputMessage, taskId);
   addString(&outputMessage, typ);
   addString(&outputMessage, error);
-  addBytes(&outputMessage, size, buff);
+  addBytes(&outputMessage, true, size, buff);
   
   DWORD bytesRead;
   printf("[+] Sending %lu bytes: %.*s\n", outputMessage.bufsize, outputMessage.bufsize, outputMessage.buf);

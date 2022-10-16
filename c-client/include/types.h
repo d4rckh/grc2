@@ -9,6 +9,9 @@ struct Agent {
   } functions;
 };
 
-
+typedef struct {
+  int id;
+  void (*function) (int taskId, int argc, struct TLVBuild * tlv);
+} Command;
 
 extern struct Agent agent;
