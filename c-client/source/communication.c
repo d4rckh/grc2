@@ -3,10 +3,8 @@
 #include <Windows.h>
 #include <lmcons.h>
 
-#include <types.h>
 #include <http_client.h>
-#include <windows_utils.h>
-#include <tlv.h>
+#include <types.h>
 
 #include <config.h>
 
@@ -58,51 +56,4 @@ void send_output(int taskId, char* typ, char* error, int size, char * buff) {
   http_postrequest(
     host, port, agent.report_uri, outputMessage.buf, outputMessage.bufsize
   );
-}
-
-void agent_identify(int taskId) {
-  printf("[+] agent is identifying..\n");
-  
-  struct TLVBuild identifyMessage;
-  identifyMessage.buf = malloc(50);
-  identifyMessage.allocsize = 50;
-  identifyMessage.bufsize = 0;
-
-  char * username = malloc(UNLEN + 1);
-  DWORD usernameLen = UNLEN + 1;
-  GetUserNameA(username, &usernameLen);
-
-  char * hostname = malloc(UNLEN + 1);
-  DWORD hostnameLen = UNLEN + 1;
-  GetComputerNameA(hostname, &hostnameLen);
-  
-  DWORD pid = GetProcessId(GetCurrentProcess());
-  char * processName = malloc(260);
-  getProcessName(pid, processName);
-
-  OSVERSIONINFOEXW osinfo;
-  agent.functions.RtlGetVersion(&osinfo);
-
-  addString(&identifyMessage, username);
-  addString(&identifyMessage, hostname);
-  addByte(&identifyMessage, (char)IsProcessElevated());
-  addString(&identifyMessage, "windows");
-  addInt32(&identifyMessage, pid);
-  addString(&identifyMessage, processName);
-  addInt32(&identifyMessage, osinfo.dwMajorVersion);
-  addInt32(&identifyMessage, osinfo.dwMinorVersion);
-  addInt32(&identifyMessage, osinfo.dwBuildNumber);
-
-  send_output(
-    taskId,
-    "identify",
-    "",
-    identifyMessage.bufsize, 
-    identifyMessage.buf
-  );
-  
-  free(username);
-  free(hostname);
-  free(processName);
-  free(identifyMessage.buf);
 }

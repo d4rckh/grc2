@@ -45,9 +45,9 @@ void addString(struct TLVBuild * tlv, char* string) {
 int extractInt32(struct TLVBuild * tlv) {
   tlv->read_cursor += 4;
   
-  printf("int32 read cursor: %u\n", (*tlv).read_cursor);
+  // printf("int32 read cursor: %u\n", (*tlv).read_cursor);
 
-  PRINT_HEX((*tlv).buf + (*tlv).read_cursor - 4, 4);
+  // PRINT_HEX((*tlv).buf + (*tlv).read_cursor - 4, 4);
 
   return tlv->buf[tlv->read_cursor - 4] | 
         (tlv->buf[tlv->read_cursor - 3] << 8) | 

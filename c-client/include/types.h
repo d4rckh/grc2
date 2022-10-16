@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <tlv.h>
 
 struct Agent {
   char * report_uri;

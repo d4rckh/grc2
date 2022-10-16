@@ -109,7 +109,8 @@ type
   Task* = ref object
     client*: C2Client
     id*: int
-    action*: string
+    action*: int
+    actionName*: string
     status*: TaskStatus
     arguments*: seq[string]
     future*: ref Future[void]
@@ -184,7 +185,7 @@ proc get_last_checkin*(client: C2Client): string =
     result = "not check in's"
 
 proc `$`*(task: Task): string =
-  var x = task.action & " ["
+  var x = task.actionName & " ["
 
   case task.status:
     of TaskCompleted:

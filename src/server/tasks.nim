@@ -19,7 +19,7 @@ proc toTLV*(task: Task): string =
   let b = initBuilder()
   
   b.addInt32(cast[int32](task.id))
-  b.addString(task.action)
+  b.addInt32(cast[int32](task.action))
 
   let bArgs = initBuilder()  
   bArgs.addInt32(cast[int32](len task.arguments))

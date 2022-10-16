@@ -1,18 +1,18 @@
 import ../types
 
 import interactCommands/[
-  downloadCmd,
-  infoCmd,
-  injectShellcodeCmd,
-  msgboxCmd,
-  processesCmd,
-  sendtaskCmd,
+  # downloadCmd,
+  # infoCmd,
+  # injectShellcodeCmd,
+  # msgboxCmd,
+  # processesCmd,
+  # sendtaskCmd,
   shellCmd,
-  tokeninfoCmd,
-  uploadCmd,
-  sleepCmd,
-  enumtasksCmd,
-  antivirusesCmd
+  # tokeninfoCmd,
+  # uploadCmd,
+  # sleepCmd,
+  # enumtasksCmd,
+  # antivirusesCmd
 ]
 
 import mainCommands/[
@@ -32,18 +32,18 @@ import mainCommands/[
 ]
 
 let commands*: seq[Command] = @[
-  downloadCmd.cmd,
-  infoCmd.cmd,
-  injectShellcodeCmd.cmd,
-  msgboxCmd.cmd,
-  processesCmd.cmd,
-  sendtaskCmd.cmd,
+  # downloadCmd.cmd,
+  # infoCmd.cmd,
+  # injectShellcodeCmd.cmd,
+  # msgboxCmd.cmd,
+  # processesCmd.cmd,
+  # sendtaskCmd.cmd,
   shellCmd.cmd,
-  tokeninfoCmd.cmd,
-  uploadCmd.cmd,
-  sleepCmd.cmd,
-  enumtasksCmd.cmd,
-  antivirusesCmd.cmd,
+  # tokeninfoCmd.cmd,
+  # uploadCmd.cmd,
+  # sleepCmd.cmd,
+  # enumtasksCmd.cmd,
+  # antivirusesCmd.cmd,
 
   backCmd.cmd,
   clearCmd.cmd,

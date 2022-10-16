@@ -18,7 +18,7 @@ proc createNewHttpListener*(server: C2Server, instance: ListenerInstance) {.asyn
 
   var httpServer = newAsyncHttpServer()
 
-  proc cb(req: Request) {.async.} =
+  proc cb(req: Request) {.async, gcsafe.} =
     # echo (req.reqMethod, req.url, req.headers)
     let headers = {"Content-type": "text/plain; charset=utf-8"}
     if req.url.path == "/r":
@@ -49,7 +49,8 @@ proc createNewHttpListener*(server: C2Server, instance: ListenerInstance) {.asyn
       if req.reqMethod == HttpPost:
         if not client.isNil():
           writeFile("a.bin", req.body)
-          discard processMessage(client, instance, req.body) 
+          {.gcsafe.}:
+            discard processMessage(client, instance, req.body) 
           await req.respond(Http200, "ok", headers.newHttpHeaders())
         else: 
           await req.respond(Http400, "error", headers.newHttpHeaders())
