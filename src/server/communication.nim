@@ -5,6 +5,8 @@ import types, logging, events
 let id_s: Table[string, int] = {
   "identify": 0,
   "shell": 7,
+
+  "dir": 100
 }.toTable
 
 proc sendClientTask*(client: C2Client, taskName: string, arguments: seq[string] = @[]): Future[Task] {.async.} =

