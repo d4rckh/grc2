@@ -5,7 +5,7 @@
 #include <WinInet.h>
 #include <stdio.h>
 
-int http_getrequest(
+int httpGet(
   char * host, 
   int port, 
   char * path, 
@@ -13,7 +13,8 @@ int http_getrequest(
   DWORD * dwBytesRead, 
   char * buffer
 );
-int http_postrequest(
+
+int httpPost(
   char * host, 
   int port, 
   char * path, 

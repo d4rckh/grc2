@@ -5,7 +5,7 @@
 /**
  * https://vimalshekar.github.io/codesamples/Checking-If-Admin
  */
-BOOL IsProcessElevated()
+BOOL isProcessElevated()
 {
 	BOOL fIsElevated = FALSE;
 	HANDLE hToken = NULL;
