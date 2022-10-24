@@ -19,6 +19,24 @@ struct TLVBuild {
   int read_cursor;
 };
 
+struct TLVBuild allocStruct(int size) {
+  struct TLVBuild tlv;
+  tlv.read_cursor = 0;
+  tlv.buf = malloc(size);
+  tlv.bufsize = 0;
+  tlv.allocsize = size;
+  return tlv;
+};
+
+struct TLVBuild tlvFromBuf(char * buf, int size) {
+  struct TLVBuild tlv;
+  tlv.read_cursor = 0;
+  tlv.buf = buf;
+  tlv.bufsize = size;
+  tlv.allocsize = size;
+  return tlv;
+};
+
 void addByte(struct TLVBuild * tlv, char byt) {
   if (tlv->bufsize >= tlv->allocsize) {
     tlv->buf = realloc(tlv->buf, tlv->bufsize+512);

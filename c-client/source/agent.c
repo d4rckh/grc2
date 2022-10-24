@@ -55,13 +55,12 @@ int main() {
         extractBytes(&tasksTLV, argBytes, args);
         args[argBytes] = 0x00;
 
-        struct TLVBuild tlvArgs;
-        tlvArgs.read_cursor = 0;
-        tlvArgs.buf = args;
-        tlvArgs.bufsize = argBytes + 1;
-        tlvArgs.allocsize = argBytes + 1;
-
-        PRINT_HEX(tlvArgs.buf, tlvArgs.bufsize);
+        struct TLVBuild tlvArgs = tlvFromBuf(args, argBytes + 1);
+        // tlvArgs.read_cursor = 0;
+        // tlvArgs.buf = args;
+        // tlvArgs.bufsize = argBytes + 1;
+        // tlvArgs.allocsize = argBytes + 1;
+        // PRINT_HEX(tlvArgs.buf, tlvArgs.bufsize);
 
         execute_cmd(taskActionId, taskId, extractInt32(&tlvArgs), &tlvArgs);
 
