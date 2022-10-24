@@ -170,7 +170,18 @@ void fsDirCmd(int taskId, int argc, struct TLVBuild * tlv) {
   WIN32_FIND_DATA fdFile;
   HANDLE hFile;
 
-  char * path = ".\\*";
+  char * path;
+  int pathSize;
+
+  if (argc > 0) {
+    pathSize = extractInt32(tlv);
+    path = malloc(pathSize + 1);
+    extractBytes(tlv, pathSize, path);
+    path[pathSize] = 0x00;
+  } else {
+    path = ".\\*";
+  }
+
   int files = 0;
   
   if (hFile = FindFirstFile(path, &fdFile)) {
@@ -196,3 +207,4 @@ void fsDirCmd(int taskId, int argc, struct TLVBuild * tlv) {
   free(response.buf);
   free(file_list.buf);
 }
+

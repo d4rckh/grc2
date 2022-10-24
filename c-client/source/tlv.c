@@ -4,14 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PRINT_HEX( b, l )                               \
-    printf( #b ": [%d] [ ", l );                        \
-    for ( int i = 0 ; i < l; i++ )                      \
-    {                                                   \
-        printf( "%02x ", ( ( PUCHAR ) b ) [ i ] );      \
-    }                                                   \
-    puts( "]" );
-
 struct TLVBuild {
   unsigned char* buf;
   int allocsize;
