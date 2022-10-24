@@ -173,33 +173,34 @@ void fs_dir_cmd(int taskId, int argc, struct TLVBuild * tlv) {
   printf("[+] listing files\n");
 
   struct TLVBuild response;
+  struct TLVBuild file_list;
+  
+  WIN32_FIND_DATA fdFile;
+  HANDLE hFile;
+
+  char * path = ".\\*";
+  int files = 0;
+
   response.read_cursor = 0;
   response.allocsize = 10;
   response.bufsize = 0;
   response.buf = malloc(10);
   
-  struct TLVBuild file_list;
   file_list.read_cursor = 0;
   file_list.allocsize = 10;
   file_list.bufsize = 0;
   file_list.buf = malloc(10);
   
-  char * path = ".\\*";
-  WIN32_FIND_DATA fdFile;
-  HANDLE hFile;
-
-  int i = 0;
-
   if (hFile = FindFirstFile(path, &fdFile)) {
 
     do {
       addString(&file_list, fdFile.cFileName);
-      i++;
+      files++;
     } while (FindNextFile(hFile, &fdFile));
 
   };
 
-  addInt32(&response, i);
+  addInt32(&response, files);
   addBytes(&response, false, file_list.bufsize, file_list.buf);
 
   send_output(
