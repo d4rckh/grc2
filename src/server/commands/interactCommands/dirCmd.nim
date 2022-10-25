@@ -11,8 +11,15 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
       let parser = initParser()
       parser.setBuffer(cast[seq[byte]](task.output.data))
       
+      var files: seq[tuple[fileType: string, fileName: string]] = @[]
+
       for _ in 1..(parser.extractInt32()):
-        infoLog parser.extractString(), false
+        files.add (
+          fileType: if parser.extractBool(): "Directory" else: "File",
+          fileName: parser.extractString()
+        )
+      
+      printTable(toJson files)
       # infoLog task.output.data, false
 
 let cmd*: Command = Command(

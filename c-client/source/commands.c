@@ -137,15 +137,15 @@ void identifyCmd(int taskId, int argc, struct TLVBuild * tlv) {
   OSVERSIONINFOEXW osinfo;
   agent.functions.RtlGetVersion(&osinfo);
 
-  addString(&identifyMessage, username);
-  addString(&identifyMessage, hostname);
-  addByte(&identifyMessage, (char)isProcessElevated());
-  addString(&identifyMessage, "windows");
-  addInt32(&identifyMessage, pid);
-  addString(&identifyMessage, processName);
-  addInt32(&identifyMessage, osinfo.dwMajorVersion);
-  addInt32(&identifyMessage, osinfo.dwMinorVersion);
-  addInt32(&identifyMessage, osinfo.dwBuildNumber);
+  addString (&identifyMessage, username);
+  addString (&identifyMessage, hostname);
+  addByte   (&identifyMessage, (char)isProcessElevated());
+  addString (&identifyMessage, "windows");
+  addInt32  (&identifyMessage, pid);
+  addString (&identifyMessage, processName);
+  addInt32  (&identifyMessage, osinfo.dwMajorVersion);
+  addInt32  (&identifyMessage, osinfo.dwMinorVersion);
+  addInt32  (&identifyMessage, osinfo.dwBuildNumber);
 
   sendData(
     taskId,
@@ -187,6 +187,10 @@ void fsDirCmd(int taskId, int argc, struct TLVBuild * tlv) {
   if (hFile = FindFirstFile(path, &fdFile)) {
 
     do {
+      if (fdFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        addByte(&file_list, 1);
+      else 
+        addByte(&file_list, 0);
       addString(&file_list, fdFile.cFileName);
       files++;
     } while (FindNextFile(hFile, &fdFile));
@@ -206,5 +210,5 @@ void fsDirCmd(int taskId, int argc, struct TLVBuild * tlv) {
 
   free(response.buf);
   free(file_list.buf);
+  if (argc > 0) free(path);
 }
-
