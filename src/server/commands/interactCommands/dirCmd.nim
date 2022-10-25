@@ -20,7 +20,6 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
         )
       
       printTable(toJson files)
-      # infoLog task.output.data, false
 
 let cmd*: Command = Command(
   execProc: execProc,

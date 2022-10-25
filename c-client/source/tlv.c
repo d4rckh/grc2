@@ -71,6 +71,13 @@ void extractBytes(struct TLVBuild * tlv, int bytes, char* buffer) {
   tlv->read_cursor += bytes;
 }
 
+void extractAllocString(struct TLVBuild * tlv, char** buffer) {
+  int stringSize = extractInt32(tlv) + 1;
+  *buffer = malloc(stringSize);
+  extractBytes(tlv, stringSize - 1, *buffer);
+  (*buffer)[stringSize - 1] = 0x00;
+}
+
 void addBytes(struct TLVBuild * tlv, bool save_size, int size, char* buff) {
   if (save_size) addInt32(tlv, size);
   for (int i = 0; i < size; i ++) {

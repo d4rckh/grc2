@@ -30,7 +30,6 @@ proc sendClientTask*(client: C2Client, taskName: string, arguments: seq[string] 
   client.server.tasks.add(createdTask)
   
   onClientTasked(client, createdTask)
-  prompt(client.server)
   return createdTask
 
 

