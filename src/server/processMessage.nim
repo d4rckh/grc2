@@ -1,19 +1,12 @@
 import std/[
   asyncdispatch, 
   asyncfutures, 
-  strutils, 
   strformat, 
-  md5
 ]
 
 import tlv
 
-import types, logging, communication, events, tasks
-
-proc generateClientHash(c: C2Client) =
-  c.hash = getMD5(
-    fmt"{c.ipAddress}{c.hostname}{c.username}{c.osType}{$c.windowsVersionInfo}"
-  )
+import types, logging, communication, events, tasks, clients
 
 proc processMessage*(client: ref C2Client, listenerInstance: ListenerInstance, response: string) {.async.} = 
   let server = client.server
@@ -45,27 +38,10 @@ proc processMessage*(client: ref C2Client, listenerInstance: ListenerInstance, r
   else: 
     case taskName:
     of "identify":
-      let p = initParser()
-      p.setBuffer(cast[seq[byte]](data))
-      
-      client.username = p.extractString()
-      client.hostname = p.extractString()
-      client.isAdmin = p.extractBool()
-      client.osType = parseEnum[OSType](p.extractString())
-      client.pid = p.extractInt32()
-      client.pname = p.extractString()
-      client.windowsVersionInfo = WindowsVersionInfo(
-        majorVersion: p.extractInt32(),
-        minorVersion: p.extractInt32(),
-        buildNumber: p.extractInt32()
-      )
-
-      client[].generateClientHash()
-
+      client[].identify(data)
       if not client.loaded:
         client.loaded = true
-        onClientConnected(client[])
-        cConnected client[]
+        logClientIdentifiction client[]
     of "output":
       infoLog $client[] & " completed task " & task.actionName
 

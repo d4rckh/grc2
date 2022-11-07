@@ -10,7 +10,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
     table.add %*{
       "client": $client,
       "last check in": client.get_last_checkin(),
-      "process": $client.pid,
+      "process": client.pname & "(" & $client.pid & ")",
     }
   
   printTable(table)

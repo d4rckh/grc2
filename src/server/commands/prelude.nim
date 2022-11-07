@@ -5,9 +5,10 @@ import std/[
   strutils,
   jsonutils,
   os, osproc,
-  terminal
+  terminal,
+  algorithm
 ]
-export asyncdispatch, tables, json, jsonutils, strutils, os, osproc, terminal
+export asyncdispatch, tables, json, jsonutils, strutils, os, osproc, terminal, algorithm
 
 import tlv
 export tlv

@@ -47,8 +47,6 @@ proc processMessages(server: C2Server, tcpListener: TCPListener, tcpSocket: TCPS
     except IndexDefect:
       client.connected = false
       tcpSocket.socket.close()
-      cDisconnected(client[], "client died")
-      onClientDisconnected(client[])
       break
 
     if line == "tasksplz":

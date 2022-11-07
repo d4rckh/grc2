@@ -1,10 +1,15 @@
 #include <Windows.h>
+#include <stdbool.h>
+
 #include <tlv.h>
 
 struct Agent {
   char * report_uri;
-  char * token;    
+  char * token;
+  bool connected; 
   
+  HANDLE fileHandles[100];
+
   struct {
     VOID (WINAPI * RtlGetVersion)(POSVERSIONINFOEXW);
   } functions;

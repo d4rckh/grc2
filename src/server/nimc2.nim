@@ -17,13 +17,7 @@ let server = C2Server(
   debug: false
 )
 
-proc ctrlc() {.noconv.} =
-  if server.cli.interactive or not server.cli.initialized:
-    quit 0
-  else:
-    for task in server.tasks:
-      task.future[].complete()
-setControlCHook(ctrlc)
+printBanner()
 
 when defined(debug):
   server.debug = true
@@ -41,8 +35,6 @@ when defined(debug):
   )
   
 when defined(debug):
-  # import httpapi/httpserver
-  # asyncCheck startHttpAPI(server)
   import tcpApi
   asyncCheck startTcpApi(server)
 asyncCheck procStdin(server)

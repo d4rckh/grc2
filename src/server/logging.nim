@@ -4,6 +4,15 @@ import terminaltables
 
 import types, loot
 
+proc printBanner*() =
+  echo """
+       grim    ____  
+  __ _ _ __ ___|___ \ 
+ / _` | '__/ __| __) |
+| (_| | | | (__ / __/ 
+ \__, |_|  \___|_____|
+ |___/    reaper"""
+
 proc genClientSummary(client: seq[C2Client]): string =
   var menu = "client:unknown"
   if client.len > 0:
@@ -40,7 +49,7 @@ proc prompt*(server: C2Server) =
   of ShellMode:
     menu = genClientSummary(client)
     sign = (if client.len == 1: ( if client[0].isAdmin: "#" else: "$" ) else: "?")
-  stdout.styledWrite "(", menu, ")", shellColor, " nimc2 ", sign, " " , fgDefault
+  stdout.styledWrite "(", menu, ")", shellColor, " grc2 ", sign, " " , fgDefault
   stdout.flushFile()
 
 proc infoLog*(msg: string, colorText: bool = true) =
@@ -57,13 +66,9 @@ proc errorLog*(msg: string) =
   for line in msg.split("\n"):
     stdout.styledWriteLine fgRed, "[!] ", line, fgDefault
 
-proc cConnected*(client: C2Client) =
+proc logClientIdentifiction*(client: C2Client) =
   client.createLootDirectories()
   stdout.styledWriteLine fgGreen, "[+] ", $client, " identified", fgDefault
-  prompt(client.server)
-
-proc cDisconnected*(client: C2Client, reason: string = "client died") =
-  stdout.styledWriteLine fgRed, "[-] ", $client, " disconnected", fgWhite, " (", reason, ")"
   prompt(client.server)
 
 proc logClientOutput*(client: C2Client, category: string, b64: string) =

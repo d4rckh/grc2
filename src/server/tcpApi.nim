@@ -10,7 +10,7 @@ import std/[
 
 import teamserverApi
 
-import types, logging, communication, loot
+import types, logging, communication, loot, clients
 
 proc processMessages(server: C2Server, tcpSocket: AsyncSocket) {.async.} =
 

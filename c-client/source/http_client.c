@@ -24,6 +24,7 @@ int httpGet(char * host, int port, char * path, DWORD dwFileSize, DWORD * dwByte
 
   if (!InternetReadFile(hHttpFile, buffer, dwFileSize + 1, dwBytesRead)) {
     printf("InternetReadFile Error: (%lu)", GetLastError());
+    return 0;
   }
 
   return 1;

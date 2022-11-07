@@ -6,7 +6,8 @@ let id_s: Table[string, int] = {
   "identify": 0,
   "shell": 7,
 
-  "dir": 100
+  "dir": 100,
+  "fsopenfile": 101,
 }.toTable
 
 proc sendClientTask*(client: C2Client, taskName: string, arguments: seq[string] = @[]): Future[Task] {.async.} =
@@ -32,7 +33,6 @@ proc sendClientTask*(client: C2Client, taskName: string, arguments: seq[string] 
   onClientTasked(client, createdTask)
   return createdTask
 
-
 proc awaitResponse*(task: Task): Future[void] =
   task.client.server.cli.waitingForOutput = true
   if task.future[].isNil():
@@ -41,11 +41,3 @@ proc awaitResponse*(task: Task): Future[void] =
 
 proc askToIdentify*(client: C2Client) {.async.} =
   discard await client.sendClientTask("identify")
-
-proc getClientByHash*(server: C2Server, hash: string): C2Client =
-  for client in server.clients: 
-    if client.hash == hash: return client
-
-proc getClientById*(server: C2Server, id: string): C2Client =
-  for client in server.clients: 
-    if client.id == id: return client

