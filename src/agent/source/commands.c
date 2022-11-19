@@ -6,8 +6,9 @@
 #include <types.h>
 #include <communication.h>
 #include <commands.h>
+#include <utils.h>
 
-#define COMMAND_COUNT 4
+#define COMMAND_COUNT 7
 
 Command commands[COMMAND_COUNT] = {
   {.id = 0, .function = identifyCmd },
@@ -16,6 +17,9 @@ Command commands[COMMAND_COUNT] = {
   // fs 
   {.id = 100, .function = fsDirCmd },
   {.id = 101, .function = fsOpenFileCmd },
+  {.id = 102, .function = fsWriteFileCmd },
+  {.id = 103, .function = fsCloseFileCmd },
+  {.id = 104, .function = fsReadFileCmd }
 };
 
 void executeCmd(int taskActionId, int taskId, int argc, struct TLVBuild * tlv) {
@@ -195,8 +199,10 @@ void fsOpenFileCmd(int taskId, int argc, struct TLVBuild * tlv) {
   struct TLVBuild output = allocStruct(50);
   int fileHandleIndex;
   int success = 0;
+  int save_file_size = 0;
   char * file_path;
   char * open_for;
+  LARGE_INTEGER file_size;
   extractAllocString(tlv, &open_for);
   extractAllocString(tlv, &file_path);
 
@@ -206,33 +212,140 @@ void fsOpenFileCmd(int taskId, int argc, struct TLVBuild * tlv) {
   {
     printf("Opening file for writing\n");
     fileHandle = CreateFile(
-      file_path,
-      GENERIC_WRITE,
-      0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL,
+      file_path, GENERIC_WRITE, 0, NULL, 
+      CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL
+    );
+
+    if (fileHandle == INVALID_HANDLE_VALUE)
+    { printf("Couldn't open file %ld\n", GetLastError()); 
+      goto _openFileCmd_cleanup; }
+
+  }
+  else if (strcmp(open_for, "r") == 0)
+  {
+    fileHandle = CreateFile(file_path,               // file to open
+      GENERIC_READ,          // open for reading
+      FILE_SHARE_READ,       // share for reading
+      NULL,                  // default security
+      OPEN_EXISTING,         // existing file only
+      FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, // normal file
       NULL
     );
 
     if (fileHandle == INVALID_HANDLE_VALUE)
-    {
-      printf("Couldn't open file\n"); 
-      goto _openFileCmd_cleanup; 
-    }
-  } else goto _openFileCmd_cleanup;
+    { printf("Couldn't open file %ld\n", GetLastError()); 
+      goto _openFileCmd_cleanup; }
+
+    if (!GetFileSizeEx(fileHandle, &file_size))
+    { printf("Couldn't get file size\n");
+      goto _openFileCmd_cleanup; }
+
+    printf("File size %ld\n", file_size.QuadPart);
+
+    if (file_size.QuadPart > 4000000000) 
+    { printf("Can't read files larger than 4GB.\n");
+      goto _openFileCmd_cleanup; }
+
+    save_file_size = 1;
+
+  }
+  else goto _openFileCmd_cleanup;
 
   for (fileHandleIndex = 0; fileHandleIndex < 100; fileHandleIndex++)
-    if (agent.fileHandles[fileHandleIndex] == 0) {
-      break;
-    }
+    if (agent.fileHandles[fileHandleIndex] == 0) break;
 
   agent.fileHandles[fileHandleIndex] = fileHandle;
-  addInt32(&output, fileHandleIndex);
+  success = 1;
 
 _openFileCmd_cleanup:
   if (!success) addInt32(&output, -1);
+  else {
+    addInt32(&output, fileHandleIndex);
+    if (save_file_size) addInt32(&output, (int)file_size.QuadPart);
+  }
 
   sendOutput(taskId, output);
-
   free(file_path);
   free(open_for);
+  free(output.buf);
+}
+
+void fsWriteFileCmd(int taskId, int argc, struct TLVBuild * tlv) {
+  // if (argc < 2) return;
+  printf("writing to file\n");
+  struct TLVBuild output = allocStruct(50);
+  int success = 0;
+  int handleId = extractInt32(tlv);
+  int bufSize = extractInt32(tlv);
+  char * buf = malloc(bufSize);
+
+  HANDLE fileHandle = agent.fileHandles[handleId];
+  DWORD bytesWrittten;
+  
+  if (isHandleValid(handleId)) {
+    extractBytes(tlv, bufSize, buf);
+
+    if (WriteFile(fileHandle, buf, bufSize, &bytesWrittten, NULL)) success = 1;
+    else printf("Error writting file.\n");
+  } else {
+    printf("Got invalid handle\n");
+  }
+
+  addInt32(&output, success);
+  sendOutput(taskId, output);
+
+  free(buf);
+  free(output.buf);
+}
+
+void fsReadFileCmd(int taskId, int argc, struct TLVBuild * tlv) 
+{
+  // if (argc < 2) return;
+  printf("read file\n");
+  struct TLVBuild output = allocStruct(50);
+  int success = 1;
+  int handleId = extractInt32(tlv);
+  int bufSize = extractInt32(tlv);
+  char * buf = malloc(bufSize);
+
+  HANDLE fileHandle;
+  DWORD bytesRead = 0;
+
+  if (isHandleValid(handleId)) 
+  {
+    fileHandle = agent.fileHandles[handleId];
+    if (!ReadFile(fileHandle, buf, bufSize, &bytesRead, NULL)) 
+    {
+      printf("Error reading file %ld\n", GetLastError());
+      success = -1;
+    }
+  } else 
+  {
+    printf("Got invalid handle.\n");
+    success = -1;
+  };
+
+  addInt32(&output, success);
+  addBytes(&output, true, bytesRead, buf);
+  sendOutput(taskId, output);
+
+  free(buf);
+  free(output.buf);
+}
+
+void fsCloseFileCmd(int taskId, int argc, struct TLVBuild * tlv) 
+{
+  // if (argc < 2) return;
+  printf("closing file\n");
+  struct TLVBuild output = allocStruct(5);
+  int success = 1;
+  int handleId = extractInt32(tlv);
+  
+  HANDLE fileHandle = agent.fileHandles[handleId];
+  CloseHandle(fileHandle);
+
+  addInt32(&output, 1);
+  sendOutput(taskId, output);
+
   free(output.buf);
 }

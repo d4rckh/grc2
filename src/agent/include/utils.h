@@ -1,0 +1,1 @@
+int isHandleValid(int index);

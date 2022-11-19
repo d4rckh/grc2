@@ -11,7 +11,7 @@ proc execProc(cmd: Command, originalCommand: string, args: seq[string], flags: T
 
   let port = flags.getOrDefault("port", flags.getOrDefault("p", ""))
   let ip = flags.getOrDefault("ip", flags.getOrDefault("i", ""))
-  
+
   if port == "" and ip == "":
     errorLog "--ip and --port flags are required"
     return

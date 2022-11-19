@@ -8,7 +8,7 @@ import std/[
 
 import uuid4, tlv
 
-import ../types, ../logging, ../processMessage, ../events, ../tasks
+import ../types, ../logging, ../processMessage, ../tasks
 
 type 
   TCPSocket* = ref object
@@ -51,7 +51,6 @@ proc processMessages(server: C2Server, tcpListener: TCPListener, tcpSocket: TCPS
 
     if line == "tasksplz":
       client.lastCheckin = now()
-      onClientCheckin(client[])  
 
       var tasks: seq[Task]
       

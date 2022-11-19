@@ -43,7 +43,7 @@ proc processMessage*(client: ref C2Client, listenerInstance: ListenerInstance, r
         client.loaded = true
         logClientIdentifiction client[]
     of "output":
-      infoLog $client[] & " completed task " & task.actionName
+      when defined(debug): infoLog $client[] & " completed task " & task.actionName
 
     task.output = TaskOutput(
       error: error,

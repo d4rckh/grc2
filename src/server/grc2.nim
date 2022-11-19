@@ -33,10 +33,7 @@ when defined(debug):
     httpListener.listener,
     "127.0.0.1", Port 8080, params
   )
-  
-when defined(debug):
-  import tcpApi
-  asyncCheck startTcpApi(server)
+
 asyncCheck procStdin(server)
 
 runForever()

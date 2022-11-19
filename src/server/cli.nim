@@ -8,7 +8,7 @@ import std/[
   sequtils 
 ]
 
-import types, logging, communication
+import types, logging, communication, utils/tlvHelpers
 
 proc procStdin*(server: C2Server) {.async.} =
 
@@ -37,7 +37,7 @@ proc procStdin*(server: C2Server) {.async.} =
           c2cli.mode = ClientInteractMode
         else:
           for client in c2cli.handlingClient:
-            let task = await client.sendClientTask("shell", @[ args.join(" ") ])
+            let task = await client.sendClientTask("shell", tlvFromStringSeq(@[ args.join(" ") ]).buf)
             if not task.isNil(): 
               c2cli.waitingForOutput = true
       else:
@@ -78,7 +78,6 @@ proc procStdin*(server: C2Server) {.async.} =
                   prompt(server)
               asyncCheck commandFuture
               commandFuture.addCallback(cb)
-
             c2cli.interactive = true
 
       prompt(server)

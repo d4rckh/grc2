@@ -1,7 +1,7 @@
 import ../types
 
 import interactCommands/[
-  # downloadCmd,
+  downloadCmd,
   infoCmd,
   # injectShellcodeCmd,
   # msgboxCmd,
@@ -33,7 +33,7 @@ import mainCommands/[
 ]
 
 let commands*: seq[Command] = @[
-  # downloadCmd.cmd,
+  downloadCmd.cmd,
   infoCmd.cmd,
   # injectShellcodeCmd.cmd,
   # msgboxCmd.cmd,

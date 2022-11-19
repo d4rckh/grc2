@@ -6,7 +6,7 @@ import std/[
   times
 ]
 
-import ../types, ../logging, ../processMessage, ../events, ../../utils, ../tasks
+import ../types, ../logging, ../processMessage, ../../utils, ../tasks
 
 import tlv
 
@@ -19,7 +19,6 @@ proc createNewHttpListener*(server: C2Server, instance: ListenerInstance) {.asyn
   var httpServer = newAsyncHttpServer()
 
   proc cb(req: Request) {.async, gcsafe.} =
-    # echo (req.reqMethod, req.url, req.headers)
     let headers = {"Content-type": "text/plain; charset=utf-8"}
     if req.url.path == "/r":
       let token = rndStr()
@@ -56,7 +55,6 @@ proc createNewHttpListener*(server: C2Server, instance: ListenerInstance) {.asyn
           await req.respond(Http400, "error", headers.newHttpHeaders())
       elif req.reqMethod == HttpGet:
         client.lastCheckin = now()
-        onClientCheckin(client[])
         
         var tasks: seq[Task]
         for task in server.tasks:

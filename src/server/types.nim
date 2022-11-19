@@ -24,9 +24,6 @@ type
     TaskCompletedWithError = "completederror", 
     TaskCancelled = "cancelled"
 
-  PreparationSubject* = enum
-    PSListener
-
   CliMode* = enum
     MainMode, ClientInteractMode, ShellMode, PreparationMode
 
@@ -69,8 +66,6 @@ type
     clients*: seq[C2Client]
     cli*: C2Cli
     configuration*: Table[string, string]
-    # listeners
-    # tcpListeners*: seq[TCPListener]
     listeners*: seq[ListenerInstance]
     wsConnections*: seq[WebSocket]
     teamserverClients*: seq[AsyncSocket]
@@ -102,7 +97,6 @@ type
     initialized*: bool
     interactive*: bool
     commands*: seq[Command]
-    preparing*: PreparationSubject
     lastCommand*: string
     waitingForOutput*: bool
 
@@ -112,7 +106,7 @@ type
     action*: int
     actionName*: string
     status*: TaskStatus
-    arguments*: seq[string]
+    dataBuf*: seq[byte]
     future*: ref Future[void]
     output*: TaskOutput
  
